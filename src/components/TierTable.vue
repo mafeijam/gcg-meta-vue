@@ -1,8 +1,10 @@
 <template>
-  <div class="hidden overflow-hidden rounded-lg bg-white not-dark:shadow-xs not-dark:shadow-gray-400/15 md:block dark:bg-nalika-surface">
+  <div
+    class="hidden overflow-hidden rounded-lg bg-white not-dark:shadow-xs not-dark:shadow-gray-400/15 md:block dark:bg-nalika-surface"
+  >
     <table class="w-full text-left text-sm">
       <thead>
-        <tr class="bg-blue-50 text-gray-900 dark:bg-nalika-header dark:text-nalika-text">
+        <tr class="bg-blue-800 text-stone-100 dark:bg-nalika-header dark:text-nalika-text">
           <th class="px-4 py-3 font-semibold">Archetype</th>
           <th class="px-4 py-3 text-right font-semibold">Decks</th>
           <th class="px-4 py-3 text-right font-semibold">Wins</th>
@@ -19,7 +21,7 @@
         <tr
           v-for="row in rows"
           :key="row.archetype"
-          class="text-gray-500 odd:bg-gray-100/5 even:bg-gray-100/45 hover:bg-blue-50/30 dark:text-nalika-text-muted dark:even:bg-white/3 dark:hover:bg-white/10"
+          class="text-gray-500 odd:bg-gray-100/5 even:bg-gray-100/45 hover:bg-gray-200/50 dark:text-nalika-text-muted dark:even:bg-white/3 dark:hover:bg-white/10"
         >
           <td class="px-4 py-3">
             <span class="inline-flex items-center gap-0.5">
@@ -58,10 +60,7 @@
             <span class="font-mono tabular-nums">{{ row.score }}</span>
           </td>
           <td class="px-4 py-3 text-right">
-            <span
-              class="rounded px-1.5 py-0.5 text-xs font-bold"
-              :class="tierPillClass(row.tier)"
-            >
+            <span class="rounded px-1.5 py-0.5 text-xs font-bold" :class="tierPillClass(row.tier)">
               {{ row.tier }}
             </span>
           </td>
