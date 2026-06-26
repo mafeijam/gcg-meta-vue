@@ -1,0 +1,26 @@
+{
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[tailwindcss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "tailwindCSS.experimental.classRegex": [
+    "tw`(.*?)`",
+    "tw\\('(.*?)'\\)",
+    "tw\\(\\s*('(.*?)'|\"(.*?)\")\\s*\\)"
+  ],
+  "tailwindCSS.classFunctions": ["tw", "clsx", "tw\\.[a-z-]+"],
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+  "eslint.validate": ["vue", "javascript"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "always"
+  }
+}
