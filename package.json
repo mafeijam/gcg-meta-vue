@@ -11,7 +11,10 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "scrape": "node scripts/scrape-tournaments.mjs",
+    "scrape:cards": "node scripts/scrape-cards.mjs",
+    "scrape:tournament": "node scripts/scrape-tournaments.mjs",
+    "build:tiers": "node scripts/build-tiers.mjs",
+    "data": "node scripts/scrape-cards.mjs && node scripts/scrape-tournaments.mjs && node scripts/build-tiers.mjs",
     "postinstall": "node scripts/generate.mjs"
   },
   "dependencies": {
@@ -33,6 +36,7 @@
     "globals": "^17.7.0",
     "prettier": "^3.8.4",
     "prettier-plugin-tailwindcss": "^0.8.0",
+    "simple-statistics": "^7.9.1",
     "tailwindcss": "^4.3.1",
     "unplugin-auto-import": "^21.0.0",
     "unplugin-vue-components": "^32.1.0",

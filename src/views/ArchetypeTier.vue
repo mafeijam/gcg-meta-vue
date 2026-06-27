@@ -14,16 +14,26 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { rowsJun, rowsMay, rowsMar } from '@/data/tiers'
+import tierData from '@/data/tiers.json'
 
-const seriesOptions = [
-  { value: 'jun', label: 'NTC MISSION3（6月開催）' },
-  { value: 'may', label: 'NTC MISSION3（5月開催）' },
-  { value: 'mar', label: 'NTC MISSION2（3月開催）' },
-]
+const router = useRouter()
+const route = useRoute()
 
-const selectedKey = ref('jun')
-const map = { jun: rowsJun, may: rowsMay, mar: rowsMar }
-const rows = computed(() => map[selectedKey.value])
+const seriesOptions = tierData.map(s => ({
+  value: s.value,
+  label: s.label,
+}))
+
+const validSeries = tierData.map(s => s.value)
+const initial = validSeries.includes(route.query.series) ? route.query.series : tierData[0]?.value
+const selectedKey = ref(initial ?? '')
+
+watch(selectedKey, (val) => {
+  router.replace({ query: { series: val } })
+})
+
+const rows = computed(() => {
+  const series = tierData.find(s => s.value === selectedKey.value)
+  return series ? series.rows : []
+})
 </script>
