@@ -10,18 +10,18 @@ source ~/.nvm/nvm.sh && nvm use 24
 
 ## Commands
 
-| Command                     | What it does                                                         |
-| --------------------------- | -------------------------------------------------------------------- |
-| `npm run dev`               | Vite dev server                                                      |
-| `npm run build`             | Vite production build → `dist/`                                      |
-| `npm run preview`           | Preview production build                                             |
-| `npm run lint`              | ESLint (flat config: `eslint.config.js`)                             |
-| `npm run lint:fix`          | ESLint auto-fix                                                      |
-| `npm run format`            | Prettier (`.prettierrc` + `prettier-plugin-tailwindcss`)             |
-| `npm run format:check`      | Prettier check-only                                                  |
-| `npm run data`              | Full pipeline: scrape cards → scrape tournaments → build tiers       |
-| `npm run scrape:cards`      | Scrape card database from `gundam-gcg.com` (→ `data/cards.json`)     |
-| `npm run scrape:tournament` | Scrape tournament results (→ `data/tournaments-all.json`)            |
+| Command                     | What it does                                                               |
+| --------------------------- | -------------------------------------------------------------------------- |
+| `npm run dev`               | Vite dev server                                                            |
+| `npm run build`             | Vite production build → `dist/`                                            |
+| `npm run preview`           | Preview production build                                                   |
+| `npm run lint`              | ESLint (flat config: `eslint.config.js`)                                   |
+| `npm run lint:fix`          | ESLint auto-fix                                                            |
+| `npm run format`            | Prettier (`.prettierrc` + `prettier-plugin-tailwindcss`)                   |
+| `npm run format:check`      | Prettier check-only                                                        |
+| `npm run data`              | Full pipeline: scrape cards → scrape tournaments → build tiers             |
+| `npm run scrape:cards`      | Scrape card database from `gundam-gcg.com` (→ `data/cards.json`)           |
+| `npm run scrape:tournament` | Scrape tournament results (→ `data/tournaments-all.json`)                  |
 | `npm run build:tiers`       | Rebuild tier data from existing scraped data → `data-processed/tiers.json` |
 
 ## Project structure
@@ -43,6 +43,7 @@ source ~/.nvm/nvm.sh && nvm use 24
 - Match existing conventions in neighboring files
 - Prefer Tailwind utility classes over custom CSS classes; only create a custom class when a pattern cannot be expressed with utilities alone
 - Whenever Tailwind classes appear outside a `class` attribute (e.g. `exact-active-class`, `active-class`, transition props), wrap them with `tw`` tagged template literal (auto-imported from `src/utils/tw.js`)
+- Vue and vue-router APIs are auto-imported (`ref`, `computed`, `useRouter`, `useRoute`, etc.) — no explicit import needed
 
 ## Dark mode
 

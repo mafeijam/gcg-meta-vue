@@ -1,10 +1,12 @@
 <template>
   <div class="mx-auto max-w-380 space-y-6 p-3 md:p-8">
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-nalika-text">Archetype Analysis</h1>
-      <div class="flex gap-2">
+    <h1 class="text-2xl font-bold text-gray-900 dark:text-nalika-text">Archetype Analysis</h1>
+    <div class="flex flex-col gap-2 md:flex-row">
+      <div class="md:flex-[3]">
         <TierDropdown v-model="seriesKey" :options="seriesOptions" />
-        <TierDropdown v-model="archKey" :options="archOptions" />
+      </div>
+      <div class="md:flex-[7]">
+        <ArchDropdown v-model="archKey" :options="archOptions" />
       </div>
     </div>
 
@@ -45,6 +47,7 @@ const archOptions = computed(() =>
   (seriesManifest.value?.archetypes ?? []).map((a, i) => ({
     value: String(i),
     label: a.combo,
+    details: `${a.cardCount} cards · ${a.winnerDeckCount} wins · ${a.deckCount} decks · ${a.percent}% use`,
   })),
 )
 

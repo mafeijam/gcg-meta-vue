@@ -48,7 +48,7 @@
           <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
             Unit: Core
           </h4>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in coreUnits" :key="card.cardId" :card="card" />
           </div>
           <p v-if="!coreUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
@@ -57,7 +57,7 @@
           <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
             Unit: Other
           </h4>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in otherUnits" :key="card.cardId" :card="card" />
           </div>
           <p v-if="!otherUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
@@ -70,7 +70,7 @@
           <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
             Pilots
           </h4>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in pilotCards" :key="card.cardId" :card="card" />
           </div>
         </div>
@@ -78,7 +78,7 @@
           <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
             Commands
           </h4>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in commandCards" :key="card.cardId" :card="card" />
           </div>
         </div>
@@ -86,7 +86,7 @@
           <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
             Bases
           </h4>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in baseCards" :key="card.cardId" :card="card" />
           </div>
         </div>
@@ -108,7 +108,7 @@
           >
             {{ typeLabel[type] || type }}
           </h5>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-4">
             <ArchetypeCardItem v-for="card in cards" :key="card.cardId" :card="card" />
           </div>
         </div>
