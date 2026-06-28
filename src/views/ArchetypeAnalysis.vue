@@ -26,6 +26,39 @@
 import manifest from '$data/archetypes/index.json'
 import archModules from '@/utils/archModules'
 
+const COLOR_HEX = {
+  Blue: '#2b6cb0',
+  White: '#cbd5e0',
+  Purple: '#805ad5',
+  Red: '#e53e3e',
+  Green: '#38a169',
+  Black: '#1a202c',
+  Yellow: '#d69e2e',
+}
+
+function buildLabelSegments(combo, sigCards) {
+  if (!sigCards?.length) {
+    return [{ text: combo }]
+  }
+  let rest = combo
+  const segs = []
+  for (const sc of sigCards) {
+    const idx = rest.indexOf(sc.name)
+    if (idx === -1) {
+      continue
+    }
+    if (idx > 0) {
+      segs.push({ text: rest.slice(0, idx) })
+    }
+    segs.push({ text: sc.name, color: COLOR_HEX[sc.color] })
+    rest = rest.slice(idx + sc.name.length)
+  }
+  if (rest) {
+    segs.push({ text: rest })
+  }
+  return segs
+}
+
 const router = useRouter()
 const route = useRoute()
 
@@ -45,8 +78,9 @@ const seriesManifest = computed(() => manifest.find(s => s.value === seriesKey.v
 const archOptions = computed(() =>
   (seriesManifest.value?.archetypes ?? []).map((a, i) => ({
     value: String(i),
-    label: a.combo,
     details: `${a.cardCount} cards · ${a.winnerDeckCount} wins · ${a.deckCount} decks · ${a.percent}% use`,
+    colors: a.sigCards.map(c => COLOR_HEX[c.color] || '#718096'),
+    labelSegments: buildLabelSegments(a.combo, a.sigCards),
   })),
 )
 

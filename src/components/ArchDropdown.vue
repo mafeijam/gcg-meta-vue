@@ -5,7 +5,20 @@
       @click="open = !open"
     >
       <div class="flex-1 truncate text-left">
-        <div class="truncate">{{ selectedLabel }}</div>
+        <div class="flex items-center gap-1 truncate">
+          <div
+            v-for="h in selectedColors"
+            :key="h"
+            class="h-2 w-2 shrink-0 rounded-full"
+            :style="{ background: h }"
+          />
+          <span class="truncate">
+            <template v-for="(seg, si) in selectedSegments" :key="si">
+              <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
+              <span v-else>{{ seg.text }}</span>
+            </template>
+          </span>
+        </div>
         <div v-if="selectedDetails" class="truncate text-xs text-gray-400 dark:text-gray-500">
           {{ selectedDetails }}
         </div>
@@ -25,18 +38,26 @@
         v-for="opt in options"
         :key="opt.value"
         class="flex w-full flex-col px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/5"
-        :class="
-          opt.value === modelValue
-            ? 'font-bold text-primary'
-            : 'text-gray-700 dark:text-nalika-text'
-        "
+        :class="opt.value === modelValue ? 'bg-primary/10 dark:bg-primary/20' : ''"
         @click="select(opt.value)"
       >
-        <span class="truncate text-left">{{ opt.label }}</span>
+        <div class="flex items-center gap-1 truncate text-left text-gray-700 dark:text-nalika-text">
+          <div
+            v-for="h in opt.colors"
+            :key="h"
+            class="h-2 w-2 shrink-0 rounded-full"
+            :style="{ background: h }"
+          />
+          <span class="truncate">
+            <template v-for="(seg, si) in opt.labelSegments" :key="si">
+              <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
+              <span v-else>{{ seg.text }}</span>
+            </template>
+          </span>
+        </div>
         <span
           v-if="opt.details"
-          class="truncate text-left text-xs font-normal"
-          :class="opt.value === modelValue ? 'text-primary/70' : 'text-gray-400 dark:text-gray-500'"
+          class="truncate text-left text-xs font-normal text-gray-400 dark:text-gray-500"
         >
           {{ opt.details }}
         </span>
@@ -62,13 +83,11 @@ onClickOutside(dropdownRef, () => {
   open.value = false
 })
 
-const selectedLabel = computed(
-  () => props.options.find(o => o.value === props.modelValue)?.label ?? '',
-)
+const selected = computed(() => props.options.find(o => o.value === props.modelValue))
 
-const selectedDetails = computed(
-  () => props.options.find(o => o.value === props.modelValue)?.details ?? '',
-)
+const selectedColors = computed(() => selected.value?.colors ?? [])
+const selectedSegments = computed(() => selected.value?.labelSegments ?? [])
+const selectedDetails = computed(() => selected.value?.details ?? '')
 
 function select(value) {
   emit('update:modelValue', value)

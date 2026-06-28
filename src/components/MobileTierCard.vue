@@ -99,7 +99,7 @@
     </div>
     <div class="flex justify-end px-4 pb-3">
       <button
-        class="text-xs font-medium text-primary hover:underline focus:outline-none"
+        class="rounded px-2 py-1 text-xs font-medium text-primary hover:bg-primary/10 focus:outline-none dark:hover:bg-primary/20"
         @click="$emit('detail', row)"
       >
         Detail ▶

@@ -44,6 +44,7 @@ source ~/.nvm/nvm.sh && nvm use 24
 - Prefer Tailwind utility classes over custom CSS classes; only create a custom class when a pattern cannot be expressed with utilities alone
 - Whenever Tailwind classes appear outside a `class` attribute (e.g. `exact-active-class`, `active-class`, transition props), wrap them with `tw`` tagged template literal (auto-imported from `src/utils/tw.js`)
 - Vue and vue-router APIs are auto-imported (`ref`, `computed`, `useRouter`, `useRoute`, etc.) — no explicit import needed
+- `curly: ['error', 'all']` — all `if`/`for`/`while` bodies use braces and are multi-line; ESLint `--fix` handles this automatically
 
 ## Dark mode
 

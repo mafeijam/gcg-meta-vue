@@ -22,7 +22,8 @@
         <tr
           v-for="row in rows"
           :key="row.archetype"
-          class="text-aisumicha odd:bg-gray-100/5 even:bg-gray-100/45 hover:bg-gray-200/50 dark:text-nalika-text-muted dark:even:bg-white/3 dark:hover:bg-white/10"
+          class="group cursor-pointer text-aisumicha odd:bg-gray-100/5 even:bg-gray-100/45 hover:bg-gray-200/50 dark:text-nalika-text-muted dark:even:bg-white/3 dark:hover:bg-white/10"
+          @click="$emit('detail', row)"
         >
           <td class="flex items-center px-4 py-2">
             <div class="flex items-center gap-0.5">
@@ -70,8 +71,8 @@
           </td>
           <td class="w-8 px-1 py-2 text-center">
             <button
-              class="text-[0.55rem] font-medium text-gray-400 hover:text-primary focus:outline-none dark:text-gray-500 dark:hover:text-primary"
-              @click="$emit('detail', row)"
+              class="rounded px-1 py-0.5 text-[0.55rem] font-medium text-gray-400 group-hover:bg-primary/10 group-hover:text-primary focus:outline-none dark:text-gray-500 dark:group-hover:bg-primary/20 dark:group-hover:text-primary"
+              @click.stop="$emit('detail', row)"
             >
               ▶
             </button>
