@@ -5,10 +5,10 @@
       <span
         v-for="[feat, count] in archetype.featureBadges"
         :key="feat"
-        class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-[0.65rem] font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+        class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
       >
-        {{ feat.replace(/[〔〕]/g, '') }}
-        <span class="ml-0.5 font-mono text-gray-400 dark:text-gray-500">{{ count }}</span>
+        <span class="mr-1 text-xxs">{{ feat.replace(/[〔〕]/g, '') }}:</span>
+        <span class="font-mono text-gray-500 dark:text-gray-400">{{ count }}</span>
       </span>
     </div>
 

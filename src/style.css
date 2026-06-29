@@ -25,9 +25,9 @@ html {
 }
 
 :root {
-  --gloss-start: rgba(214, 158, 46, 0.12);
-  --gloss-mid: rgba(214, 158, 46, 0.06);
-  --gloss-end: rgba(214, 158, 46, 0.04);
+  --gloss-start: rgba(189, 192, 186, 0.4);
+  --gloss-mid: rgba(189, 192, 186, 0.12);
+  --gloss-end: rgba(189, 192, 186, 0.03);
 }
 
 .dark {

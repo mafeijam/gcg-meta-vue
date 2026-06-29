@@ -568,9 +568,8 @@ for (const series of tournaments) {
       top4AvgRate,
     )
     a.tierScore = score
-    a.tierLabel = a.winnerDeckCount > 0
-      ? getDeckTier(score, seriesProcessed.tierThresholds).label
-      : '--'
+    a.tierLabel =
+      a.winnerDeckCount > 0 ? getDeckTier(score, seriesProcessed.tierThresholds).label : '--'
   }
 
   manifest.push({

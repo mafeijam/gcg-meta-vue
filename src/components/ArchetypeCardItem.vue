@@ -1,7 +1,7 @@
 <template>
   <div
     class="relative rounded-lg border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-    :class="{ 'ring-2 ring-yellow-400': card.inWinner }"
+    :class="{ 'ring-2 ring-yellow-400 dark:ring-yellow-700': card.inWinner }"
   >
     <div
       v-if="card.inWinner"
@@ -29,6 +29,41 @@
       </div>
     </div>
 
+    <div class="mt-1.5 flex justify-between gap-1.5">
+      <div class="flex gap-1.5">
+        <span
+          v-if="card.level && card.level !== '-'"
+          class="font-mono text-xxs font-medium text-blue-700 dark:text-blue-300"
+          title="Level"
+        >
+          L{{ card.level }}
+        </span>
+        <span
+          v-if="card.cost && card.cost !== '-'"
+          class="font-mono text-xxs font-medium text-orange-700 dark:text-orange-300"
+          title="Cost"
+        >
+          C{{ card.cost }}
+        </span>
+      </div>
+      <div class="flex gap-1.5">
+        <span
+          v-if="card.ap && card.ap !== '-'"
+          class="font-mono text-xxs font-medium text-red-700 dark:text-red-300"
+          title="AP"
+        >
+          AP{{ card.ap }}
+        </span>
+        <span
+          v-if="card.hp && card.hp !== '-'"
+          class="font-mono text-xxs font-medium text-green-700 dark:text-green-300"
+          title="HP"
+        >
+          HP{{ card.hp }}
+        </span>
+      </div>
+    </div>
+
     <div
       class="group relative mt-1.5 aspect-[3/2] overflow-hidden rounded"
       @click="enlarged = true"
@@ -47,50 +82,7 @@
       {{ card.name }}
     </div>
 
-    <div class="mt-1 flex justify-between gap-1.5">
-      <div class="flex gap-1.5">
-        <span
-          v-if="card.level && card.level !== '-'"
-          class="rounded bg-blue-100 px-1 font-mono text-xxs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300"
-          title="Level"
-        >
-          L{{ card.level }}
-        </span>
-        <span
-          v-if="card.cost && card.cost !== '-'"
-          class="rounded bg-orange-100 px-1 font-mono text-xxs font-medium text-orange-700 dark:bg-orange-900/40 dark:text-orange-300"
-          title="Cost"
-        >
-          C{{ card.cost }}
-        </span>
-      </div>
-      <div class="flex gap-1.5">
-        <span
-          v-if="card.ap && card.ap !== '-'"
-          class="rounded bg-red-100 px-1 font-mono text-xxs font-medium text-red-700 dark:bg-red-900/40 dark:text-red-300"
-          title="AP"
-        >
-          AP{{ card.ap }}
-        </span>
-        <span
-          v-if="card.hp && card.hp !== '-'"
-          class="rounded bg-green-100 px-1 font-mono text-xxs font-medium text-green-700 dark:bg-green-900/40 dark:text-green-300"
-          title="HP"
-        >
-          HP{{ card.hp }}
-        </span>
-      </div>
-    </div>
-
-    <div class="mt-1.5 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
-      <div
-        class="h-full rounded-full transition-all"
-        :class="barColorClass"
-        :style="{ width: `${Math.min(card.inclusionRate * 100, 100)}%` }"
-      />
-    </div>
-
-    <div class="mt-1 flex items-center justify-between text-xs">
+    <div class="mt-1.5 flex items-center justify-between text-xs">
       <span class="font-mono font-bold text-gray-600 dark:text-gray-400">
         {{ (card.inclusionRate * 100).toFixed(1) }}%
       </span>
@@ -117,10 +109,18 @@
       </div>
     </div>
 
+    <div class="mt-1 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+      <div
+        class="h-full rounded-full transition-all"
+        :class="barColorClass"
+        :style="{ width: `${Math.min(card.inclusionRate * 100, 100)}%` }"
+      />
+    </div>
+
     <Teleport to="body">
       <div
         v-if="enlarged"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+        class="fixed inset-0 z-[1100] flex items-center justify-center bg-black/60"
         @click.self="enlarged = false"
       >
         <div class="relative max-h-[85vh] overflow-hidden rounded-lg shadow-2xl">

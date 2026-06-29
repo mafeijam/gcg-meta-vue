@@ -18,18 +18,18 @@
               <span v-else>{{ seg.text }}</span>
             </template>
           </span>
-          <span
-            v-if="selectedTier"
-            class="ml-auto w-10 shrink-0 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
-            :class="tierPillClass(selectedTier)"
-          >
-            {{ selectedTier }}
-          </span>
         </div>
         <div v-if="selectedDetails" class="truncate text-xs text-gray-400 dark:text-gray-500">
           {{ selectedDetails }}
         </div>
       </div>
+      <span
+        v-if="selectedTier"
+        class="w-10 shrink-0 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
+        :class="tierPillClass(selectedTier)"
+      >
+        {{ selectedTier }}
+      </span>
       <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
         <path
           d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
@@ -44,36 +44,40 @@
       <button
         v-for="opt in options"
         :key="opt.value"
-        class="flex w-full flex-col px-3 py-2 text-sm hover:bg-gray-100/30 dark:hover:bg-white/5"
+        class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100/30 dark:hover:bg-white/5"
         :class="{ 'bg-gunjyo/10 dark:bg-gunjyo/15': opt.value === modelValue }"
         @click="select(opt.value)"
       >
-        <div class="flex items-center gap-1 truncate text-left text-gray-700 dark:text-nalika-text">
+        <div class="min-w-0 flex-1">
           <div
-            v-for="h in opt.colors"
-            :key="h"
-            class="h-2 w-2 shrink-0 rounded-full"
-            :style="{ background: h }"
-          />
-          <span class="truncate">
-            <template v-for="(seg, si) in opt.labelSegments" :key="si">
-              <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
-              <span v-else>{{ seg.text }}</span>
-            </template>
-          </span>
-          <span
-            v-if="opt.tier"
-            class="ml-auto w-10 shrink-0 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
-            :class="tierPillClass(opt.tier)"
+            class="flex items-center gap-1 truncate text-left text-gray-700 dark:text-nalika-text"
           >
-            {{ opt.tier }}
+            <div
+              v-for="h in opt.colors"
+              :key="h"
+              class="h-2 w-2 shrink-0 rounded-full"
+              :style="{ background: h }"
+            />
+            <span class="truncate">
+              <template v-for="(seg, si) in opt.labelSegments" :key="si">
+                <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
+                <span v-else>{{ seg.text }}</span>
+              </template>
+            </span>
+          </div>
+          <span
+            v-if="opt.details"
+            class="block truncate text-left text-xs font-normal text-gray-400 dark:text-gray-500"
+          >
+            {{ opt.details }}
           </span>
         </div>
         <span
-          v-if="opt.details"
-          class="truncate text-left text-xs font-normal text-gray-400 dark:text-gray-500"
+          v-if="opt.tier"
+          class="w-10 shrink-0 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
+          :class="tierPillClass(opt.tier)"
         >
-          {{ opt.details }}
+          {{ opt.tier }}
         </span>
       </button>
     </div>
