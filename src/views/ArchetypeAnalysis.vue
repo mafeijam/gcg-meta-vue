@@ -1,13 +1,9 @@
 <template>
   <div class="mx-auto max-w-380 space-y-6 p-3 md:p-8">
     <h1 class="text-2xl font-bold text-gray-900 dark:text-nalika-text">Archetype Analysis</h1>
-    <div class="flex flex-col gap-2 md:flex-row">
-      <div class="md:flex-[3]">
-        <TierDropdown v-model="seriesKey" :options="seriesOptions" />
-      </div>
-      <div class="md:flex-[7]">
-        <ArchDropdown v-model="archKey" :options="archOptions" />
-      </div>
+    <div class="flex flex-col gap-2">
+      <TierDropdown v-model="seriesKey" class="w-fit md:max-w-md" :options="seriesOptions" />
+      <ArchDropdown v-model="archKey" class="md:max-w-3xl" :options="archOptions" />
     </div>
 
     <div v-if="loading" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">

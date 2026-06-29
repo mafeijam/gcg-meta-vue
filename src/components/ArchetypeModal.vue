@@ -17,14 +17,14 @@
       </div>
       <div ref="modalRef" class="flex-1 overflow-y-auto p-4 md:p-6">
         <div class="mx-auto mb-4 max-w-380">
-          <div class="flex items-center gap-1">
+          <div class="flex items-baseline gap-1">
             <div
               v-for="dot in colorDots"
               :key="dot"
               class="h-2.5 w-2.5 shrink-0 rounded-full"
               :style="{ background: COLOR_HEX[dot] }"
             />
-            <h2 class="text-base font-bold text-gray-900 dark:text-nalika-text">
+            <h2 class="ml-1 text-base font-bold text-gray-900 dark:text-nalika-text">
               {{ archetype.combo }}
             </h2>
           </div>

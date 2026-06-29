@@ -86,11 +86,14 @@
       <span class="font-mono font-bold text-gray-600 dark:text-gray-400">
         {{ (card.inclusionRate * 100).toFixed(1) }}%
       </span>
-      <div class="flex items-center gap-1 text-gray-400 dark:text-nalika-text-muted">
-        <span class="font-mono" :title="`Decks included: ${card.decksIncluded}`">
+      <div class="flex items-center gap-1">
+        <span
+          class="font-mono text-gray-500 dark:text-nalika-text-muted/90"
+          :title="`Decks included: ${card.decksIncluded}`"
+        >
           {{ card.decksIncluded }}
         </span>
-        <span v-if="card.winnerDeckCount" class="text-gray-300 dark:text-gray-700">·</span>
+        <span v-if="card.winnerDeckCount" class="text-gray-300 dark:text-gray-500">·</span>
         <span
           v-if="card.winnerDeckCount"
           class="font-mono text-yellow-600 dark:text-yellow-600"
@@ -98,7 +101,7 @@
         >
           {{ card.winnerDeckCount }}
         </span>
-        <span v-if="card.avgQty" class="text-gray-300 dark:text-gray-700">·</span>
+        <span v-if="card.avgQty" class="text-gray-300 dark:text-gray-500">·</span>
         <span
           v-if="card.avgQty"
           class="font-mono text-indigo-500 dark:text-indigo-400"
@@ -109,7 +112,7 @@
       </div>
     </div>
 
-    <div class="mt-1 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+    <div class="mt-1 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
       <div
         class="h-full rounded-full transition-all"
         :class="barColorClass"
@@ -153,18 +156,18 @@ const colorHex = computed(() => COLOR_HEX[props.card.color] || '#718096')
 const barColorClass = computed(() => {
   const rate = (props.card.inclusionRate ?? 0) * 100
   if (rate >= 80) {
-    return tw`bg-blue-500 dark:bg-blue-700`
+    return tw`bg-red-500 dark:bg-red-700`
   }
   if (rate >= 60) {
-    return tw`bg-sky-500 dark:bg-sky-700`
-  }
-  if (rate >= 40) {
-    return tw`bg-teal-500 dark:bg-teal-700`
-  }
-  if (rate >= 20) {
     return tw`bg-amber-500 dark:bg-amber-700`
   }
-  return tw`bg-gray-400 dark:bg-gray-600`
+  if (rate >= 40) {
+    return tw`bg-yellow-400 dark:bg-yellow-600`
+  }
+  if (rate >= 20) {
+    return tw`bg-green-500 dark:bg-green-700`
+  }
+  return tw`bg-sky-400 dark:bg-sky-600`
 })
 </script>
 

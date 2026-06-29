@@ -1,17 +1,5 @@
 <template>
   <div>
-    <!-- Feature badges -->
-    <div v-if="archetype.featureBadges?.length" class="mb-3 flex flex-wrap gap-1.5">
-      <span
-        v-for="[feat, count] in archetype.featureBadges"
-        :key="feat"
-        class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
-      >
-        <span class="mr-1 text-xxs">{{ feat.replace(/[〔〕]/g, '') }}:</span>
-        <span class="font-mono text-gray-500 dark:text-gray-400">{{ count }}</span>
-      </span>
-    </div>
-
     <!-- Type counts -->
     <div class="mb-4 flex gap-3 text-xs text-gray-500 dark:text-nalika-text-muted">
       <span v-if="unitCards.length">
@@ -45,16 +33,14 @@
       <!-- Left: Units -->
       <div class="space-y-4">
         <div>
-          <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
-            Unit: Core
-          </h4>
+          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Unit: Core</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in coreUnits" :key="card.cardId" :card="card" />
           </div>
           <p v-if="!coreUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
         </div>
-        <div>
-          <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
+        <div class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">
             Unit: Other
           </h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -67,30 +53,36 @@
       <!-- Right: Pilots, Commands, Bases -->
       <div class="space-y-4">
         <div v-if="pilotCards.length">
-          <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
-            Pilots
-          </h4>
+          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Pilots</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in pilotCards" :key="card.cardId" :card="card" />
           </div>
         </div>
-        <div v-if="commandCards.length">
-          <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
-            Commands
-          </h4>
+        <div v-if="commandCards.length" class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Commands</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in commandCards" :key="card.cardId" :card="card" />
           </div>
         </div>
-        <div v-if="baseCards.length">
-          <h4 class="mb-2 text-xs font-semibold text-gray-500 dark:text-nalika-text-muted">
-            Bases
-          </h4>
+        <div v-if="baseCards.length" class="border-t border-gray-200 pt-3 dark:border-gray-700">
+          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Bases</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in baseCards" :key="card.cardId" :card="card" />
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Feature badges -->
+    <div v-if="archetype.featureBadges?.length" class="mt-4 flex flex-wrap gap-1.5">
+      <span
+        v-for="[feat, count] in archetype.featureBadges"
+        :key="feat"
+        class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+      >
+        <span class="mr-1 text-xxs">{{ feat.replace(/[〔〕]/g, '') }}:</span>
+        <span class="font-mono text-gray-500 dark:text-gray-400">{{ count }}</span>
+      </span>
     </div>
 
     <!-- Other Cards (collapsible) -->
@@ -102,13 +94,11 @@
         Other Cards ({{ archetype.filteredCards.length }}) {{ showOther ? '−' : '+' }}
       </button>
       <div v-if="showOther" class="mt-2 space-y-4">
-        <div v-for="[type, cards] in filteredByType" :key="type">
-          <h5
-            class="mb-1 text-[0.6rem] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
-          >
+        <div v-for="[type, cards] in [...filteredByType].reverse()" :key="type">
+          <h5 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">
             {{ typeLabel[type] || type }}
           </h5>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-4">
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
             <ArchetypeCardItem v-for="card in cards" :key="card.cardId" :card="card" />
           </div>
         </div>
@@ -125,42 +115,47 @@
       </button>
       <div v-if="showDeckUrls" class="mt-2 space-y-1">
         <div
-          class="mb-1 text-[0.6rem] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
+          class="mb-1 text-xxs font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
         >
           Winner Decks
         </div>
-        <div v-for="(url, i) in winnerDeckUrls" :key="url" class="flex items-center gap-2">
-          <a
-            :href="url"
-            target="_blank"
-            rel="noopener"
-            class="text-xs break-all text-primary hover:underline"
-          >
-            Deck {{ i + 1 }}
-          </a>
-          <span
-            class="rounded bg-yellow-100 px-1 text-[0.55rem] font-medium text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300"
-          >
-            W
-          </span>
+        <div class="flex flex-wrap gap-x-6 gap-y-3">
+          <div v-for="(url, i) in winnerDeckUrls" :key="url" class="flex items-center gap-2">
+            <a
+              :href="url"
+              target="_blank"
+              rel="noopener"
+              class="text-xs break-all text-primary hover:underline"
+            >
+              Deck {{ i + 1 }}
+            </a>
+            <span
+              class="rounded bg-yellow-100 px-1 text-[0.55rem] font-medium text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300"
+            >
+              W
+            </span>
+          </div>
         </div>
         <div v-if="!winnerDeckUrls.length" class="text-xs text-gray-400 dark:text-gray-500">
           No winner decks
         </div>
         <div
-          class="mt-3 mb-1 text-[0.6rem] font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
+          class="mt-3 mb-1 text-xxs font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
         >
           Other Decks
         </div>
-        <div v-for="(url, i) in otherDeckUrls" :key="url">
-          <a
-            :href="url"
-            target="_blank"
-            rel="noopener"
-            class="text-xs break-all text-primary hover:underline"
-          >
-            Deck {{ i + 1 }}
-          </a>
+
+        <div class="flex flex-wrap gap-x-6 gap-y-3">
+          <div v-for="(url, i) in otherDeckUrls" :key="url">
+            <a
+              :href="url"
+              target="_blank"
+              rel="noopener"
+              class="text-xs break-all text-primary hover:underline"
+            >
+              Deck {{ i + 1 }}
+            </a>
+          </div>
         </div>
       </div>
     </div>

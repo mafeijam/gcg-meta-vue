@@ -1,25 +1,29 @@
 <template>
   <div ref="dropdownRef" class="relative">
     <button
-      class="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-500/10 bg-gray-50 px-3 py-1.5 text-sm transition-colors hover:border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none dark:border-nalika-border dark:bg-nalika-surface dark:text-nalika-text dark:hover:border-gray-500 dark:focus:border-primary"
+      class="flex w-full cursor-pointer items-center gap-2 rounded-lg border border-gray-500/10 bg-gray-50 px-3 py-1.5 text-xs transition-colors hover:border-gray-300 focus:border-sora focus:ring-2 focus:ring-hai/5 focus:outline-none sm:text-sm dark:border-nalika-border dark:bg-nalika-surface dark:text-nalika-text dark:hover:border-gray-600/70 dark:focus:border-ruri"
       @click="open = !open"
     >
-      <div class="flex-1 truncate text-left">
-        <div class="flex items-center gap-1 truncate">
+      <div class="flex-1 text-left">
+        <div class="flex items-baseline gap-1">
           <div
             v-for="h in selectedColors"
             :key="h"
             class="h-2 w-2 shrink-0 rounded-full"
             :style="{ background: h }"
           />
-          <span class="truncate">
+
+          <div class="ml-1">
             <template v-for="(seg, si) in selectedSegments" :key="si">
               <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
               <span v-else>{{ seg.text }}</span>
             </template>
-          </span>
+          </div>
         </div>
-        <div v-if="selectedDetails" class="truncate text-xs text-gray-400 dark:text-gray-500">
+        <div
+          v-if="selectedDetails"
+          class="mt-1 text-xxs text-gray-400 sm:text-xs dark:text-nalika-text-muted/70"
+        >
           {{ selectedDetails }}
         </div>
       </div>
@@ -44,30 +48,29 @@
       <button
         v-for="opt in options"
         :key="opt.value"
-        class="flex w-full items-center gap-2 px-3 py-2 text-sm hover:bg-gray-100/30 dark:hover:bg-white/5"
+        class="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-gray-100/30 sm:text-sm dark:hover:bg-white/5"
         :class="{ 'bg-gunjyo/10 dark:bg-gunjyo/15': opt.value === modelValue }"
         @click="select(opt.value)"
       >
         <div class="min-w-0 flex-1">
-          <div
-            class="flex items-center gap-1 truncate text-left text-gray-700 dark:text-nalika-text"
-          >
+          <div class="flex items-baseline gap-1 text-left text-gray-700 dark:text-nalika-text">
             <div
               v-for="h in opt.colors"
               :key="h"
               class="h-2 w-2 shrink-0 rounded-full"
               :style="{ background: h }"
             />
-            <span class="truncate">
+
+            <div class="ml-1">
               <template v-for="(seg, si) in opt.labelSegments" :key="si">
                 <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
                 <span v-else>{{ seg.text }}</span>
               </template>
-            </span>
+            </div>
           </div>
           <span
             v-if="opt.details"
-            class="block truncate text-left text-xs font-normal text-gray-400 dark:text-gray-500"
+            class="mt-1 block text-left text-xxs font-normal text-gray-400 sm:text-xs dark:text-nalika-text-muted/70"
           >
             {{ opt.details }}
           </span>
