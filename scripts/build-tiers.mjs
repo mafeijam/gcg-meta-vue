@@ -543,20 +543,6 @@ for (const series of tournaments) {
     writeFileSync(file, JSON.stringify(arch, null, 2))
   })
 
-  manifest.push({
-    value: series.value,
-    label: series.label,
-    archetypes: mainDetails.map(a => ({
-      combo: a.combo,
-      sigCards: a.sigCards,
-      cardCount: a.cardCount,
-      deckCount: a.deckCount,
-      percent: a.percent,
-      winnerDeckCount: a.winnerDeckCount,
-      top4: a.top4,
-    })),
-  })
-
   // --- Build tier rows ---
 
   const seriesProcessed = {
@@ -569,6 +555,39 @@ for (const series of tournaments) {
 
   seriesProcessed.tierThresholds = computeTierThresholds(seriesProcessed)
 
+  const ceiling = getSeriesCeiling(seriesProcessed)
+  const top4AvgRate = getSeriesAvgTop4Rate(seriesProcessed)
+  for (const a of seriesProcessed.archetypes) {
+    const score = archetypeScoreV2(
+      a.winnerDeckCount,
+      a.deckCount,
+      seriesProcessed.totalDecks,
+      seriesProcessed.totalEvents,
+      a.top4 ?? 0,
+      ceiling,
+      top4AvgRate,
+    )
+    a.tierScore = score
+    a.tierLabel = a.winnerDeckCount > 0
+      ? getDeckTier(score, seriesProcessed.tierThresholds).label
+      : '--'
+  }
+
+  manifest.push({
+    value: series.value,
+    label: series.label,
+    archetypes: mainDetails.map(a => ({
+      combo: a.combo,
+      sigCards: a.sigCards,
+      cardCount: a.cardCount,
+      deckCount: a.deckCount,
+      percent: a.percent,
+      winnerDeckCount: a.winnerDeckCount,
+      top4: a.top4,
+      tier: a.tierLabel,
+    })),
+  })
+
   const rows = seriesProcessed.archetypes
     .filter(a => a.deckCount > 0)
     .map(a => {
@@ -576,16 +595,6 @@ for (const series of tournaments) {
       const winRateEvent = (a.winnerDeckCount / seriesProcessed.totalEvents) * 100
       const winRateDeck = (a.winnerDeckCount / a.deckCount) * 100
       const top4PerDeck = a.deckCount > 0 ? (a.top4 ?? 0) / a.deckCount : 0
-      const score = archetypeScoreV2(
-        a.winnerDeckCount,
-        a.deckCount,
-        seriesProcessed.totalDecks,
-        seriesProcessed.totalEvents,
-        a.top4 ?? 0,
-        getSeriesCeiling(seriesProcessed),
-        getSeriesAvgTop4Rate(seriesProcessed),
-      )
-      const tier = a.winnerDeckCount > 0 ? getDeckTier(score, seriesProcessed.tierThresholds) : null
       const baseCombo = a.combo.split(' (')[0]
       const sigPart = a.combo.match(/\((.+)\)/)?.[1]
       const archetypeName = sigPart ? `${baseCombo}（${sigPart}）` : baseCombo
@@ -601,8 +610,8 @@ for (const series of tournaments) {
         winPerEv: `${winRateEvent.toFixed(1)}%`,
         winPerDk: `${winRateDeck.toFixed(1)}%`,
         t4PerDk: `${(top4PerDeck * 100).toFixed(1)}%`,
-        score,
-        tier: tier ? tier.label : '--',
+        score: a.tierScore,
+        tier: a.tierLabel,
       }
     })
     .sort((a, b) => {

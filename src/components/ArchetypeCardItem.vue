@@ -1,6 +1,6 @@
 <template>
   <div
-    class="relative rounded-lg border border-gray-500/10 bg-white p-2 dark:border-nalika-border dark:bg-nalika-surface"
+    class="relative rounded-lg border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
     :class="{ 'ring-2 ring-yellow-400': card.inWinner }"
   >
     <div
@@ -142,16 +142,6 @@
 </template>
 
 <script setup>
-const COLOR_HEX = {
-  Blue: '#2b6cb0',
-  White: '#cbd5e0',
-  Purple: '#805ad5',
-  Red: '#e53e3e',
-  Green: '#38a169',
-  Black: '#1a202c',
-  Yellow: '#d69e2e',
-}
-
 const props = defineProps({
   card: { type: Object, required: true },
 })

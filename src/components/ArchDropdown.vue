@@ -18,6 +18,13 @@
               <span v-else>{{ seg.text }}</span>
             </template>
           </span>
+          <span
+            v-if="selectedTier"
+            class="ml-auto w-10 shrink-0 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
+            :class="tierPillClass(selectedTier)"
+          >
+            {{ selectedTier }}
+          </span>
         </div>
         <div v-if="selectedDetails" class="truncate text-xs text-gray-400 dark:text-gray-500">
           {{ selectedDetails }}
@@ -37,8 +44,8 @@
       <button
         v-for="opt in options"
         :key="opt.value"
-        class="flex w-full flex-col px-3 py-2 text-sm hover:bg-gray-100 dark:hover:bg-white/5"
-        :class="opt.value === modelValue ? 'bg-primary/10 dark:bg-primary/20' : ''"
+        class="flex w-full flex-col px-3 py-2 text-sm hover:bg-gray-100/30 dark:hover:bg-white/5"
+        :class="{ 'bg-gunjyo/10 dark:bg-gunjyo/15': opt.value === modelValue }"
         @click="select(opt.value)"
       >
         <div class="flex items-center gap-1 truncate text-left text-gray-700 dark:text-nalika-text">
@@ -53,6 +60,13 @@
               <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
               <span v-else>{{ seg.text }}</span>
             </template>
+          </span>
+          <span
+            v-if="opt.tier"
+            class="ml-auto w-10 shrink-0 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
+            :class="tierPillClass(opt.tier)"
+          >
+            {{ opt.tier }}
           </span>
         </div>
         <span
@@ -88,6 +102,7 @@ const selected = computed(() => props.options.find(o => o.value === props.modelV
 const selectedColors = computed(() => selected.value?.colors ?? [])
 const selectedSegments = computed(() => selected.value?.labelSegments ?? [])
 const selectedDetails = computed(() => selected.value?.details ?? '')
+const selectedTier = computed(() => selected.value?.tier ?? null)
 
 function select(value) {
   emit('update:modelValue', value)

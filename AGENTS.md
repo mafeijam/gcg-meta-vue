@@ -5,7 +5,7 @@ Vue 3 + Vite 8 + Tailwind CSS 4 frontend.
 ## Prerequisites
 
 ```bash
-source ~/.nvm/nvm.sh && nvm use 24
+source ~/.nvm/nvm.sh && nvm use
 ```
 
 ## Commands
@@ -62,3 +62,8 @@ source ~/.nvm/nvm.sh && nvm use 24
 3. `build:tiers` — groups decks by color-combo archetype, computes scores and tier thresholds (ckmeans clustering), outputs `data-processed/tiers.json`
 
 You must run `npm run data` (or at minimum `npm run build:tiers`) after cloning to generate `data-processed/tiers.json`. The app will not work without this file.
+
+## User preferences
+
+- `@vueuse/core` APIs (e.g. `onKeyStroke`, `useDark`) are NOT auto-imported — always add explicit `import { ... } from '@vueuse/core'`
+- When modifying a modal component, keep changes in the modal file itself rather than in child components like ArchetypeDetail

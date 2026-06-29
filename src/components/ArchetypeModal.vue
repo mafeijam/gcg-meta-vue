@@ -2,13 +2,10 @@
   <Teleport to="body">
     <div v-if="archetype" class="fixed inset-0 z-[1000] flex flex-col bg-white dark:bg-nalika-bg">
       <div
-        class="relative flex items-center justify-center border-b border-gray-500/10 px-4 py-3 dark:bg-nalika-surface"
+        class="relative flex items-center justify-end border-b border-gray-500/10 px-4 py-2 dark:bg-nalika-surface"
       >
-        <h2 class="truncate text-sm font-semibold text-gray-900 dark:text-nalika-text">
-          {{ archetype.combo }}
-        </h2>
         <button
-          class="absolute top-1/2 right-4 flex h-8 w-8 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
+          class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
           @click="$emit('close')"
         >
           <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -19,6 +16,23 @@
         </button>
       </div>
       <div ref="modalRef" class="flex-1 overflow-y-auto p-4 md:p-6">
+        <div class="mx-auto mb-4 max-w-380">
+          <div class="flex items-center gap-1">
+            <div
+              v-for="dot in colorDots"
+              :key="dot"
+              class="h-2.5 w-2.5 shrink-0 rounded-full"
+              :style="{ background: COLOR_HEX[dot] }"
+            />
+            <h2 class="text-base font-bold text-gray-900 dark:text-nalika-text">
+              {{ archetype.combo }}
+            </h2>
+          </div>
+          <div class="mt-1 text-xs text-gray-400 dark:text-gray-500">
+            {{ archetype.cardCount }} cards · {{ archetype.winnerDeckCount }} wins ·
+            {{ archetype.deckCount }} decks · {{ archetype.percent }}% use
+          </div>
+        </div>
         <ArchetypeDetail :archetype="archetype" class="mx-auto max-w-380" />
       </div>
     </div>
@@ -28,8 +42,13 @@
 <script setup>
 import { onKeyStroke } from '@vueuse/core'
 
-defineProps({
+const props = defineProps({
   archetype: { type: Object, required: true },
+})
+
+const colorDots = computed(() => {
+  const seen = new Set()
+  return (props.archetype.sigCards ?? []).map(s => s.color).filter(c => !seen.has(c) && seen.add(c))
 })
 
 const emit = defineEmits(['close'])
