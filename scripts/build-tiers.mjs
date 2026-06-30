@@ -351,7 +351,7 @@ function aggregateCards(groupDecks) {
   return cardStats
 }
 
-// Tech card score: rewards cards with moderate inclusion (10-40%) and high win association.
+// Tech card score: rewards cards with moderate inclusion (15-40%) and high win association.
 // Requires at least 2 winner appearances.
 function calculateTechScore(wins, decks, totalArchetypeDecks) {
   const inclusionRate = decks / totalArchetypeDecks
@@ -366,7 +366,7 @@ function calculateTechScore(wins, decks, totalArchetypeDecks) {
 }
 
 // Picks top N cards per type (4 UNIT, 2 each of PILOT/COMMAND/BASE) by inclusion rate,
-// then fills remaining slots with cards above 10% inclusion.
+// then fills remaining slots with cards above 15% inclusion.
 function selectTopCards(allCards) {
   const perType = {}
   for (const card of allCards) {

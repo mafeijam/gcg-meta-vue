@@ -30,13 +30,9 @@
               :alt="card.name"
               class="w-full object-cover"
               loading="lazy"
-              style="-webkit-touch-callout: none; touch-action: none"
-              draggable="false"
-              @contextmenu.prevent
             />
             <span
               class="absolute top-0 right-0 rounded-bl-lg bg-black/60 px-1.5 text-2xl leading-tight font-bold text-white select-none"
-              style="-webkit-touch-callout: none; touch-action: none"
             >
               {{ card.qty }}
             </span>
@@ -45,7 +41,7 @@
       </div>
     </div>
 
-    <!-- Mobile fullscreen overlay (long-press) -->
+    <!-- Mobile fullscreen overlay -->
     <Teleport to="body">
       <Transition name="fade">
         <div
@@ -55,8 +51,6 @@
         >
           <div
             class="mx-2 max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-2 shadow-2xl select-none dark:bg-gray-800"
-            @click.stop
-            @contextmenu.prevent
           >
             <div class="mb-2 flex gap-2">
               <button
@@ -79,13 +73,9 @@
                   :alt="card.name"
                   class="w-full object-cover"
                   loading="lazy"
-                  style="-webkit-touch-callout: none; touch-action: none"
-                  draggable="false"
-                  @contextmenu.prevent
                 />
                 <span
                   class="absolute top-0 right-0 rounded-bl-lg bg-black/60 px-1.5 text-2xl leading-tight font-bold text-white select-none"
-                  style="-webkit-touch-callout: none; touch-action: none"
                 >
                   {{ card.qty }}
                 </span>
