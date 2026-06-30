@@ -53,19 +53,19 @@
       <!-- Right: Pilots, Commands, Bases -->
       <div class="space-y-4">
         <div v-if="pilotCards.length">
-          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Pilots</h4>
+          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Pilot</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in pilotCards" :key="card.cardId" :card="card" />
           </div>
         </div>
         <div v-if="commandCards.length" class="border-t border-gray-200 pt-3 dark:border-gray-700">
-          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Commands</h4>
+          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Command</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in commandCards" :key="card.cardId" :card="card" />
           </div>
         </div>
         <div v-if="baseCards.length" class="border-t border-gray-200 pt-3 dark:border-gray-700">
-          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Bases</h4>
+          <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Base</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
             <ArchetypeCardItem v-for="card in baseCards" :key="card.cardId" :card="card" />
           </div>
@@ -94,7 +94,7 @@
         Other Cards ({{ archetype.filteredCards.length }}) {{ showOther ? '−' : '+' }}
       </button>
       <div v-if="showOther" class="mt-2 space-y-4">
-        <div v-for="[type, cards] in [...filteredByType].reverse()" :key="type">
+        <div v-for="[type, cards] in filteredByType" :key="type">
           <h5 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">
             {{ typeLabel[type] || type }}
           </h5>

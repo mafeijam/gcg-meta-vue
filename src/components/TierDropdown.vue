@@ -14,7 +14,7 @@
 
     <div
       v-if="open"
-      class="absolute left-0 z-20 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-500/10 bg-white py-1 shadow-lg md:right-0 dark:border-nalika-border dark:bg-nalika-surface"
+      class="absolute left-0 z-50 mt-1 max-h-60 w-full overflow-y-auto rounded-lg border border-gray-500/10 bg-white py-1 shadow-lg md:right-0 dark:border-nalika-border dark:bg-nalika-surface"
     >
       <button
         v-for="opt in options"
@@ -36,12 +36,10 @@
 <script setup>
 import { onClickOutside } from '@vueuse/core'
 
+const modelValue = defineModel({ type: [String, Number], required: true })
 const props = defineProps({
-  modelValue: { type: [String, Number], required: true },
   options: { type: Array, required: true },
 })
-
-const emit = defineEmits(['update:modelValue'])
 
 const dropdownRef = useTemplateRef('dropdownRef')
 const open = ref(false)
@@ -51,11 +49,11 @@ onClickOutside(dropdownRef, () => {
 })
 
 const selectedLabel = computed(
-  () => props.options.find(o => o.value === props.modelValue)?.label ?? '',
+  () => props.options.find(o => o.value === modelValue.value)?.label ?? '',
 )
 
 function select(value) {
-  emit('update:modelValue', value)
+  modelValue.value = value
   open.value = false
 }
 </script>

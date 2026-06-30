@@ -1,9 +1,20 @@
 <template>
-  <div class="mx-auto max-w-380 space-y-6 p-3 md:p-8">
-    <h1 class="text-2xl font-bold text-gray-900 dark:text-nalika-text">Archetype Analysis</h1>
-    <div class="flex flex-col gap-2">
-      <TierDropdown v-model="seriesKey" class="w-fit md:max-w-md" :options="seriesOptions" />
-      <ArchDropdown v-model="archKey" class="md:max-w-3xl" :options="archOptions" />
+  <div class="mx-auto max-w-380 p-3 md:p-8">
+    <div class="mb-3">
+      <h1 class="text-2xl font-bold text-gray-900 dark:text-nalika-text">Archetype Analysis</h1>
+      <p v-if="currentSeriesData" class="mt-0.5 text-xs text-gray-500 dark:text-nalika-text-muted">
+        {{ currentSeriesData.events }} events · {{ totalWins }} wins ·
+        {{ currentSeriesData.totalDecks.toLocaleString() }} decks
+      </p>
+    </div>
+    <div
+      class="sticky top-12 z-40 -mx-3 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:px-8 dark:bg-nalika-bg"
+      :class="hideFilter ? '-translate-y-full' : 'translate-y-0'"
+    >
+      <div class="flex flex-col gap-2">
+        <TierDropdown v-model="seriesKey" class="w-fit md:max-w-md" :options="seriesOptions" />
+        <ArchDropdown v-model="archKey" class="md:max-w-3xl" :options="archOptions" />
+      </div>
     </div>
 
     <div v-if="loading" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
@@ -20,29 +31,16 @@
 
 <script setup>
 import manifest from '$data/archetypes/index.json'
+import tierData from '$data/tiers.json'
 import archModules from '@/utils/archModules'
 
-function buildLabelSegments(combo, sigCards) {
-  if (!sigCards?.length) {
-    return [{ text: combo }]
-  }
-  let rest = combo
-  const segs = []
-  for (const sc of sigCards) {
-    const idx = rest.indexOf(sc.name)
-    if (idx === -1) {
-      continue
-    }
-    if (idx > 0) {
-      segs.push({ text: rest.slice(0, idx) })
-    }
-    segs.push({ text: sc.name, color: COLOR_TEXT[sc.color] })
-    rest = rest.slice(idx + sc.name.length)
-  }
-  if (rest) {
-    segs.push({ text: rest })
-  }
-  return segs
+function comboColors(combo) {
+  const baseCombo = (combo ?? '').split(' (')[0]
+  return baseCombo
+    .split('+')
+    .map(c => c.trim())
+    .filter(Boolean)
+    .map(c => COLOR_HEX[c] || '#718096')
 }
 
 const router = useRouter()
@@ -61,11 +59,19 @@ const seriesKey = ref(seriesInitial)
 
 const seriesManifest = computed(() => manifest.find(s => s.value === seriesKey.value))
 
+const currentSeriesData = computed(() => tierData.find(s => s.value === seriesKey.value))
+
+const { hideFilter } = useScrollHide(180)
+
+const totalWins = computed(
+  () => seriesManifest.value?.archetypes.reduce((s, a) => s + (a.winnerDeckCount || 0), 0) ?? 0,
+)
+
 const archOptions = computed(() =>
   (seriesManifest.value?.archetypes ?? []).map((a, i) => ({
     value: String(i),
-    details: `${a.cardCount} cards · ${a.winnerDeckCount} wins · ${a.deckCount} decks · ${a.percent}% use`,
-    colors: a.sigCards.map(c => COLOR_HEX[c.color] || '#718096'),
+    details: `${a.cardCount} cards · ${a.winnerDeckCount} wins · ${a.deckCount} decks (${a.percent}%)`,
+    colors: comboColors(a.combo),
     labelSegments: buildLabelSegments(a.combo, a.sigCards),
     tier: a.tier || null,
   })),
