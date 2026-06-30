@@ -18,7 +18,7 @@
         </span>
       </div>
       <button
-        class="shrink-0 rounded px-2 py-1 text-xs font-medium text-ruri hover:bg-primary/10 focus:outline-none dark:text-shinbashi dark:hover:bg-primary/20"
+        class="shrink-0 rounded px-2 py-1 text-xs font-medium text-sora hover:bg-sora/10 focus:outline-none dark:hover:bg-sora/20"
         @click="$emit('detail', row)"
       >
         Detail ▶

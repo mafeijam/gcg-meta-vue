@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-380 p-3 md:p-8">
     <div class="mb-3">
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-nalika-text">Archetype Tier</h1>
+      <h1 class="text-2xl font-bold text-sumi dark:text-nalika-text">Archetype Tier</h1>
       <p v-if="currentSeries" class="mt-0.5 text-xs text-gray-500 dark:text-nalika-text-muted">
         {{ currentSeries.events }} events · {{ totalWins }} wins ·
         {{ currentSeries.totalDecks.toLocaleString() }} decks
@@ -12,7 +12,11 @@
       class="sticky top-12 z-40 -mx-3 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:px-8 dark:bg-nalika-bg"
       :class="hideFilter ? '-translate-y-full' : 'translate-y-0'"
     >
-      <TierDropdown v-model="selectedKey" class="w-fit md:max-w-md" :options="seriesOptions" />
+      <GeneralDropdown
+        v-model="selectedKey"
+        class="ml-auto w-fit md:max-w-md"
+        :options="seriesOptions"
+      />
     </div>
 
     <div class="space-y-3 md:hidden">
@@ -21,7 +25,12 @@
 
     <TierTable :rows="rows" @detail="openDetail" />
 
-    <ArchetypeModal v-if="detailArch" :archetype="detailArch" @close="closeDetail" />
+    <ArchetypeModal
+      v-if="detailArch"
+      :archetype="detailArch"
+      :tier="detailTier"
+      @close="closeDetail"
+    />
   </div>
 </template>
 
@@ -61,9 +70,11 @@ const rows = computed(() => {
 })
 
 const detailArch = ref(null)
+const detailTier = ref(null)
 
 function closeDetail() {
   detailArch.value = null
+  detailTier.value = null
 }
 
 async function openDetail(row) {
@@ -80,5 +91,6 @@ async function openDetail(row) {
   const path = `/data-processed/archetypes/${selectedKey.value}/${idx}.json`
   const mod = await archModules[path]?.()
   detailArch.value = mod?.default ?? null
+  detailTier.value = row.tier ?? null
 }
 </script>

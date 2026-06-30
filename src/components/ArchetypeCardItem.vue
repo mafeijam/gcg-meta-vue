@@ -19,9 +19,10 @@
         </span>
         <span
           v-if="card.rarity"
-          class="font-mono text-xs text-gray-400 dark:text-gray-500"
+          class="font-mono text-xs"
           :class="{
             'font-semibold text-yellow-600 dark:text-yellow-400/80': card.rarity.startsWith('LR'),
+            'text-gray-400 dark:text-gray-500': !card.rarity.startsWith('LR'),
           }"
         >
           {{ card.rarity.replace(/\+{1,2}$/, '') }}
@@ -49,7 +50,7 @@
       <div class="flex gap-1.5">
         <span
           v-if="card.ap && card.ap !== '-'"
-          class="font-mono text-xs font-medium text-red-700 dark:text-red-700/80"
+          class="font-mono text-xs font-medium text-red-700 dark:text-red-600/85"
           title="AP"
         >
           AP{{ card.ap }}

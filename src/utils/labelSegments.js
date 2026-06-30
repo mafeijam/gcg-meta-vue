@@ -1,10 +1,8 @@
-import { COLOR_TEXT } from './colors.js'
-
-export function buildLabelSegments(combo, sigCards) {
+function buildSegmentsFor(part, sigCards) {
   if (!sigCards?.length) {
-    return [{ text: combo }]
+    return [{ text: part }]
   }
-  let rest = combo
+  let rest = part
   const segs = []
   for (const sc of sigCards) {
     const idx = rest.indexOf(sc.name)
@@ -19,6 +17,20 @@ export function buildLabelSegments(combo, sigCards) {
   }
   if (rest) {
     segs.push({ text: rest })
+  }
+  return segs
+}
+
+export function buildLabelSegments(combo, sigCards) {
+  const parenMatch = combo.match(/^(.+?)\s*[（(](.+)[）)]$/)
+  const baseCombo = parenMatch ? parenMatch[1].trimEnd() : combo
+  const qualifier = parenMatch ? parenMatch[2] : ''
+
+  const segs = buildSegmentsFor(baseCombo, sigCards)
+  if (qualifier) {
+    segs.push({ text: '（' })
+    segs.push(...buildSegmentsFor(qualifier, sigCards))
+    segs.push({ text: '）' })
   }
   return segs
 }

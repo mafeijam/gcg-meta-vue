@@ -20,20 +20,22 @@
             </template>
           </div>
         </div>
-        <div
-          v-if="selectedDetails"
-          class="mt-1 text-xs text-gray-500 dark:text-nalika-text-muted/70"
-        >
-          {{ selectedDetails }}
+
+        <div class="mt-1 flex items-center gap-2">
+          <div
+            v-if="selectedTier"
+            class="mr-1 h-fit w-10 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
+            :class="tierPillClass(selectedTier)"
+          >
+            {{ selectedTier }}
+          </div>
+
+          <div v-if="selectedDetails" class="text-xs text-gray-500 dark:text-nalika-text-muted/70">
+            {{ selectedDetails }}
+          </div>
         </div>
       </div>
-      <span
-        v-if="selectedTier"
-        class="w-10 shrink-0 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
-        :class="tierPillClass(selectedTier)"
-      >
-        {{ selectedTier }}
-      </span>
+
       <svg class="h-4 w-4 shrink-0" viewBox="0 0 20 20" fill="currentColor">
         <path
           d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z"
@@ -68,20 +70,20 @@
               </template>
             </div>
           </div>
-          <span
-            v-if="opt.details"
-            class="mt-1 block text-left text-xxs font-normal text-gray-500 sm:text-xs dark:text-nalika-text-muted/70"
-          >
-            {{ opt.details }}
-          </span>
+
+          <div class="mt-1 flex items-center gap-2">
+            <div
+              v-if="opt.tier"
+              class="mr-1 h-fit w-10 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
+              :class="tierPillClass(opt.tier)"
+            >
+              {{ opt.tier }}
+            </div>
+            <div v-if="opt.details" class="text-xs text-gray-500 dark:text-nalika-text-muted/70">
+              {{ opt.details }}
+            </div>
+          </div>
         </div>
-        <span
-          v-if="opt.tier"
-          class="w-10 shrink-0 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
-          :class="tierPillClass(opt.tier)"
-        >
-          {{ opt.tier }}
-        </span>
       </button>
     </div>
   </div>

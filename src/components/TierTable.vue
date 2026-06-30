@@ -34,7 +34,7 @@
                 :style="{ background: dot.hex }"
               />
             </div>
-            <div class="text-gray-900 dark:text-nalika-text">
+            <div class="text-sumi dark:text-nalika-text">
               <template
                 v-for="(seg, si) in buildLabelSegments(row.archetype, row.sigCards ?? [])"
                 :key="si"
@@ -63,7 +63,7 @@
             <div class="font-mono tabular-nums">{{ row.winPerDk }}</div>
           </td>
           <td class="w-18 px-4 py-2 text-right">
-            <div class="font-mono tabular-nums">{{ row.t4PerDk }}</div>
+            <div class="font-mono tabular-nums">{{ row.top4 }}</div>
           </td>
           <td class="w-18 px-4 py-2 text-right">
             <div class="font-mono tabular-nums">{{ row.score }}</div>
@@ -78,7 +78,7 @@
           </td>
           <td class="w-8 px-1 py-2 text-center">
             <button
-              class="rounded px-1 py-0.5 text-[0.55rem] font-medium text-gray-400 group-hover:bg-primary/10 group-hover:text-primary focus:outline-none dark:text-gray-500 dark:group-hover:bg-primary/20 dark:group-hover:text-primary"
+              class="rounded text-xxs font-medium text-gray-400 group-hover:text-sora focus:outline-none dark:text-gray-500"
               @click.stop="$emit('detail', row)"
             >
               ▶

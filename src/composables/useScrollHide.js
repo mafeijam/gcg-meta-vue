@@ -1,43 +1,39 @@
-import { useScroll } from '@vueuse/core'
+import { useScroll, useTimeoutFn } from '@vueuse/core'
 
-// Returns a reactive `hideFilter` ref that hides the filter bar when
-// scrolling down past `threshold` px, and shows it after pausing upward
-// scroll for `showDelay` ms. The delay resets on every scroll-up event,
-// so the bar only reappears when the user stops scrolling upward.
+// Hides the filter bar on scroll-down past `threshold` px, shows it after
+// the user pauses scrolling upward for `showDelay` ms. The delay resets on
+// every scroll-up event so the bar only reappears during a stationary pause.
 export function useScrollHide(threshold = 120, showDelay = 500) {
   const hideFilter = ref(false)
 
+  // start() resets the timer on each call; stop() cancels it entirely.
+  // Repeated start() calls while scrolling up push the show-delay further out.
+  const { start, stop } = useTimeoutFn(() => {
+    hideFilter.value = false
+  }, showDelay)
+
   let prevY = 0
-  let showTimer = null
 
   useScroll(document, {
     onScroll: () => {
       const currentY = window.scrollY
+
       if (currentY <= threshold) {
-        clearTimer()
+        // Near top — always show
+        stop()
         hideFilter.value = false
       } else if (currentY > prevY) {
-        // scrolling down → hide immediately, cancel any pending show
-        clearTimer()
+        // Scrolling down — hide immediately
+        stop()
         hideFilter.value = true
       } else if (currentY < prevY) {
-        // scrolling up → restart the show delay
-        clearTimer()
-        showTimer = setTimeout(() => {
-          hideFilter.value = false
-          showTimer = null
-        }, showDelay)
+        // Scrolling up — start/reset the show-delay timer
+        start()
       }
+
       prevY = currentY
     },
   })
-
-  function clearTimer() {
-    if (showTimer) {
-      clearTimeout(showTimer)
-      showTimer = null
-    }
-  }
 
   return { hideFilter }
 }

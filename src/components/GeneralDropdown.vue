@@ -1,7 +1,7 @@
 <template>
   <div ref="dropdownRef" class="relative">
     <button
-      class="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-gray-500/10 bg-gray-50 px-3 py-1.5 text-sm transition-colors hover:border-gray-300 focus:border-sora focus:ring-2 focus:ring-hai/5 focus:outline-none dark:border-nalika-border dark:bg-nalika-surface dark:text-nalika-text dark:hover:border-gray-600/70 dark:focus:border-ruri"
+      class="flex w-full cursor-pointer items-center justify-between gap-2 rounded-lg border border-gray-500/10 bg-gray-50 px-3 py-1.5 text-sm text-sumi transition-colors hover:border-gray-300 focus:border-sora focus:ring-2 focus:ring-hai/5 focus:outline-none dark:border-nalika-border dark:bg-nalika-surface dark:text-nalika-text dark:hover:border-gray-600/70 dark:focus:border-ruri"
       @click="open = !open"
     >
       <span class="text-left">{{ selectedLabel }}</span>
@@ -23,7 +23,7 @@
         :class="
           opt.value === modelValue
             ? 'bg-gunjyo/10 text-ruri dark:bg-gunjyo/15 dark:text-sora'
-            : 'text-gray-700 dark:text-nalika-text'
+            : 'text-sumi dark:text-nalika-text'
         "
         @click="select(opt.value)"
       >

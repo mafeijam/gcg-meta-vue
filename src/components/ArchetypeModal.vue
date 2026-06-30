@@ -5,12 +5,8 @@
       class="fixed inset-0 z-[1000] flex flex-col bg-white font-display dark:bg-nalika-bg"
     >
       <div
-        class="relative flex items-center justify-between border-b border-gray-500/10 px-4 py-2 dark:bg-nalika-surface"
+        class="relative flex items-center justify-end border-b border-gray-500/10 px-4 py-2 md:px-8 dark:bg-nalika-surface"
       >
-        <div class="text-xs text-gray-500">
-          {{ archetype.cardCount }} cards · {{ archetype.winnerDeckCount }} wins ·
-          {{ archetype.deckCount }} decks · {{ archetype.percent }}% use
-        </div>
         <button
           class="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full text-gray-400 hover:bg-black/5 hover:text-gray-600 dark:hover:bg-white/10 dark:hover:text-gray-300"
           @click="$emit('close')"
@@ -31,9 +27,21 @@
               class="h-2.5 w-2.5 shrink-0 rounded-full"
               :style="{ background: COLOR_HEX[dot] }"
             />
-            <h2 class="ml-1 text-base font-bold text-gray-900 dark:text-nalika-text">
+            <h2 class="ml-1 font-semibold text-sumi dark:text-nalika-text">
               {{ archetype.combo }}
             </h2>
+          </div>
+
+          <div class="mt-0.5 text-xs text-gray-500 dark:text-nalika-text-muted">
+            <span
+              v-if="tier"
+              class="mr-1.5 inline-block w-10 rounded px-1 py-0.5 text-center text-xxs font-bold"
+              :class="tierPillClass(tier)"
+            >
+              {{ tier }}
+            </span>
+            {{ archetype.cardCount }} cards · {{ archetype.winnerDeckCount }} wins ·
+            {{ archetype.deckCount }} decks ({{ archetype.percent }}%)
           </div>
         </div>
         <ArchetypeDetail :archetype="archetype" class="mx-auto max-w-380" />
@@ -43,10 +51,11 @@
 </template>
 
 <script setup>
-import { onKeyStroke } from '@vueuse/core'
+import { onKeyStroke, useScrollLock } from '@vueuse/core'
 
 const props = defineProps({
   archetype: { type: Object, required: true },
+  tier: { type: String, default: null },
 })
 
 const colorDots = computed(() => {
@@ -60,12 +69,10 @@ const colorDots = computed(() => {
 
 const emit = defineEmits(['close'])
 
-onMounted(() => {
-  document.body.style.overflow = 'hidden'
-})
+const isLocked = useScrollLock(document.documentElement)
 
-onUnmounted(() => {
-  document.body.style.overflow = ''
+watchEffect(() => {
+  isLocked.value = !!props.archetype
 })
 
 onKeyStroke('Escape', () => emit('close'))
