@@ -7,6 +7,13 @@
       v-if="card.inWinner"
       class="gloss-overlay pointer-events-none absolute inset-0 z-10 rounded-lg"
     />
+    <div
+      v-if="isSig"
+      class="absolute top-1 right-1 z-20 text-xs leading-none text-yellow-400"
+      title="Signature card"
+    >
+      ★
+    </div>
 
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-1">
@@ -148,6 +155,7 @@
 <script setup>
 const props = defineProps({
   card: { type: Object, required: true },
+  isSig: { type: Boolean, default: false },
 })
 
 const enlarged = ref(false)

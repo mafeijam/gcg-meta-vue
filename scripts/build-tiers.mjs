@@ -355,7 +355,7 @@ function aggregateCards(groupDecks) {
 // Requires at least 2 winner appearances.
 function calculateTechScore(wins, decks, totalArchetypeDecks) {
   const inclusionRate = decks / totalArchetypeDecks
-  if (inclusionRate > 0.4 || inclusionRate <= 0.1) {
+  if (inclusionRate > 0.4 || inclusionRate <= 0.15) {
     return 0
   }
   if (wins < 2) {
@@ -398,7 +398,7 @@ function selectTopCards(allCards) {
     if (selectedIds.has(card.cardId)) {
       continue
     }
-    if (card.inclusionRate <= 0.1) {
+    if (card.inclusionRate <= 0.15) {
       continue
     }
     selected.push(card)

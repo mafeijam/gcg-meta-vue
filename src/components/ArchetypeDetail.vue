@@ -35,7 +35,12 @@
         <div>
           <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Unit: Core</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <ArchetypeCardItem v-for="card in coreUnits" :key="card.cardId" :card="card" />
+            <ArchetypeCardItem
+              v-for="card in coreUnits"
+              :key="card.cardId"
+              :card="card"
+              :is-sig="sigCardNames.has(card.name)"
+            />
           </div>
           <p v-if="!coreUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
         </div>
@@ -44,7 +49,12 @@
             Unit: Other
           </h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <ArchetypeCardItem v-for="card in otherUnits" :key="card.cardId" :card="card" />
+            <ArchetypeCardItem
+              v-for="card in otherUnits"
+              :key="card.cardId"
+              :card="card"
+              :is-sig="sigCardNames.has(card.name)"
+            />
           </div>
           <p v-if="!otherUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
         </div>
@@ -55,19 +65,34 @@
         <div v-if="pilotCards.length">
           <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Pilot</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <ArchetypeCardItem v-for="card in pilotCards" :key="card.cardId" :card="card" />
+            <ArchetypeCardItem
+              v-for="card in pilotCards"
+              :key="card.cardId"
+              :card="card"
+              :is-sig="sigCardNames.has(card.name)"
+            />
           </div>
         </div>
         <div v-if="commandCards.length" class="border-t border-gray-200 pt-3 dark:border-gray-700">
           <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Command</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <ArchetypeCardItem v-for="card in commandCards" :key="card.cardId" :card="card" />
+            <ArchetypeCardItem
+              v-for="card in commandCards"
+              :key="card.cardId"
+              :card="card"
+              :is-sig="sigCardNames.has(card.name)"
+            />
           </div>
         </div>
         <div v-if="baseCards.length" class="border-t border-gray-200 pt-3 dark:border-gray-700">
           <h4 class="mb-2 text-xs font-semibold text-gray-600 dark:text-nalika-text">Base</h4>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4">
-            <ArchetypeCardItem v-for="card in baseCards" :key="card.cardId" :card="card" />
+            <ArchetypeCardItem
+              v-for="card in baseCards"
+              :key="card.cardId"
+              :card="card"
+              :is-sig="sigCardNames.has(card.name)"
+            />
           </div>
         </div>
       </div>
@@ -99,7 +124,12 @@
             {{ typeLabel[type] || type }}
           </h5>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
-            <ArchetypeCardItem v-for="card in cards" :key="card.cardId" :card="card" />
+            <ArchetypeCardItem
+              v-for="card in cards"
+              :key="card.cardId"
+              :card="card"
+              :is-sig="sigCardNames.has(card.name)"
+            />
           </div>
         </div>
       </div>
@@ -169,6 +199,8 @@ const props = defineProps({
 
 const showOther = ref(false)
 const showDeckUrls = ref(false)
+
+const sigCardNames = computed(() => new Set(props.archetype.sigCards?.map(s => s.name) ?? []))
 
 const unitCards = computed(() => props.archetype.cards.filter(c => c.type === 'UNIT'))
 const coreUnits = computed(() => unitCards.value.filter(c => (c.inclusionRate ?? 0) >= 0.6))

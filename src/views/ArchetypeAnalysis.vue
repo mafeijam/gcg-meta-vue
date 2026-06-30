@@ -106,19 +106,19 @@ async function loadArchetype(seriesVal, archIdx) {
   }
 }
 
+watch(archKey, val => {
+  router.replace({ query: { series: seriesKey.value, arch: val } })
+})
+
 watch(seriesKey, val => {
-  const archs = archOptions.value
-  const newArch = archs.length ? '0' : ''
+  const newArch = archOptions.value.length ? '0' : ''
   archKey.value = newArch
   router.replace({ query: { series: val, arch: newArch } })
 })
 
-watch(
-  [seriesKey, archKey],
-  async ([s, a]) => {
-    router.replace({ query: { series: s, arch: a } })
-    await loadArchetype(s, a)
-  },
-  { immediate: true },
-)
+watch([seriesKey, archKey], async ([s, a]) => {
+  await loadArchetype(s, a)
+})
+
+onMounted(() => loadArchetype(seriesKey.value, archKey.value))
 </script>
