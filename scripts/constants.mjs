@@ -16,5 +16,5 @@ export const COLOR_HEX = {
 // Sort order for card display in archetype card grid
 export const TYPE_ORDER = { unit: 0, pilot: 1, command: 2, base: 3 }
 
-// Featured-card selection priority (4 UNIT, 2 each of rest)
+// Featured-card selection priority (4 each type)
 export const TYPE_PICK_ORDER = ['UNIT', 'PILOT', 'COMMAND', 'BASE']

@@ -129,11 +129,29 @@ function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
     if (!combo) {
       continue
     }
-    comboArchetypes[combo] ??= { decks: [], deckUrls: [], deckWinnerFlags: [] }
-    comboArchetypes[combo].decks.push(player.deck)
+    // Aggregate card stats and pre-serialize decks inline to avoid storing raw deck arrays
+    comboArchetypes[combo] ??= {
+      count: 0,
+      cardAgg: {},
+      deckCardIds: [],
+      deckUrls: [],
+      deckWinnerFlags: [],
+    }
+    const entry = comboArchetypes[combo]
+    entry.count++
+    entry.deckCardIds.push(serializeDeckCards(player.deck, lookup))
+    const seen = new Set()
+    for (const card of player.deck) {
+      entry.cardAgg[card.cardId] ??= { totalQty: 0, decksIncluded: 0 }
+      entry.cardAgg[card.cardId].totalQty += card.quantity
+      if (!seen.has(card.cardId)) {
+        entry.cardAgg[card.cardId].decksIncluded++
+        seen.add(card.cardId)
+      }
+    }
     if (player.deckUrl) {
-      comboArchetypes[combo].deckUrls.push(player.deckUrl)
-      comboArchetypes[combo].deckWinnerFlags.push(player.rank === WINNER)
+      entry.deckUrls.push(player.deckUrl)
+      entry.deckWinnerFlags.push(player.rank === WINNER)
     }
   }
 
@@ -143,8 +161,17 @@ function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
     if (!combo) {
       continue
     }
-    winnerComboArchetypes[combo] ??= { decks: [] }
-    winnerComboArchetypes[combo].decks.push(winner.deck)
+    // Fold deduped per-card winner counting inline to avoid storing raw deck arrays
+    winnerComboArchetypes[combo] ??= { count: 0, cardCounts: {} }
+    winnerComboArchetypes[combo].count++
+    const seen = new Set()
+    for (const card of winner.deck) {
+      if (!seen.has(card.cardId)) {
+        winnerComboArchetypes[combo].cardCounts[card.cardId] =
+          (winnerComboArchetypes[combo].cardCounts[card.cardId] ?? 0) + 1
+        seen.add(card.cardId)
+      }
+    }
   }
 
   const top4ComboArchetypes = {}
@@ -153,8 +180,8 @@ function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
     if (!combo) {
       continue
     }
-    top4ComboArchetypes[combo] ??= { decks: [] }
-    top4ComboArchetypes[combo].decks.push(p.deck)
+    top4ComboArchetypes[combo] ??= 0
+    top4ComboArchetypes[combo]++
   }
 
   return { comboArchetypes, winnerComboArchetypes, top4ComboArchetypes }
@@ -162,44 +189,12 @@ function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
 
 // ── Card-level analysis ──────────────────────────────────────────────────────
 
-// Counts how many distinct winner decks include each cardId (deduped per deck)
-function countWinnerCards(winnerGroup) {
-  const counts = {}
-  if (!winnerGroup) {
-    return counts
-  }
-  for (const deck of winnerGroup.decks) {
-    const seen = new Set()
-    for (const card of deck) {
-      if (!seen.has(card.cardId)) {
-        counts[card.cardId] = (counts[card.cardId] || 0) + 1
-        seen.add(card.cardId)
-      }
-    }
-  }
-  return counts
-}
-
-// Aggregates total copies and deck-inclusion count per cardId
-function aggregateCards(groupDecks) {
-  const cardStats = {}
-  for (const deck of groupDecks) {
-    const seen = new Set()
-    for (const card of deck) {
-      cardStats[card.cardId] ??= { totalQty: 0, decksIncluded: 0 }
-      cardStats[card.cardId].totalQty += card.quantity
-      if (!seen.has(card.cardId)) {
-        cardStats[card.cardId].decksIncluded++
-        seen.add(card.cardId)
-      }
-    }
-  }
-  return cardStats
-}
-
 // Rewards cards with moderate inclusion (15–40%) and strong winner association (≥2 wins).
 // Higher win/deck ratio with lower inclusion = more "techy".
-function calculateTechScore(wins, decks, totalArchetypeDecks) {
+function calculateTechScore(wins, decks, totalArchetypeDecks, isVanilla = false) {
+  if (isVanilla) {
+    return 0
+  }
   const inclusionRate = decks / totalArchetypeDecks
   if (inclusionRate > 0.4 || inclusionRate <= 0.15) {
     return 0
@@ -211,7 +206,7 @@ function calculateTechScore(wins, decks, totalArchetypeDecks) {
 }
 
 // Two-pass featured-card selection:
-//   1) Guarantee type coverage (4 UNIT, 2 each of PILOT/COMMAND/BASE)
+//   1) Guarantee type coverage (4 each of UNIT/PILOT/COMMAND/BASE)
 //   2) Fill remaining slots with cards above 15% inclusion, capped at 4 per non-UNIT type
 function selectTopCards(allCards) {
   const perType = {}
@@ -225,7 +220,7 @@ function selectTopCards(allCards) {
 
   // First pass: guarantee minimum cards per type regardless of inclusion rate
   for (const type of TYPE_PICK_ORDER) {
-    const sliceSize = type === 'UNIT' ? 4 : 2
+    const sliceSize = 4
     for (const card of (perType[type] || []).slice(0, sliceSize)) {
       selected.push(card)
       selectedIds.add(card.cardId)
@@ -466,13 +461,12 @@ function buildArchetypeDetails(
   vanillaGroup,
 ) {
   return Object.entries(comboArchetypes).map(([combo, group]) => {
-    const winnerGroup = winnerComboArchetypes[combo]
-    const top4Group = top4ComboArchetypes[combo]
-    const groupDecks = group.decks
-    const count = groupDecks.length
+    const winnerInfo = winnerComboArchetypes[combo]
+    const top4Count = top4ComboArchetypes[combo] ?? 0
+    const count = group.count
+    const cardAgg = group.cardAgg
 
-    const winnerCounts = countWinnerCards(winnerGroup)
-    const cardAgg = aggregateCards(groupDecks)
+    const winnerCounts = winnerInfo?.cardCounts ?? {}
 
     const allCards = Object.entries(cardAgg).map(([cardId, cardData]) => {
       const info = lookup(cardId)
@@ -494,9 +488,7 @@ function buildArchetypeDetails(
         winnerDeckCount: winnerCounts[cardId] || 0,
         avgQty: Math.round(cardData.totalQty / cardData.decksIncluded),
         inWinner: false,
-        techScore: isVanilla
-          ? 0
-          : calculateTechScore(winnerCounts[cardId] || 0, cardData.decksIncluded, count),
+        techScore: calculateTechScore(winnerCounts[cardId] || 0, cardData.decksIncluded, count, isVanilla),
       }
     })
 
@@ -535,16 +527,19 @@ function buildArchetypeDetails(
         }))
       : []
 
-    const deckCardIds = groupDecks.map(deck => serializeDeckCards(deck, lookup))
+    const sigCardIds = sigCards.map(s => allCards.find(c => c.name === s.name)).filter(Boolean).map(c => c.cardId)
+
+    const deckCardIds = group.deckCardIds
 
     return {
       combo,
       sigCards,
+      sigCardIds,
       cardCount: allCards.length,
       deckCount: count,
       percent: +((count / totalAll) * 100).toFixed(1),
-      winnerDeckCount: winnerGroup ? winnerGroup.decks.length : 0,
-      top4: top4Group ? top4Group.decks.length : 0,
+      winnerDeckCount: winnerInfo?.count ?? 0,
+      top4: top4Count,
       cards: topCards,
       filteredCards,
       featureBadges,

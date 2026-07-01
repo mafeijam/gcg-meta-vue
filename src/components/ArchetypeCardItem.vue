@@ -164,16 +164,16 @@ const colorHex = computed(() => COLOR_HEX[props.card.color] || '#718096')
 
 const barColorClass = computed(() => {
   const rate = (props.card.inclusionRate ?? 0) * 100
-  if (rate >= 80) {
+  if (rate >= 90) {
     return tw`bg-red-500 dark:bg-red-700`
   }
-  if (rate >= 60) {
+  if (rate >= 75) {
     return tw`bg-amber-500 dark:bg-amber-700`
   }
-  if (rate >= 40) {
+  if (rate >= 50) {
     return tw`bg-yellow-400 dark:bg-yellow-600`
   }
-  if (rate >= 20) {
+  if (rate >= 25) {
     return tw`bg-green-500 dark:bg-green-700`
   }
   return tw`bg-sky-400 dark:bg-sky-600`

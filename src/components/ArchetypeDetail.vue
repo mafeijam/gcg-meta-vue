@@ -39,7 +39,7 @@
               v-for="card in coreUnits"
               :key="card.cardId"
               :card="card"
-              :is-sig="sigCardNames.has(card.name)"
+              :is-sig="sigCardIds.has(card.cardId)"
             />
           </div>
           <p v-if="!coreUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
@@ -53,7 +53,7 @@
               v-for="card in otherUnits"
               :key="card.cardId"
               :card="card"
-              :is-sig="sigCardNames.has(card.name)"
+              :is-sig="sigCardIds.has(card.cardId)"
             />
           </div>
           <p v-if="!otherUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
@@ -69,7 +69,7 @@
               v-for="card in pilotCards"
               :key="card.cardId"
               :card="card"
-              :is-sig="sigCardNames.has(card.name)"
+              :is-sig="sigCardIds.has(card.cardId)"
             />
           </div>
         </div>
@@ -80,7 +80,7 @@
               v-for="card in commandCards"
               :key="card.cardId"
               :card="card"
-              :is-sig="sigCardNames.has(card.name)"
+              :is-sig="sigCardIds.has(card.cardId)"
             />
           </div>
         </div>
@@ -91,7 +91,7 @@
               v-for="card in baseCards"
               :key="card.cardId"
               :card="card"
-              :is-sig="sigCardNames.has(card.name)"
+              :is-sig="sigCardIds.has(card.cardId)"
             />
           </div>
         </div>
@@ -128,7 +128,7 @@
               v-for="card in cards"
               :key="card.cardId"
               :card="card"
-              :is-sig="sigCardNames.has(card.name)"
+              :is-sig="sigCardIds.has(card.cardId)"
             />
           </div>
         </div>
@@ -226,7 +226,7 @@ function toggleDeckUrls() {
   }
 }
 
-const sigCardNames = computed(() => new Set(props.archetype.sigCards?.map(s => s.name) ?? []))
+const sigCardIds = computed(() => new Set(props.archetype.sigCardIds ?? []))
 
 const cardIdToName = computed(() => {
   const map = new Map()
@@ -239,22 +239,43 @@ const cardIdToName = computed(() => {
   return map
 })
 
+const cardIdToInfo = computed(() => {
+  const map = new Map()
+  for (const c of props.archetype.cards ?? []) {
+    map.set(c.cardId, { type: c.type, color: c.color, level: Number(c.level), inclusionRate: c.inclusionRate ?? 0 })
+  }
+  for (const c of props.archetype.filteredCards ?? []) {
+    map.set(c.cardId, { type: c.type, color: c.color, level: Number(c.level), inclusionRate: c.inclusionRate ?? 0 })
+  }
+  return map
+})
+
 const deckPreviews = computed(() =>
   (props.archetype.deckUrls ?? []).map((url, i) => {
+    const infoMap = cardIdToInfo.value
     const cards = (props.archetype.deckCardIds?.[i] ?? '')
       .split('|')
       .filter(Boolean)
       .map(part => {
         const [cardId, qty] = part.split(':')
-        return { cardId, qty: Number(qty), name: cardIdToName.value.get(cardId) ?? cardId }
+        const info = infoMap.get(cardId)
+        return {
+          cardId,
+          qty: Number(qty),
+          name: cardIdToName.value.get(cardId) ?? cardId,
+          type: info?.type ?? 'UNIT',
+          color: info?.color ?? '',
+          level: info?.level ?? 0,
+          inclusionRate: info?.inclusionRate ?? 0,
+        }
       })
     return { url, idx: i, isWinner: props.archetype.deckWinnerFlags?.[i] ?? false, cards }
   }),
 )
 
 const unitCards = computed(() => props.archetype.cards.filter(c => c.type === 'UNIT'))
-const coreUnits = computed(() => unitCards.value.filter(c => (c.inclusionRate ?? 0) >= 0.6))
-const otherUnits = computed(() => unitCards.value.filter(c => (c.inclusionRate ?? 0) < 0.6))
+const coreUnits = computed(() => unitCards.value.filter(c => (c.inclusionRate ?? 0) >= 0.75))
+const otherUnits = computed(() => unitCards.value.filter(c => (c.inclusionRate ?? 0) < 0.75))
 const pilotCards = computed(() => props.archetype.cards.filter(c => c.type === 'PILOT'))
 const commandCards = computed(() => props.archetype.cards.filter(c => c.type === 'COMMAND'))
 const baseCards = computed(() => props.archetype.cards.filter(c => c.type === 'BASE'))

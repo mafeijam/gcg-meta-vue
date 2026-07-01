@@ -16,17 +16,23 @@
         anchor === 'top' ? 'bottom-full mb-1' : 'top-full mt-1',
         hPos === 'right' ? 'right-0' : 'left-0',
       ]"
+      :style="{ minWidth: popoverWidth + 'px' }"
     >
-      <div class="flex flex-col gap-1">
+      <div class="flex flex-col gap-2">
         <div
           v-for="(row, ri) in cardRows"
           :key="ri"
-          class="grid gap-1"
-          :style="{ gridTemplateColumns: `repeat(${maxCols}, 120px)` }"
+          class="grid gap-2"
+          :style="{ gridTemplateColumns: `repeat(${maxCols}, 100px)` }"
         >
-          <div v-for="card in row" :key="card.cardId" class="relative">
+          <div
+            v-for="card in row"
+            :key="card.cardId"
+            class="relative overflow-hidden rounded-lg aspect-[3/4]"
+            :class="{ 'outline-2 outline-akabeni': isCoreUnit(card) }"
+          >
             <img
-              :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?w=120`"
+              :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?w=100`"
               :alt="card.name"
               class="w-full object-cover"
               loading="lazy"
@@ -66,8 +72,13 @@
                 Open
               </button>
             </div>
-            <div class="grid grid-cols-3 gap-1">
-              <div v-for="card in cards" :key="card.cardId" class="relative">
+            <div class="grid grid-cols-3 gap-1.5">
+              <div
+                v-for="card in sortedCards"
+                :key="card.cardId"
+                class="relative overflow-hidden rounded-lg aspect-[3/4]"
+                :class="{ 'outline-2 outline-akabeni': isCoreUnit(card) }"
+              >
                 <img
                   :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?w=200`"
                   :alt="card.name"
@@ -98,22 +109,46 @@ const open = ref(false)
 const mobileOpen = ref(false)
 const anchor = ref('bottom')
 const hPos = ref('left')
+const popoverWidth = ref(0)
+
+let showTimer = null
+
+const TYPE_ORDER = { UNIT: 0, PILOT: 1, COMMAND: 2, BASE: 3 }
+
+const sortedCards = computed(() =>
+  [...props.cards].sort((a, b) => {
+    const ta = TYPE_ORDER[a.type] ?? 99
+    const tb = TYPE_ORDER[b.type] ?? 99
+    if (ta !== tb) {
+      return ta - tb
+    }
+    if (a.color !== b.color) {
+      return (a.color ?? '').localeCompare(b.color ?? '')
+    }
+    return (a.level ?? 0) - (b.level ?? 0)
+  }),
+)
+
+function isCoreUnit(card) {
+  return card.type === 'UNIT' && (card.inclusionRate ?? 0) >= 0.75
+}
 
 const MAX_COLS = 8
-const CARD_W = 120
-const GAP = 4
+const CARD_W = 100
+const GAP = 8
 const PAD = 20
 const BORDER = 2
+const ROW_H = 133
 
 // Max grid columns, recalculated on hover to fit viewport
 const cols = ref(MAX_COLS)
 
 const cardRows = computed(() => {
-  const n = props.cards.length
+  const sc = sortedCards.value
+  const n = sc.length
   if (n <= MAX_COLS) {
-    return [props.cards]
+    return [sc]
   }
-  // 3-row ceiling distribution, capped at viewport-fit columns
   const perRow = Math.min(cols.value, Math.ceil(n / 3))
   const rows = []
   let remaining = n
@@ -122,7 +157,7 @@ const cardRows = computed(() => {
     if (size <= 0) {
       break
     }
-    rows.push(props.cards.slice(n - remaining, n - remaining + size))
+    rows.push(sc.slice(n - remaining, n - remaining + size))
     remaining -= size
   }
   return rows
@@ -162,46 +197,49 @@ function onEnter(event) {
   if (window.innerWidth < 768) {
     return
   }
-  open.value = true
-  // Constrain grid width to viewport before measuring trigger position
-  const viewportCols = calcFitCols()
-  cols.value = viewportCols
-  const rect = event.currentTarget.getBoundingClientRect()
-  const n = props.cards.length
-  const perRow = n <= viewportCols ? n : Math.min(viewportCols, Math.ceil(n / 3))
-  const rows = n <= viewportCols ? 1 : 3
-  const estimatedWidth = perRow * CARD_W + (perRow - 1) * GAP + PAD + BORDER
-  const estimatedHeight = rows * 185 + PAD + BORDER
+  const el = event.currentTarget
+  clearTimeout(showTimer)
+  showTimer = setTimeout(() => {
+    const viewportCols = calcFitCols()
+    cols.value = viewportCols
+    const rect = el.getBoundingClientRect()
+    const n = props.cards.length
+    const perRow = n <= viewportCols ? n : Math.min(viewportCols, Math.ceil(n / 3))
+    const rows = n <= viewportCols ? 1 : 3
+    const estimatedWidth = perRow * CARD_W + (perRow - 1) * GAP + PAD + BORDER
+    const estimatedHeight = rows * ROW_H + PAD + BORDER
+    popoverWidth.value = estimatedWidth
 
-  const spaceBelow = window.innerHeight - rect.bottom
-  const spaceAbove = rect.top
-  // Flip above when popover doesn't fit below and there's room above
-  if (estimatedHeight <= spaceBelow) {
-    anchor.value = 'bottom'
-  } else if (estimatedHeight <= spaceAbove) {
-    anchor.value = 'top'
-  } else {
-    // Neither side fits — pick the one with more room
-    anchor.value = spaceBelow >= spaceAbove ? 'bottom' : 'top'
-  }
+    const spaceBelow = window.innerHeight - rect.bottom
+    const spaceAbove = rect.top
+    if (estimatedHeight <= spaceBelow) {
+      anchor.value = 'bottom'
+    } else if (estimatedHeight <= spaceAbove) {
+      anchor.value = 'top'
+    } else {
+      anchor.value = spaceBelow >= spaceAbove ? 'bottom' : 'top'
+    }
 
-  // Horizontal: flip right when left-aligned would overflow right,
-  // flip left when right-aligned would overflow left.
-  // When both overflow, pick the side that keeps more visible.
-  const canLeft = rect.left + estimatedWidth <= window.innerWidth
-  const canRight = rect.right >= estimatedWidth
-  if (!canLeft && canRight) {
-    hPos.value = 'right'
-  } else if (!canRight && canLeft) {
-    hPos.value = 'left'
-  } else if (!canLeft && !canRight) {
-    hPos.value = rect.left + rect.right < window.innerWidth ? 'left' : 'right'
-  }
+    const canLeft = rect.left + estimatedWidth <= window.innerWidth
+    const canRight = rect.right >= estimatedWidth
+    if (!canLeft && canRight) {
+      hPos.value = 'right'
+    } else if (!canRight && canLeft) {
+      hPos.value = 'left'
+    } else if (!canLeft && !canRight) {
+      hPos.value = rect.left + rect.right < window.innerWidth ? 'left' : 'right'
+    }
+
+    open.value = true
+  }, 300)
 }
 
 function onLeave() {
+  clearTimeout(showTimer)
   open.value = false
 }
+
+onUnmounted(() => clearTimeout(showTimer))
 </script>
 
 <style scoped>
