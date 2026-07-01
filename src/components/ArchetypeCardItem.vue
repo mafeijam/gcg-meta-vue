@@ -1,11 +1,11 @@
 <template>
   <div
-    class="relative rounded-lg border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+    class="relative rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
     :class="{ 'ring-2 ring-yellow-400 dark:ring-yellow-700': card.inWinner }"
   >
     <div
       v-if="card.inWinner"
-      class="gloss-overlay pointer-events-none absolute inset-0 z-10 rounded-lg"
+      class="gloss-overlay pointer-events-none absolute inset-0 z-10 rounded"
     />
     <div
       v-if="isSig"

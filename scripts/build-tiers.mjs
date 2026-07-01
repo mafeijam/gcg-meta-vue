@@ -281,6 +281,7 @@ function getSeriesMetadata(series) {
     top4Players,
     totalWinners: winners.length,
     totalAll: allPlayers.length,
+    eventCount: series.events.length,
   }
 }
 
@@ -561,7 +562,8 @@ function buildArchetypeDetails(
 // ── Phase: Process one series ────────────────────────────────────────────────
 
 function processSeries(series, lookup, nameToColor, vanillaGroup) {
-  const { allPlayers, winners, top4Players, totalWinners, totalAll } = getSeriesMetadata(series)
+  const { allPlayers, winners, top4Players, totalWinners, totalAll, eventCount } =
+    getSeriesMetadata(series)
 
   const { comboArchetypes, winnerComboArchetypes, top4ComboArchetypes } = buildArchetypeMaps(
     allPlayers,
@@ -580,8 +582,8 @@ function processSeries(series, lookup, nameToColor, vanillaGroup) {
     vanillaGroup,
   )
 
-  // Filter to archetypes with enough decks (1% of total or 5% capped at 12)
-  const minSize = Math.max(Math.ceil(totalAll * 0.01), Math.min(12, Math.ceil(totalAll * 0.05)))
+  // Filter to archetypes with at least 3 decks
+  const minSize = 3
   const mainDetails = archetypeDetails
     .filter(a => a.deckCount >= minSize)
     .sort((a, b) => b.deckCount - a.deckCount)
@@ -598,7 +600,7 @@ function processSeries(series, lookup, nameToColor, vanillaGroup) {
   const seriesProcessed = {
     value: series.value,
     label: series.label,
-    totalEvents: totalWinners,
+    totalEvents: eventCount,
     totalDecks: totalAll,
     archetypes: mainDetails,
   }
@@ -641,7 +643,8 @@ function processSeries(series, lookup, nameToColor, vanillaGroup) {
   const tierEntry = {
     value: series.value,
     label: series.label,
-    events: totalWinners,
+    events: eventCount,
+    winDecks: totalWinners,
     totalDecks: totalAll,
     rows: formatTierRows(seriesProcessed),
   }

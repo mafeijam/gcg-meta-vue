@@ -163,6 +163,7 @@
             :key="d.url"
             :cards="d.cards"
             :url="d.url"
+            :label="'Deck ' + (i + 1)"
             class="flex items-center gap-2"
           >
             <a
@@ -195,6 +196,7 @@
             :key="d.url"
             :cards="d.cards"
             :url="d.url"
+            :label="'Deck ' + (i + 1)"
           >
             <a
               :href="d.url"

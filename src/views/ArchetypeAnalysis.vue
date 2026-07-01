@@ -1,17 +1,13 @@
 <template>
-  <div class="mx-auto max-w-380 p-3 pb-8 md:p-8">
-    <div class="mb-3">
-      <h1 class="text-2xl font-bold text-sumi dark:text-nalika-text">Archetype Analysis</h1>
-      <div
-        v-if="currentSeriesData"
-        class="mt-0.5 flex flex-wrap gap-x-1 text-xs text-gray-500 dark:text-nalika-text-muted"
-      >
-        <span>{{ currentSeriesData.events }} events</span>
-        <span>· {{ totalWins }} wins</span>
-        <span>· {{ currentSeriesData.totalDecks.toLocaleString() }} decks</span>
-        <span>· {{ seriesManifest.archetypes.length }} archetypes</span>
-      </div>
-    </div>
+  <div class="mx-auto max-w-340 p-3 pb-8 md:p-8">
+    <SeriesHeader
+      title="Archetype Analysis"
+      :visible="!!currentSeriesData"
+      :events="currentSeriesData?.events ?? 0"
+      :wins="totalWins"
+      :decks="currentSeriesData?.totalDecks ?? 0"
+      :archetypes="seriesManifest?.archetypes.length ?? 0"
+    />
     <div
       class="sticky top-12 z-40 -mx-3 mb-3 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:px-8 dark:bg-nalika-bg"
       :class="hideFilter ? '-translate-y-full' : 'translate-y-0'"
@@ -78,9 +74,7 @@ const currentSeriesData = computed(() => tierData.find(s => s.value === seriesKe
 
 const { hideFilter } = useScrollHide(180)
 
-const totalWins = computed(
-  () => seriesManifest.value?.archetypes.reduce((s, a) => s + (a.winnerDeckCount || 0), 0) ?? 0,
-)
+const totalWins = computed(() => currentSeriesData.value?.winDecks ?? 0)
 
 const archOptions = computed(() =>
   (seriesManifest.value?.archetypes ?? []).map((a, i) => ({
