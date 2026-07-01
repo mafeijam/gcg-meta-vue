@@ -28,7 +28,7 @@
           <div
             v-for="card in row"
             :key="card.cardId"
-            class="relative overflow-hidden rounded-lg aspect-[3/4]"
+            class="relative aspect-[3/4] overflow-hidden rounded-lg"
             :class="{ 'outline-2 outline-akabeni': isCoreUnit(card) }"
           >
             <img
@@ -58,25 +58,38 @@
           <div
             class="mx-2 max-h-[85vh] w-full max-w-md overflow-y-auto rounded-xl bg-white p-2 shadow-2xl select-none dark:bg-gray-800"
           >
-            <div class="mb-2 flex gap-2">
+            <div class="mb-2 flex justify-end gap-4">
               <button
-                class="flex-1 rounded-lg bg-gray-100 py-1.5 text-sm font-medium text-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                @click="closeMobile"
-              >
-                Close
-              </button>
-              <button
-                class="flex-1 rounded-lg bg-ruri py-1.5 text-sm font-medium text-white"
+                class="flex h-8 w-14 items-center justify-center rounded-lg bg-ruri/10 text-ruri transition-colors"
+                aria-label="Open in new tab"
                 @click="openUrl"
               >
-                Open
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"
+                  />
+                  <path
+                    d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 100-2H5z"
+                  />
+                </svg>
+              </button>
+              <button
+                class="flex h-8 w-14 items-center justify-center rounded-lg bg-gray-100 text-gray-600 transition-colors dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+                aria-label="Close"
+                @click="closeMobile"
+              >
+                <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <path
+                    d="M6.28 5.22a.75.75 0 00-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 101.06 1.06L10 11.06l3.72 3.72a.75.75 0 101.06-1.06L11.06 10l3.72-3.72a.75.75 0 00-1.06-1.06L10 8.94 6.28 5.22z"
+                  />
+                </svg>
               </button>
             </div>
-            <div class="grid grid-cols-3 gap-1.5">
+            <div class="grid grid-cols-4 gap-1.5">
               <div
                 v-for="card in sortedCards"
                 :key="card.cardId"
-                class="relative overflow-hidden rounded-lg aspect-[3/4]"
+                class="relative aspect-[3/4] overflow-hidden rounded-lg"
                 :class="{ 'outline-2 outline-akabeni': isCoreUnit(card) }"
               >
                 <img

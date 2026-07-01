@@ -16,9 +16,19 @@
       class="sticky top-12 z-40 -mx-3 mb-3 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:px-8 dark:bg-nalika-bg"
       :class="hideFilter ? '-translate-y-full' : 'translate-y-0'"
     >
-      <div class="flex flex-col items-end gap-2">
-        <GeneralDropdown v-model="seriesKey" class="w-fit md:max-w-md" :options="seriesOptions" />
-        <ArchetypeDropdown v-model="archKey" class="max-w-full md:w-3xl" :options="archOptions" />
+      <div
+        class="flex flex-col items-end gap-2 md:flex-row md:items-start md:justify-between md:gap-8"
+      >
+        <GeneralDropdown
+          v-model="seriesKey"
+          class="w-fit md:order-2 md:max-w-md md:shrink-0"
+          :options="seriesOptions"
+        />
+        <ArchetypeDropdown
+          v-model="archKey"
+          class="max-w-full md:order-1 md:flex-1"
+          :options="archOptions"
+        />
       </div>
     </div>
 
