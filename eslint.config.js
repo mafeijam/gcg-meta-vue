@@ -20,6 +20,7 @@ export default [
   eslintConfigPrettier,
   {
     rules: {
+      'no-unexpected-multiline': 'error',
       curly: ['error', 'all'],
       'vue/component-name-in-template-casing': [
         'error',

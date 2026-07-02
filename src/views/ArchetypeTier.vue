@@ -21,7 +21,12 @@
     </div>
 
     <div class="space-y-3 md:hidden">
-      <MobileTierCard v-for="row in tierRows" :key="row.archetype" :row="row" @detail="openDetail" />
+      <MobileTierCard
+        v-for="row in tierRows"
+        :key="row.archetype"
+        :row="row"
+        @detail="openDetail"
+      />
       <button
         v-if="zeroWinRows.length"
         class="w-full cursor-pointer py-2 text-center text-xs font-medium text-ruri"
@@ -30,7 +35,12 @@
         0 Wins（{{ zeroWinRows.length }}）{{ showZeroWins ? '−' : '+' }}
       </button>
       <template v-if="showZeroWins">
-        <MobileTierCard v-for="row in zeroWinRows" :key="row.archetype" :row="row" @detail="openDetail" />
+        <MobileTierCard
+          v-for="row in zeroWinRows"
+          :key="row.archetype"
+          :row="row"
+          @detail="openDetail"
+        />
       </template>
     </div>
 

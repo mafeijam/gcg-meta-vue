@@ -58,54 +58,45 @@ function createCardLookups(cardsRaw) {
 
 // Sorted unique colors in a deck, used for combo key prefix
 function getDeckColors(deck, lookup) {
-  const colors = new Set()
-  for (const card of deck) {
-    colors.add(lookup(card.cardId).color)
-  }
-  return [...colors].sort()
+  return [...new Set(deck.map(card => lookup(card.cardId).color))].sort()
 }
 
 // Identifies 1–2 signature LR UNIT cards per archetype.
 // Scored by qty×10 + level×7. Only cards appearing in qty≥2 qualify.
-// Single-color signature: pick top 2. Multi-color: pick top 1 per color.
 function getSignatureCard(deck, lookup) {
-  const best = {}
+  const leadersByColor = {}
   for (const card of deck) {
+    if (card.quantity < 2) {
+      continue
+    }
+
     const info = lookup(card.cardId)
     if (info.type !== 'UNIT' || !info.rarity?.startsWith('LR')) {
       continue
     }
-    const lv = parseInt(info.level) || 0
-    const score = card.quantity * 10 + lv * 7
-    const color = info.color
-    best[color] ??= []
-    const entry = { name: info.name, color, score, qty: card.quantity }
-    best[color].push(entry)
-    best[color].sort((a, b) => b.score - a.score)
+
+    const score = card.quantity * 10 + (parseInt(info.level) || 0) * 7
+    const group = (leadersByColor[info.color] ??= [])
+    group.push({ name: info.name, color: info.color, score })
   }
 
-  const colors = Object.keys(best).sort()
-  const qualifiers = {}
-  for (const color of colors) {
-    qualifiers[color] = best[color].filter(entry => entry.qty >= 2)
-  }
-  const colorsWith = colors.filter(color => qualifiers[color].length > 0)
-
-  let signatures
-  if (colorsWith.length <= 1 && colorsWith.length > 0) {
-    const color = colorsWith[0]
-    signatures = qualifiers[color].slice(0, 2).map(entry => ({
-      name: entry.name,
-      color: entry.color,
-    }))
-  } else {
-    signatures = colorsWith.map(color => {
-      const entry = qualifiers[color][0]
-      return { name: entry.name, color: entry.color }
-    })
+  for (const group of Object.values(leadersByColor)) {
+    group.sort((a, b) => b.score - a.score)
   }
 
-  return signatures.length > 0 ? signatures : null
+  const colors = Object.keys(leadersByColor).sort()
+
+  if (colors.length === 0) {
+    return null
+  }
+  if (colors.length === 1) {
+    return leadersByColor[colors[0]].slice(0, 2).map(({ name, color }) => ({ name, color }))
+  }
+
+  return colors.map(color => {
+    const { name, color: c } = leadersByColor[color][0]
+    return { name, color: c }
+  })
 }
 
 // Archetype grouping key: "Color1+Color2 (Sig1 / Sig2)"
