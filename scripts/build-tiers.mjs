@@ -11,9 +11,9 @@ function loadJSON(path) {
 // Builds cardId→info map, name→color lookup, and vanilla grouping key.
 // Vanilla cards (no effect) are grouped by stats alone (level|cost|ap|hp)
 // so functionally identical cards across different colors/names are detected.
-function createCardLookups(cardsRaw) {
+function createCardLookups() {
+  const cardsRaw = loadJSON('data/cards.json')
   const cardMap = {}
-  const nameToColor = {}
   const vanillaGroup = {}
 
   for (const card of cardsRaw) {
@@ -30,7 +30,6 @@ function createCardLookups(cardsRaw) {
       rarity: card.rarity,
       effect: card.effect,
     }
-    nameToColor[card.name] ??= card.color
     vanillaGroup[card.cardNo] =
       card.effect === '-'
         ? `${card.level}|${card.cost}|${card.ap}|${card.hp}|-`
@@ -51,19 +50,21 @@ function createCardLookups(cardsRaw) {
       effect: '?',
     }
 
-  return { lookup, nameToColor, vanillaGroup }
+  return { lookup, vanillaGroup }
 }
+
+const { lookup, vanillaGroup } = createCardLookups()
 
 // ── Deck analysis ────────────────────────────────────────────────────────────
 
 // Sorted unique colors in a deck, used for combo key prefix
-function getDeckColors(deck, lookup) {
+function getDeckColors(deck) {
   return [...new Set(deck.map(card => lookup(card.cardId).color))].sort()
 }
 
 // Identifies 1–2 signature LR UNIT cards per archetype.
 // Scored by qty×10 + level×7. Only cards appearing in qty≥2 qualify.
-function getSignatureCard(deck, lookup) {
+function getSignatureCard(deck) {
   const leadersByColor = {}
   for (const card of deck) {
     if (card.quantity < 2) {
@@ -77,7 +78,7 @@ function getSignatureCard(deck, lookup) {
 
     const score = card.quantity * 10 + (parseInt(info.level) || 0) * 7
     const group = (leadersByColor[info.color] ??= [])
-    group.push({ name: info.name, color: info.color, score })
+    group.push({ name: info.name, color: info.color, score, cardId: card.cardId })
   }
 
   for (const group of Object.values(leadersByColor)) {
@@ -92,22 +93,25 @@ function getSignatureCard(deck, lookup) {
 
   // Single color: top 2 signature cards
   if (colors.length === 1) {
-    return leadersByColor[colors[0]].slice(0, 2).map(({ name, color }) => ({ name, color }))
+    return leadersByColor[colors[0]]
+      .slice(0, 2)
+      .map(({ name, color, cardId }) => ({ name, color, cardId }))
   }
 
   // Multiple colors: top signature card per color
   return colors.map(color => {
-    const { name, color: c } = leadersByColor[color][0]
-    return { name, color: c }
+    const { name, color: c, cardId } = leadersByColor[color][0]
+    return { name, color: c, cardId }
   })
 }
 
 // Archetype grouping key: "Color1+Color2 (Sig1 / Sig2)"
-function buildComboKey(deck, lookup) {
-  const colors = getDeckColors(deck, lookup)
-  const sigData = getSignatureCard(deck, lookup)
+function buildComboKey(deck) {
+  const colors = getDeckColors(deck)
+  const sigData = getSignatureCard(deck)
   const sigNames = sigData ? sigData.map(sig => sig.name) : []
-  return colors.join('+') + (sigNames.length > 0 ? ` (${sigNames.join(' / ')})` : '')
+  const key = colors.join('+') + (sigNames.length > 0 ? ` (${sigNames.join(' / ')})` : '')
+  return { key, sigCardIds: sigData ? sigData.map(s => s.cardId) : [] }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -120,21 +124,21 @@ function accumulateCardAgg(cardAgg, deck) {
   }
 }
 
-function groupByCombo(players, lookup, { init, accumulate }) {
+function groupByCombo(players, { init, accumulate }) {
   const map = {}
   for (const player of players) {
-    const combo = buildComboKey(player.deck, lookup)
-    if (!combo) {
+    const { key, sigCardIds } = buildComboKey(player.deck)
+    if (!key) {
       continue
     }
-    map[combo] ??= init()
-    map[combo] = accumulate(map[combo], player)
+    map[key] ??= init(sigCardIds)
+    map[key] = accumulate(map[key], player)
   }
   return map
 }
 
 // Serializes a deck to "ID:qty|ID:qty" for deck preview dedup comparison
-function serializeDeckCards(deck, lookup) {
+function serializeDeckCards(deck) {
   const cardQty = deck.reduce((acc, card) => {
     acc[card.cardId] = (acc[card.cardId] || 0) + (card.quantity || 1)
     return acc
@@ -149,12 +153,19 @@ function serializeDeckCards(deck, lookup) {
 
 // ── Archetype grouping ───────────────────────────────────────────────────────
 
-function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
-  const comboArchetypes = groupByCombo(allPlayers, lookup, {
-    init: () => ({ count: 0, cardAgg: {}, deckCardIds: [], deckUrls: [], deckWinnerFlags: [] }),
+function buildArchetypeMaps(allPlayers, winners, top4Players) {
+  const comboArchetypes = groupByCombo(allPlayers, {
+    init: sigCardIds => ({
+      sigCardIds,
+      count: 0,
+      cardAgg: {},
+      deckCardIds: [],
+      deckUrls: [],
+      deckWinnerFlags: [],
+    }),
     accumulate: (entry, player) => {
       entry.count++
-      entry.deckCardIds.push(serializeDeckCards(player.deck, lookup))
+      entry.deckCardIds.push(serializeDeckCards(player.deck))
       accumulateCardAgg(entry.cardAgg, player.deck)
       if (player.deckUrl) {
         entry.deckUrls.push(player.deckUrl)
@@ -164,8 +175,8 @@ function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
     },
   })
 
-  const winnerComboArchetypes = groupByCombo(winners, lookup, {
-    init: () => ({ count: 0, cardCounts: {} }),
+  const winnersByCombo = groupByCombo(winners, {
+    init: sigCardIds => ({ sigCardIds, count: 0, cardCounts: {} }),
     accumulate: (entry, winner) => {
       entry.count++
       for (const card of winner.deck) {
@@ -175,12 +186,12 @@ function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
     },
   })
 
-  const top4ComboArchetypes = groupByCombo(top4Players, lookup, {
+  const top4ByCombo = groupByCombo(top4Players, {
     init: () => 0,
     accumulate: count => count + 1,
   })
 
-  return { comboArchetypes, winnerComboArchetypes, top4ComboArchetypes }
+  return { comboArchetypes, winnersByCombo, top4ByCombo }
 }
 
 // ── Series metadata ──────────────────────────────────────────────────────────
@@ -190,14 +201,7 @@ function getSeriesMetadata(series) {
   const allPlayers = series.events.flatMap(e => e.players).filter(p => p.deck.length > 0)
   const winners = allPlayers.filter(p => p.rank === WINNER)
   const top4Players = allPlayers.filter(p => TOP4.includes(p.rank))
-  return {
-    allPlayers,
-    winners,
-    top4Players,
-    totalWinners: winners.length,
-    totalAll: allPlayers.length,
-    eventCount: series.events.length,
-  }
+  return { allPlayers, winners, top4Players }
 }
 
 // ── Scoring / tiers ──────────────────────────────────────────────────────────
@@ -447,18 +451,10 @@ function computeFeatureBadges(topCards) {
 
 // Full card analysis per archetype: aggregates card stats, computes tech scores,
 // selects featured cards, extracts signature cards from combo key.
-function buildArchetypeDetails(
-  comboArchetypes,
-  winnerComboArchetypes,
-  top4ComboArchetypes,
-  totalAll,
-  lookup,
-  nameToColor,
-  vanillaGroup,
-) {
+function buildArchetypeDetails(comboArchetypes, winnersByCombo, top4ByCombo, totalAll) {
   return Object.entries(comboArchetypes).map(([combo, group]) => {
-    const winnerInfo = winnerComboArchetypes[combo]
-    const top4Count = top4ComboArchetypes[combo] ?? 0
+    const winnerInfo = winnersByCombo[combo]
+    const top4Count = top4ByCombo[combo] ?? 0
     const count = group.count
     const cardAgg = group.cardAgg
 
@@ -519,19 +515,11 @@ function buildArchetypeDetails(
     const filteredCards = allCards.filter(c => !topCardIds.has(c.cardId))
     const featureBadges = computeFeatureBadges(topCards)
 
-    const sigMatch = combo.match(/\((.+)\)/)
-    const sigStr = sigMatch ? sigMatch[1] : null
-    const sigCards = sigStr
-      ? sigStr.split(' / ').map(name => ({
-          name: name.trim(),
-          color: nameToColor[name.trim()] || 'inherit',
-        }))
-      : []
-
-    const sigCardIds = sigCards
-      .map(s => allCards.find(c => c.name === s.name))
-      .filter(Boolean)
-      .map(c => c.cardId)
+    const sigCardIds = group.sigCardIds ?? []
+    const sigCards = sigCardIds.map(cardId => {
+      const card = allCards.find(c => c.cardId === cardId)
+      return { name: card?.name ?? '?', color: card?.color ?? 'inherit' }
+    })
 
     const deckCardIds = group.deckCardIds
 
@@ -556,25 +544,20 @@ function buildArchetypeDetails(
 
 // ── Phase: Process one series ────────────────────────────────────────────────
 
-function processSeries(series, lookup, nameToColor, vanillaGroup) {
-  const { allPlayers, winners, top4Players, totalWinners, totalAll, eventCount } =
-    getSeriesMetadata(series)
+function processSeries(series) {
+  const { allPlayers, winners, top4Players } = getSeriesMetadata(series)
 
-  const { comboArchetypes, winnerComboArchetypes, top4ComboArchetypes } = buildArchetypeMaps(
+  const { comboArchetypes, winnersByCombo, top4ByCombo } = buildArchetypeMaps(
     allPlayers,
     winners,
     top4Players,
-    lookup,
   )
 
   const archetypeDetails = buildArchetypeDetails(
     comboArchetypes,
-    winnerComboArchetypes,
-    top4ComboArchetypes,
-    totalAll,
-    lookup,
-    nameToColor,
-    vanillaGroup,
+    winnersByCombo,
+    top4ByCombo,
+    allPlayers.length,
   )
 
   // Filter to archetypes with at least 3 decks
@@ -595,8 +578,8 @@ function processSeries(series, lookup, nameToColor, vanillaGroup) {
   const seriesProcessed = {
     value: series.value,
     label: series.label,
-    totalEvents: eventCount,
-    totalDecks: totalAll,
+    totalEvents: series.events.length,
+    totalDecks: allPlayers.length,
     archetypes: mainDetails,
   }
 
@@ -609,8 +592,8 @@ function processSeries(series, lookup, nameToColor, vanillaGroup) {
     a.tierScore = archetypeScoreV2({
       wins: a.winnerDeckCount,
       archDecks: a.deckCount,
-      totalDecks: totalAll,
-      totalEvents: totalWinners,
+      totalDecks: allPlayers.length,
+      totalEvents: winners.length,
       top4: a.top4 ?? 0,
       ceiling,
       top4Prior: top4AvgRate,
@@ -638,9 +621,9 @@ function processSeries(series, lookup, nameToColor, vanillaGroup) {
   const tierEntry = {
     value: series.value,
     label: series.label,
-    events: eventCount,
-    winDecks: totalWinners,
-    totalDecks: totalAll,
+    events: series.events.length,
+    winDecks: winners.length,
+    totalDecks: allPlayers.length,
     rows: formatTierRows(seriesProcessed),
   }
 
@@ -649,10 +632,8 @@ function processSeries(series, lookup, nameToColor, vanillaGroup) {
 
 // ── Main ─────────────────────────────────────────────────────────────────────
 
-// Load scraped data, build lookups, process each series, write outputs
+// Load scraped data, process each series, write outputs
 const tournaments = loadJSON('data/tournaments-all.json')
-const cardsRaw = loadJSON('data/cards.json')
-const { lookup, nameToColor, vanillaGroup } = createCardLookups(cardsRaw)
 
 mkdirSync('data-processed/archetypes', { recursive: true })
 
@@ -661,7 +642,7 @@ const manifest = []
 
 for (const series of tournaments) {
   console.log(`Processing: ${series.label}`)
-  const result = processSeries(series, lookup, nameToColor, vanillaGroup)
+  const result = processSeries(series)
   tierData.push(result.tierEntry)
   manifest.push(result.manifestEntry)
 }
