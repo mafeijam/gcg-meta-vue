@@ -89,10 +89,13 @@ function getSignatureCard(deck, lookup) {
   if (colors.length === 0) {
     return null
   }
+
+  // Single color: top 2 signature cards
   if (colors.length === 1) {
     return leadersByColor[colors[0]].slice(0, 2).map(({ name, color }) => ({ name, color }))
   }
 
+  // Multiple colors: top signature card per color
   return colors.map(color => {
     const { name, color: c } = leadersByColor[color][0]
     return { name, color: c }
@@ -102,161 +105,82 @@ function getSignatureCard(deck, lookup) {
 // Archetype grouping key: "Color1+Color2 (Sig1 / Sig2)"
 function buildComboKey(deck, lookup) {
   const colors = getDeckColors(deck, lookup)
-  if (colors.length === 0) {
-    return null
-  }
   const sigData = getSignatureCard(deck, lookup)
   const sigNames = sigData ? sigData.map(sig => sig.name) : []
   return colors.join('+') + (sigNames.length > 0 ? ` (${sigNames.join(' / ')})` : '')
 }
 
-// ── Archetype grouping ───────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
-// Groups decks (all, winners, top4) by combo key into separate maps
-function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
-  const comboArchetypes = {}
-  for (const player of allPlayers) {
+function accumulateCardAgg(cardAgg, deck) {
+  for (const card of deck) {
+    cardAgg[card.cardId] ??= { totalQty: 0, decksIncluded: 0 }
+    cardAgg[card.cardId].totalQty += card.quantity
+    cardAgg[card.cardId].decksIncluded++
+  }
+}
+
+function groupByCombo(players, lookup, { init, accumulate }) {
+  const map = {}
+  for (const player of players) {
     const combo = buildComboKey(player.deck, lookup)
     if (!combo) {
       continue
     }
-    // Aggregate card stats and pre-serialize decks inline to avoid storing raw deck arrays
-    comboArchetypes[combo] ??= {
-      count: 0,
-      cardAgg: {},
-      deckCardIds: [],
-      deckUrls: [],
-      deckWinnerFlags: [],
-    }
-    const entry = comboArchetypes[combo]
-    entry.count++
-    entry.deckCardIds.push(serializeDeckCards(player.deck, lookup))
-    const seen = new Set()
-    for (const card of player.deck) {
-      entry.cardAgg[card.cardId] ??= { totalQty: 0, decksIncluded: 0 }
-      entry.cardAgg[card.cardId].totalQty += card.quantity
-      if (!seen.has(card.cardId)) {
-        entry.cardAgg[card.cardId].decksIncluded++
-        seen.add(card.cardId)
-      }
-    }
-    if (player.deckUrl) {
-      entry.deckUrls.push(player.deckUrl)
-      entry.deckWinnerFlags.push(player.rank === WINNER)
-    }
+    map[combo] ??= init()
+    map[combo] = accumulate(map[combo], player)
   }
+  return map
+}
 
-  const winnerComboArchetypes = {}
-  for (const winner of winners) {
-    const combo = buildComboKey(winner.deck, lookup)
-    if (!combo) {
-      continue
-    }
-    // Fold deduped per-card winner counting inline to avoid storing raw deck arrays
-    winnerComboArchetypes[combo] ??= { count: 0, cardCounts: {} }
-    winnerComboArchetypes[combo].count++
-    const seen = new Set()
-    for (const card of winner.deck) {
-      if (!seen.has(card.cardId)) {
-        winnerComboArchetypes[combo].cardCounts[card.cardId] =
-          (winnerComboArchetypes[combo].cardCounts[card.cardId] ?? 0) + 1
-        seen.add(card.cardId)
-      }
-    }
-  }
+// Serializes a deck to "ID:qty|ID:qty" for deck preview dedup comparison
+function serializeDeckCards(deck, lookup) {
+  const cardQty = deck.reduce((acc, card) => {
+    acc[card.cardId] = (acc[card.cardId] || 0) + (card.quantity || 1)
+    return acc
+  }, {})
+  const sorted = Object.entries(cardQty).sort(([aId], [bId]) => {
+    const typeA = TYPE_ORDER[lookup(aId).type.toLowerCase()] ?? 99
+    const typeB = TYPE_ORDER[lookup(bId).type.toLowerCase()] ?? 99
+    return typeA !== typeB ? typeA - typeB : aId.localeCompare(bId)
+  })
+  return sorted.map(([id, qty]) => `${id}:${qty}`).join('|')
+}
 
-  const top4ComboArchetypes = {}
-  for (const p of top4Players) {
-    const combo = buildComboKey(p.deck, lookup)
-    if (!combo) {
-      continue
-    }
-    top4ComboArchetypes[combo] ??= 0
-    top4ComboArchetypes[combo]++
-  }
+// ── Archetype grouping ───────────────────────────────────────────────────────
+
+function buildArchetypeMaps(allPlayers, winners, top4Players, lookup) {
+  const comboArchetypes = groupByCombo(allPlayers, lookup, {
+    init: () => ({ count: 0, cardAgg: {}, deckCardIds: [], deckUrls: [], deckWinnerFlags: [] }),
+    accumulate: (entry, player) => {
+      entry.count++
+      entry.deckCardIds.push(serializeDeckCards(player.deck, lookup))
+      accumulateCardAgg(entry.cardAgg, player.deck)
+      if (player.deckUrl) {
+        entry.deckUrls.push(player.deckUrl)
+        entry.deckWinnerFlags.push(player.rank === WINNER)
+      }
+      return entry
+    },
+  })
+
+  const winnerComboArchetypes = groupByCombo(winners, lookup, {
+    init: () => ({ count: 0, cardCounts: {} }),
+    accumulate: (entry, winner) => {
+      entry.count++
+      for (const card of winner.deck) {
+        entry.cardCounts[card.cardId] = (entry.cardCounts[card.cardId] ?? 0) + 1
+      }
+      return entry
+    },
+  })
+
+  const top4ComboArchetypes = groupByCombo(top4Players, lookup, {
+    init: () => 0,
+    accumulate: count => count + 1,
+  })
 
   return { comboArchetypes, winnerComboArchetypes, top4ComboArchetypes }
-}
-
-// ── Card-level analysis ──────────────────────────────────────────────────────
-
-// Rewards cards with moderate inclusion (15–40%) and strong winner association (≥2 wins).
-// Higher win/deck ratio with lower inclusion = more "techy".
-function calculateTechScore(wins, decks, totalArchetypeDecks, isVanilla = false) {
-  if (isVanilla) {
-    return 0
-  }
-  const inclusionRate = decks / totalArchetypeDecks
-  if (inclusionRate > 0.4 || inclusionRate <= 0.1) {
-    return 0
-  }
-  if (wins < 2) {
-    return 0
-  }
-  return Math.round((wins / decks) * (1 - inclusionRate) * 1000) / 1000
-}
-
-// Two-pass featured-card selection:
-//   1) Guarantee type coverage (4 each of UNIT/PILOT/COMMAND/BASE)
-//   2) Fill remaining slots with cards above 15% inclusion, capped at 4 per non-UNIT type
-function selectTopCards(allCards) {
-  const perType = {}
-  for (const card of allCards) {
-    perType[card.type] ??= []
-    perType[card.type].push(card)
-  }
-
-  const selectedIds = new Set()
-  const selected = []
-
-  // First pass: guarantee minimum cards per type regardless of inclusion rate
-  for (const type of TYPE_PICK_ORDER) {
-    const sliceSize = 4
-    for (const card of (perType[type] || []).slice(0, sliceSize)) {
-      selected.push(card)
-      selectedIds.add(card.cardId)
-    }
-  }
-
-  // Second pass: fill with high-inclusion cards up to 4 per non-UNIT type
-  for (const card of allCards) {
-    if (!TYPE_PICK_ORDER.includes(card.type) || selectedIds.has(card.cardId)) {
-      continue
-    }
-    if (card.type !== 'UNIT') {
-      const typeCount = selected.filter(tc => tc.type === card.type).length
-      if (typeCount >= 4) {
-        continue
-      }
-    }
-    if (card.inclusionRate <= 0.1) {
-      continue
-    }
-    selected.push(card)
-    selectedIds.add(card.cardId)
-  }
-
-  return selected
-}
-
-// Counts feature keyword frequency across featured cards for UI badges
-function computeFeatureBadges(topCards) {
-  const featureCounts = {}
-  for (const card of topCards) {
-    if (!TYPE_PICK_ORDER.includes(card.type) || !card.features) {
-      continue
-    }
-    for (const feature of card.features
-      .split(' ')
-      .map(s => s.trim())
-      .filter(Boolean)) {
-      if (feature === '-') {
-        continue
-      }
-      featureCounts[feature] = (featureCounts[feature] || 0) + 1
-    }
-  }
-  return Object.entries(featureCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
 }
 
 // ── Series metadata ──────────────────────────────────────────────────────────
@@ -305,22 +229,32 @@ function getSeriesAvgTop4Rate(series) {
 // Bayesian-smoothed win rate (0.2), Bayesian-smoothed top-4 bonus (0.1).
 // K=10 smoothing with prior = ceiling/2 for win rate, series avg top-4 rate for top-4.
 // Penalty: archetypes with high usage but low win rate relative to ceiling get dinged.
-function archetypeScoreV2(wins, archDecks, totalDecks, totalEvents, top4, ceiling, top4Prior) {
+function archetypeScoreV2({ wins, archDecks, totalDecks, totalEvents, top4, ceiling, top4Prior }) {
   if (wins === 0) {
     return 0
   }
+
+  // Formula:
+  //   raw = eventWinShare×0.5 + usageRate×0.2 + archWinRate×0.2 + top4Bonus×0.1
+  //   penalty = max(0, usageRate × (1 − winRate/ceiling)) × 0.15
+  //   confidence = min(1, archDecks / 10)
+  //   final = round((raw − penalty) × 10 × confidence)
+  //
   const w = [0.5, 0.2, 0.2, 0.1]
   const eventWinShare = totalEvents > 0 ? (wins / totalEvents) * 100 : 0
   const usageRate = totalDecks > 0 ? (archDecks / totalDecks) * 100 : 0
-  const ceil = ceiling ?? 50
+  const winRateCap = ceiling ?? 50
   const K = 10
-  const prior = ceil / 2
-  // Bayesian smoothing: (observed + K * prior) / (total + K)
-  const archWinRate = archDecks > 0 ? ((wins + (K * prior) / 100) / (archDecks + K)) * 100 : 0
+  const priorWinRate = winRateCap / 2
+  // Bayesian smoothing: (observed + K * priorWinRate) / (total + K)
+  const archWinRate =
+    archDecks > 0 ? ((wins + (K * priorWinRate) / 100) / (archDecks + K)) * 100 : 0
   const top4PriorRate = top4Prior ?? 40
+  // Bayesian smoothing on top-4 rate, same K as win rate
   const top4Bonus = archDecks > 0 ? ((top4 + (K * top4PriorRate) / 100) / (archDecks + K)) * 100 : 0
   const raw = eventWinShare * w[0] + usageRate * w[1] + archWinRate * w[2] + top4Bonus * w[3]
-  const penalty = Math.max(0, usageRate * (1 - archWinRate / ceil)) * 0.15
+  // Penalty: reduces score for high-usage archetypes that underperform vs ceiling
+  const penalty = Math.max(0, usageRate * (1 - archWinRate / winRateCap)) * 0.15
   // Confidence multiplier: archetypes with <10 decks get proportionally reduced scores
   // to prevent small-sample flukes from ranking high.
   const confidence = Math.min(1, archDecks / 10)
@@ -335,15 +269,15 @@ function computeTierThresholds(series) {
   const allScores = series.archetypes
     .filter(a => a.winnerDeckCount > 0)
     .map(a =>
-      archetypeScoreV2(
-        a.winnerDeckCount,
-        a.deckCount,
-        series.totalDecks,
-        series.totalEvents,
-        a.top4 ?? 0,
+      archetypeScoreV2({
+        wins: a.winnerDeckCount,
+        archDecks: a.deckCount,
+        totalDecks: series.totalDecks,
+        totalEvents: series.totalEvents,
+        top4: a.top4 ?? 0,
         ceiling,
-        top4AvgRate,
-      ),
+        top4Prior: top4AvgRate,
+      }),
     )
     .sort((a, b) => b - a)
 
@@ -428,21 +362,88 @@ function formatTierRows(series) {
     })
 }
 
-// Serializes a deck to "ID:qty|ID:qty" for deck preview dedup comparison
-function serializeDeckCards(deck, lookup) {
-  const cardQty = deck.reduce((acc, card) => {
-    acc[card.cardId] = (acc[card.cardId] || 0) + (card.quantity || 1)
-    return acc
-  }, {})
-  const sorted = Object.entries(cardQty).sort(([aId], [bId]) => {
-    const typeA = TYPE_ORDER[lookup(aId).type.toLowerCase()] ?? 99
-    const typeB = TYPE_ORDER[lookup(bId).type.toLowerCase()] ?? 99
-    return typeA !== typeB ? typeA - typeB : aId.localeCompare(bId)
-  })
-  return sorted.map(([id, qty]) => `${id}:${qty}`).join('|')
+// ── Phase: Build archetype details (card analysis) ───────────────────────────
+
+// ── Card-level analysis ──
+
+// Rewards cards with moderate inclusion (15–40%) and strong winner association (≥2 wins).
+// Higher win/deck ratio with lower inclusion = more "techy".
+function calculateTechScore(wins, decks, totalArchetypeDecks, isVanilla = false) {
+  if (isVanilla) {
+    return 0
+  }
+  const inclusionRate = decks / totalArchetypeDecks
+  if (inclusionRate > 0.4 || inclusionRate <= 0.1) {
+    return 0
+  }
+  if (wins < 2) {
+    return 0
+  }
+  return Math.round((wins / decks) * (1 - inclusionRate) * 1000) / 1000
 }
 
-// ── Phase: Build archetype details (card analysis) ───────────────────────────
+// Two-pass featured-card selection:
+//   1) Guarantee type coverage (4 each of UNIT/PILOT/COMMAND/BASE)
+//   2) Fill remaining slots with cards above 15% inclusion, capped at 4 per non-UNIT type
+function selectTopCards(allCards) {
+  const perType = {}
+  for (const card of allCards) {
+    perType[card.type] ??= []
+    perType[card.type].push(card)
+  }
+
+  const selectedIds = new Set()
+  const selected = []
+
+  // First pass: guarantee minimum cards per type regardless of inclusion rate
+  for (const type of TYPE_PICK_ORDER) {
+    const sliceSize = 4
+    for (const card of (perType[type] || []).slice(0, sliceSize)) {
+      selected.push(card)
+      selectedIds.add(card.cardId)
+    }
+  }
+
+  // Second pass: fill with high-inclusion cards up to 4 per non-UNIT type
+  for (const card of allCards) {
+    if (!TYPE_PICK_ORDER.includes(card.type) || selectedIds.has(card.cardId)) {
+      continue
+    }
+    if (card.type !== 'UNIT') {
+      const typeCount = selected.filter(tc => tc.type === card.type).length
+      if (typeCount >= 4) {
+        continue
+      }
+    }
+    if (card.inclusionRate <= 0.1) {
+      continue
+    }
+    selected.push(card)
+    selectedIds.add(card.cardId)
+  }
+
+  return selected
+}
+
+// Counts feature keyword frequency across featured cards for UI badges
+function computeFeatureBadges(topCards) {
+  const featureCounts = {}
+  for (const card of topCards) {
+    if (!TYPE_PICK_ORDER.includes(card.type) || !card.features) {
+      continue
+    }
+    for (const feature of card.features
+      .split(' ')
+      .map(s => s.trim())
+      .filter(Boolean)) {
+      if (feature === '-') {
+        continue
+      }
+      featureCounts[feature] = (featureCounts[feature] || 0) + 1
+    }
+  }
+  return Object.entries(featureCounts).sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+}
 
 // Full card analysis per archetype: aggregates card stats, computes tech scores,
 // selects featured cards, extracts signature cards from combo key.
@@ -605,15 +606,15 @@ function processSeries(series, lookup, nameToColor, vanillaGroup) {
 
   // Score each archetype and assign a tier label
   for (const a of seriesProcessed.archetypes) {
-    a.tierScore = archetypeScoreV2(
-      a.winnerDeckCount,
-      a.deckCount,
-      totalAll,
-      totalWinners,
-      a.top4 ?? 0,
+    a.tierScore = archetypeScoreV2({
+      wins: a.winnerDeckCount,
+      archDecks: a.deckCount,
+      totalDecks: totalAll,
+      totalEvents: totalWinners,
+      top4: a.top4 ?? 0,
       ceiling,
-      top4AvgRate,
-    )
+      top4Prior: top4AvgRate,
+    })
     a.tierLabel =
       a.winnerDeckCount > 0 ? getDeckTier(a.tierScore, seriesProcessed.tierThresholds).label : '--'
   }
