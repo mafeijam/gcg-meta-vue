@@ -75,7 +75,7 @@
             <span class="w-22 truncate text-xs font-medium text-aisumicha dark:text-nalika-text">
               {{ item.colors }}
             </span>
-            <div class="h-2 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
+            <div class="h-3 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
               <div
                 class="h-full rounded-full"
                 :style="{ width: `${item.percent}%`, background: item.barGradient }"
@@ -112,7 +112,7 @@
             <span class="w-22 truncate text-xs font-medium text-aisumicha dark:text-nalika-text">
               {{ item.colors }}
             </span>
-            <div class="h-2 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
+            <div class="h-3 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
               <div
                 class="h-full rounded-full"
                 :style="{ width: `${item.barPercent}%`, background: item.barGradient }"
