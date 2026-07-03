@@ -19,6 +19,13 @@
         >
           Analysis
         </RouterLink>
+        <RouterLink
+          :to="{ path: '/meta', query: { series: $route.query.series } }"
+          class="max-sm:text-sm md:w-30"
+          :exact-active-class="tw`font-bold text-ruri dark:text-sora`"
+        >
+          Meta
+        </RouterLink>
       </div>
       <div class="flex flex-1 justify-end">
         <DarkToggle />

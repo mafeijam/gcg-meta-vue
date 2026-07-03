@@ -11,6 +11,11 @@ const routes = [
     name: 'archetype-analysis',
     component: () => import('@/views/ArchetypeAnalysis.vue'),
   },
+  {
+    path: '/meta',
+    name: 'meta',
+    component: () => import('@/views/MetaOverview.vue'),
+  },
 ]
 
 const router = createRouter({

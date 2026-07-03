@@ -30,10 +30,7 @@ function createCardLookups() {
       rarity: card.rarity,
       effect: card.effect,
     }
-    vanillaGroup[card.cardNo] =
-      card.effect === '-'
-        ? `${card.level}|${card.cost}|${card.ap}|${card.hp}|-`
-        : `${card.color}|${card.level}|${card.cost}|${card.ap}|${card.hp}|${card.effect || '-'}`
+    vanillaGroup[key] = card.effect === '-'
   }
 
   const lookup = cardId =>
@@ -463,7 +460,7 @@ function buildArchetypeDetails(comboArchetypes, winnersByCombo, top4ByCombo, tot
     const allCards = Object.entries(cardAgg).map(([cardId, cardData]) => {
       const info = lookup(cardId)
       // Vanilla cards (no effect) get techScore=0 — still show counts but never get winner ribbon
-      const isVanilla = vanillaGroup[cardId]?.endsWith('|-') ?? false
+      const isVanilla = vanillaGroup[cardId] ?? false
       return {
         cardId,
         name: info.name,
