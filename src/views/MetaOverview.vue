@@ -20,6 +20,51 @@
       />
     </div>
 
+    <!-- State Overview -->
+    <div
+      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+    >
+      <div class="mb-3 flex items-center justify-between gap-1">
+        <h2
+          class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
+        >
+          Meta state
+        </h2>
+
+        <div v-if="seriesTimeline" class="text-xs text-gray-500 dark:text-gray-400">
+          {{ seriesTimeline }}
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
+        <span>
+          <strong class="text-gray-700 dark:text-nalika-text">{{ totalCardCount }}</strong>
+          released
+        </span>
+        <span>
+          <strong class="text-gray-700 dark:text-nalika-text">{{ usedCardCount }}</strong>
+          used
+        </span>
+        <span>
+          <strong class="text-gray-700 dark:text-nalika-text">
+            {{ totalCardCount - usedCardCount }}
+          </strong>
+          unused
+        </span>
+      </div>
+      <div v-if="archetypeProducts.length" class="mt-3 flex flex-wrap gap-1.5">
+        <span
+          v-for="item in archetypeProducts"
+          :key="item.name"
+          class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+        >
+          <span class="mr-1 text-xxs">{{ item.name }}:</span>
+          <span class="font-mono text-gray-500 dark:text-gray-400">{{ item.count }}</span>
+        </span>
+      </div>
+      <p v-else class="mt-3 text-xs text-gray-400">Product info unavailable</p>
+    </div>
+
     <!-- Tier Distribution + Color Distribution + Win Rate -->
     <div class="mb-6 grid gap-4 md:grid-cols-3">
       <div
@@ -313,21 +358,6 @@
           </button>
         </div>
       </template>
-      <template #bottom>
-        <div class="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">
-          {{ totalCardCount - usedCardCount }} / {{ totalCardCount }} unused
-        </div>
-        <div v-if="inspirationProducts.length" class="mt-2 flex flex-wrap justify-center gap-1.5">
-          <span
-            v-for="item in inspirationProducts"
-            :key="item.name"
-            class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
-          >
-            <span class="mr-1 text-xxs">{{ item.name }}:</span>
-            <span class="font-mono text-gray-500 dark:text-gray-400">{{ item.count }}</span>
-          </span>
-        </div>
-      </template>
       <template #footer="{ card }">
         <div class="mt-2 text-center font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
           {{ card.type }}
@@ -383,6 +413,20 @@ watch(selectedKey, val => {
 
 const currentSeries = computed(() => tierData.find(s => s.value === selectedKey.value))
 const eventCutoffDate = computed(() => currentSeries.value?.eventMaxDate ?? null)
+const seriesTimeline = computed(() => {
+  const min = currentSeries.value?.eventMinDate
+  const max = currentSeries.value?.eventMaxDate
+  if (!min && !max) {
+    return null
+  }
+  if (!min) {
+    return `Until ${max}`
+  }
+  if (!max) {
+    return `From ${min}`
+  }
+  return `${min} → ${max}`
+})
 
 const { hideFilter } = useScrollHide()
 
@@ -590,17 +634,48 @@ const filteredInspirationCards = computed(() => {
   return pool.filter(c => c.color === colorFilter.value).slice(0, 20)
 })
 
-const inspirationProducts = computed(() => {
+const cardInfoById = computed(() => {
+  const map = {}
+  for (const card of allCards) {
+    if (card.id) {
+      map[card.id] = card
+    }
+  }
+  return map
+})
+
+const archetypeProducts = computed(() => {
+  if (!aggregationResult.value?.cards?.length) {
+    return []
+  }
   const counts = {}
-  for (const card of filteredInspirationCards.value) {
-    if (!card.acquisitionInfo) {
+  const infoMap = cardInfoById.value
+  for (const card of aggregationResult.value.cards) {
+    const acquisition = infoMap[card.cardId]?.acquisitionInfo?.trim()
+    if (!acquisition) {
       continue
     }
-    counts[card.acquisitionInfo] = (counts[card.acquisitionInfo] || 0) + 1
+    counts[acquisition] = (counts[acquisition] || 0) + 1
   }
-  return Object.entries(counts)
-    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-    .map(([name, count]) => ({ name, count }))
+  const entries = Object.entries(counts).map(([name, count]) => ({ name, count }))
+  const extractCode = name => {
+    const match = name?.match(/\[([A-Z]{2}\d{2})\]/i)
+    return match ? match[1].toUpperCase() : null
+  }
+  return entries.sort((a, b) => {
+    const codeA = extractCode(a.name)
+    const codeB = extractCode(b.name)
+    if (codeA && codeB) {
+      return codeA.localeCompare(codeB)
+    }
+    if (codeA) {
+      return -1
+    }
+    if (codeB) {
+      return 1
+    }
+    return a.name.localeCompare(b.name)
+  })
 })
 
 function refreshUnused() {
