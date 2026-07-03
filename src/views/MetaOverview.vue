@@ -92,62 +92,27 @@
       </div>
     </div>
 
-    <!-- Top Signature Cards -->
-    <div
-      v-if="topSigCards.length"
-      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/7 p-4 dark:border-nalika-border dark:bg-nalika-surface"
+    <MetaCardSection
+      title="Top Signature Cards"
+      :cards="topSigCards"
+      @toggle-enlarge="toggleEnlarge"
     >
-      <h2
-        class="mb-3 text-sm font-bold tracking-wider text-gray-500 uppercase dark:text-nalika-text-muted"
-      >
-        Top Signature Cards
-      </h2>
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-        <div
-          v-for="card in topSigCards"
-          :key="card.cardId"
-          class="cursor-pointer rounded border border-gray-500/10 bg-shironezumi/7 p-2 transition-shadow hover:shadow-md dark:border-nalika-border dark:bg-nalika-surface"
-          @click="enlargedCard = enlargedCard === card.cardId ? null : card.cardId"
-        >
-          <div class="flex items-center gap-1">
-            <span
-              class="inline-block h-2 w-2 shrink-0 rounded-full"
-              :style="{ background: COLOR_HEX[card.color] || '#718096' }"
-            />
-            <span class="font-mono text-xs text-gray-600 dark:text-nalika-text-muted">
-              {{ card.cardId }}
-            </span>
-          </div>
-          <div class="group relative mt-1.5 aspect-[3/2] overflow-hidden rounded">
-            <img
-              :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?fit=crop&ar=3:2&w=300&crop=focalpoint&fp-x=0.5&fp-y=0.05`"
-              :alt="card.name"
-              class="h-full w-full scale-150 object-cover brightness-85 transition-all duration-200 group-hover:brightness-95"
-              loading="lazy"
-            />
-          </div>
-          <div
-            class="mt-1.5 w-full truncate text-center text-xs font-semibold text-aisumicha dark:text-nalika-text"
-          >
-            {{ card.name }}
-          </div>
-          <div class="mt-2 text-center font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
-            {{ card.archetypeCount }} archetypes
-          </div>
+      <template #footer="{ card }">
+        <div class="mt-2 text-center font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
+          {{ card.archetypeCount }} archetypes
         </div>
-      </div>
-    </div>
+      </template>
+    </MetaCardSection>
 
-    <!-- Top 10 Cards -->
-    <div
-      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/7 p-4 dark:border-nalika-border dark:bg-nalika-surface"
+    <MetaCardSection
+      title="Top 10 Cards"
+      :cards="topCards"
+      :loading="loadingCards"
+      show-rarity
+      empty-text="Select a series to view card data"
+      @toggle-enlarge="toggleEnlarge"
     >
-      <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2
-          class="text-sm font-bold tracking-wider text-gray-500 uppercase dark:text-nalika-text-muted"
-        >
-          Top 10 Cards
-        </h2>
+      <template #tabs>
         <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
           <button
             class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
@@ -169,87 +134,39 @@
             "
             @click="cardTab = 'winner'"
           >
-            Most Wins
+            Most Featured
           </button>
         </div>
-      </div>
-
-      <div v-if="loadingCards" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
-        Loading…
-      </div>
-      <div
-        v-else-if="topCards.length"
-        class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
-      >
+      </template>
+      <template #footer="{ card }">
         <div
-          v-for="card in topCards"
-          :key="card.cardId"
-          class="cursor-pointer rounded border border-gray-500/10 bg-shironezumi/7 p-2 transition-shadow hover:shadow-md dark:border-nalika-border dark:bg-nalika-surface"
-          @click="enlargedCard = enlargedCard === card.cardId ? null : card.cardId"
+          class="mt-2 flex items-center justify-center gap-2 text-xs @max-[150px]:flex-col @max-[150px]:gap-0"
         >
-          <div class="flex items-center gap-1">
-            <span
-              class="inline-block h-2 w-2 shrink-0 rounded-full"
-              :style="{ background: COLOR_HEX[card.color] || '#718096' }"
-            />
-            <span class="font-mono text-xs text-gray-600 dark:text-nalika-text-muted">
-              {{ card.cardId }}
-            </span>
-            <span
-              v-if="card.rarity"
-              class="font-mono text-xs"
-              :class="{
-                'font-semibold text-yellow-600 dark:text-yellow-400/80':
-                  card.rarity.startsWith('LR'),
-                'text-gray-400 dark:text-gray-500': !card.rarity.startsWith('LR'),
-              }"
-            >
-              {{ card.rarity.replace(/\+{1,2}$/, '') }}
-            </span>
-          </div>
-          <div class="group relative mt-1.5 aspect-[3/2] overflow-hidden rounded">
-            <img
-              :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?fit=crop&ar=3:2&w=300&crop=focalpoint&fp-x=0.5&fp-y=0.05`"
-              :alt="card.name"
-              class="h-full w-full scale-150 object-cover brightness-85 transition-all duration-200 group-hover:brightness-95"
-              loading="lazy"
-            />
-          </div>
-          <div
-            class="mt-1.5 w-full truncate text-center text-xs font-semibold text-aisumicha dark:text-nalika-text"
+          <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
+            {{ card.totalDecksIncluded }} decks
+          </span>
+          <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span>
+          <span
+            v-if="cardTab === 'played'"
+            class="font-mono text-yellow-600 dark:text-yellow-600"
+            title="Champion decks"
           >
-            {{ card.name }}
-          </div>
-          <div class="mt-2 flex items-center justify-center gap-2 text-xs">
-            <span
-              class="font-mono text-gray-500 dark:text-nalika-text-muted"
-              title="Decks included"
-            >
-              {{ card.totalDecksIncluded }} decks
-            </span>
-            <span class="text-gray-300 dark:text-gray-500">·</span>
-            <span class="font-mono text-yellow-600 dark:text-yellow-600" title="Champion decks">
-              {{ card.totalWinnerDecks }} wins
-            </span>
-          </div>
+            {{ card.totalWinnerDecks }} wins
+          </span>
+          <span v-else class="font-mono text-blue-500 dark:text-blue-400" title="Archetypes">
+            {{ card.archetypeCount }} archs
+          </span>
         </div>
-      </div>
-      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
-        Select a series to view card data
-      </p>
-    </div>
+      </template>
+    </MetaCardSection>
 
-    <!-- Top 10 by Type -->
-    <div
-      v-if="topCardsByType.length"
-      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/7 p-4 dark:border-nalika-border dark:bg-nalika-surface"
+    <MetaCardSection
+      title="Top 10 by Type"
+      :cards="topCardsByType"
+      show-rarity
+      @toggle-enlarge="toggleEnlarge"
     >
-      <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h2
-          class="text-sm font-bold tracking-wider text-gray-500 uppercase dark:text-nalika-text-muted"
-        >
-          Top 10 by Type
-        </h2>
+      <template #tabs>
         <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
           <button
             v-for="t in typeOrder"
@@ -265,63 +182,21 @@
             {{ t }}
           </button>
         </div>
-      </div>
-
-      <div class="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+      </template>
+      <template #footer="{ card }">
         <div
-          v-for="card in topCardsByType"
-          :key="card.cardId"
-          class="cursor-pointer rounded border border-gray-500/10 bg-shironezumi/7 p-2 transition-shadow hover:shadow-md dark:border-nalika-border dark:bg-nalika-surface"
-          @click="enlargedCard = enlargedCard === card.cardId ? null : card.cardId"
+          class="mt-2 flex items-center justify-center gap-2 text-xs @max-[150px]:flex-col @max-[150px]:gap-0"
         >
-          <div class="flex items-center gap-1">
-            <span
-              class="inline-block h-2 w-2 shrink-0 rounded-full"
-              :style="{ background: COLOR_HEX[card.color] || '#718096' }"
-            />
-            <span class="font-mono text-xs text-gray-600 dark:text-nalika-text-muted">
-              {{ card.cardId }}
-            </span>
-            <span
-              v-if="card.rarity"
-              class="font-mono text-xs"
-              :class="{
-                'font-semibold text-yellow-600 dark:text-yellow-400/80':
-                  card.rarity.startsWith('LR'),
-                'text-gray-400 dark:text-gray-500': !card.rarity.startsWith('LR'),
-              }"
-            >
-              {{ card.rarity.replace(/\+{1,2}$/, '') }}
-            </span>
-          </div>
-          <div class="group relative mt-1.5 aspect-[3/2] overflow-hidden rounded">
-            <img
-              :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?fit=crop&ar=3:2&w=300&crop=focalpoint&fp-x=0.5&fp-y=0.05`"
-              :alt="card.name"
-              class="h-full w-full scale-150 object-cover brightness-85 transition-all duration-200 group-hover:brightness-95"
-              loading="lazy"
-            />
-          </div>
-          <div
-            class="mt-1.5 w-full truncate text-center text-xs font-semibold text-aisumicha dark:text-nalika-text"
-          >
-            {{ card.name }}
-          </div>
-          <div class="mt-2 flex items-center justify-center gap-2 text-xs">
-            <span
-              class="font-mono text-gray-500 dark:text-nalika-text-muted"
-              title="Decks included"
-            >
-              {{ card.totalDecksIncluded }} decks
-            </span>
-            <span class="text-gray-300 dark:text-gray-500">·</span>
-            <span class="font-mono text-yellow-600 dark:text-yellow-600" title="Champion decks">
-              {{ card.totalWinnerDecks }} wins
-            </span>
-          </div>
+          <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
+            {{ card.totalDecksIncluded }} decks
+          </span>
+          <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span>
+          <span class="font-mono text-yellow-600 dark:text-yellow-600" title="Champion decks">
+            {{ card.totalWinnerDecks }} wins
+          </span>
         </div>
-      </div>
-    </div>
+      </template>
+    </MetaCardSection>
 
     <!-- Enlarged card overlay -->
     <Teleport to="body">
@@ -424,6 +299,10 @@ const allRows = computed(() => currentSeries.value?.rows ?? [])
 const cardTab = ref('played')
 const enlargedCard = ref(null)
 
+function toggleEnlarge(cardId) {
+  enlargedCard.value = enlargedCard.value === cardId ? null : cardId
+}
+
 // ── Tier distribution ──
 const tierOrder = ['T1', 'T1.5', 'T2', 'T2.5', 'T3', '--']
 const totalTiered = computed(() => {
@@ -489,9 +368,12 @@ const topCards = computed(() => {
   if (!aggregationResult.value) {
     return []
   }
-  return cardTab.value === 'played'
-    ? aggregationResult.value.topPlayed
-    : aggregationResult.value.topWinner
+  if (cardTab.value === 'played') {
+    return aggregationResult.value.topPlayed
+  }
+  return [...aggregationResult.value.cards]
+    .sort((a, b) => b.archetypeCount - a.archetypeCount)
+    .slice(0, 10)
 })
 
 const topSigCards = computed(() => aggregationResult.value?.topSigCards ?? [])

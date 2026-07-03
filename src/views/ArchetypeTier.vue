@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-400 p-3 pb-6 md:p-8">
+  <div class="mx-auto max-w-340 p-3 pb-8 md:p-8">
     <SeriesHeader
       title="Archetype Tier"
       :visible="!!currentSeries"
