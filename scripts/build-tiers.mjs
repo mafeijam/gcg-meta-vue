@@ -201,6 +201,17 @@ function getSeriesMetadata(series) {
   return { allPlayers, winners, top4Players }
 }
 
+function getSeriesEventDateRange(series) {
+  const dates = series.events
+    .map(event => event.date)
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b))
+  return {
+    eventMinDate: dates[0] ?? null,
+    eventMaxDate: dates.at(-1) ?? null,
+  }
+}
+
 // ── Scoring / tiers ──────────────────────────────────────────────────────────
 
 // Scoring cap = 2× average winner win rate among winning archetypes.
@@ -543,6 +554,7 @@ function buildArchetypeDetails(comboArchetypes, winnersByCombo, top4ByCombo, tot
 
 function processSeries(series) {
   const { allPlayers, winners, top4Players } = getSeriesMetadata(series)
+  const { eventMinDate, eventMaxDate } = getSeriesEventDateRange(series)
 
   const { comboArchetypes, winnersByCombo, top4ByCombo } = buildArchetypeMaps(
     allPlayers,
@@ -619,6 +631,8 @@ function processSeries(series) {
     value: series.value,
     label: series.label,
     events: series.events.length,
+    eventMinDate,
+    eventMaxDate,
     winDecks: winners.length,
     totalDecks: allPlayers.length,
     rows: formatTierRows(seriesProcessed),

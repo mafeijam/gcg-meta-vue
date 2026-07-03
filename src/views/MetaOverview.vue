@@ -317,6 +317,16 @@
         <div class="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">
           {{ totalCardCount - usedCardCount }} / {{ totalCardCount }} unused
         </div>
+        <div v-if="inspirationProducts.length" class="mt-2 flex flex-wrap justify-center gap-1.5">
+          <span
+            v-for="item in inspirationProducts"
+            :key="item.name"
+            class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+          >
+            <span class="mr-1 text-xxs">{{ item.name }}:</span>
+            <span class="font-mono text-gray-500 dark:text-gray-400">{{ item.count }}</span>
+          </span>
+        </div>
       </template>
       <template #footer="{ card }">
         <div class="mt-2 text-center font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
@@ -372,6 +382,7 @@ watch(selectedKey, val => {
 })
 
 const currentSeries = computed(() => tierData.find(s => s.value === selectedKey.value))
+const eventCutoffDate = computed(() => currentSeries.value?.eventMaxDate ?? null)
 
 const { hideFilter } = useScrollHide()
 
@@ -385,6 +396,16 @@ const unusedPool = ref([])
 
 function toggleEnlarge(cardId) {
   enlargedCard.value = enlargedCard.value === cardId ? null : cardId
+}
+
+function isReleasedByCutoff(card, cutoffDate) {
+  if (!cutoffDate) {
+    return true
+  }
+  if (!card.releaseDate) {
+    return false
+  }
+  return card.releaseDate <= cutoffDate
 }
 
 // ── Tier distribution ──
@@ -569,6 +590,19 @@ const filteredInspirationCards = computed(() => {
   return pool.filter(c => c.color === colorFilter.value).slice(0, 20)
 })
 
+const inspirationProducts = computed(() => {
+  const counts = {}
+  for (const card of filteredInspirationCards.value) {
+    if (!card.acquisitionInfo) {
+      continue
+    }
+    counts[card.acquisitionInfo] = (counts[card.acquisitionInfo] || 0) + 1
+  }
+  return Object.entries(counts)
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .map(([name, count]) => ({ name, count }))
+})
+
 function refreshUnused() {
   const pool = [...unusedPool.value]
   for (let i = pool.length - 1; i > 0; i--) {
@@ -578,18 +612,23 @@ function refreshUnused() {
   unusedPool.value = pool
 }
 
-const totalCardCount = computed(() =>
-  allCards.filter(c => !c.id.includes('_p') && typeOrder.includes(c.type)).length
+const eligibleCards = computed(() =>
+  allCards.filter(
+    c =>
+      !c.id.includes('_p') &&
+      typeOrder.includes(c.type) &&
+      isReleasedByCutoff(c, eventCutoffDate.value),
+  ),
 )
+
+const totalCardCount = computed(() => eligibleCards.value.length)
 
 const usedCardCount = computed(() => {
   if (!aggregationResult.value) {
     return 0
   }
   const usedIds = new Set(aggregationResult.value.cards.map(c => c.cardId))
-  return allCards.filter(
-    c => !c.id.includes('_p') && usedIds.has(c.id) && typeOrder.includes(c.type)
-  ).length
+  return eligibleCards.value.filter(c => usedIds.has(c.id)).length
 })
 
 async function loadCardData(seriesKey) {
@@ -601,15 +640,23 @@ async function loadCardData(seriesKey) {
   try {
     const result = await aggregateCards(seriesKey)
     aggregationResult.value = result
+    const cutoffDate = eventCutoffDate.value
     const usedIds = new Set(result.cards.map(c => c.cardId))
     const pool = allCards
-      .filter(c => !c.id.includes('_p') && !usedIds.has(c.id) && typeOrder.includes(c.type))
+      .filter(
+        c =>
+          !c.id.includes('_p') &&
+          !usedIds.has(c.id) &&
+          typeOrder.includes(c.type) &&
+          isReleasedByCutoff(c, cutoffDate),
+      )
       .map(c => ({
         cardId: c.id,
         name: c.name,
         color: c.color,
         type: c.type,
         rarity: c.rarity,
+        acquisitionInfo: c.acquisitionInfo,
       }))
     for (let i = pool.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
