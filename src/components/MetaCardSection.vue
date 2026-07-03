@@ -1,10 +1,10 @@
 <template>
   <div
-    class="mb-6 rounded border border-gray-500/10 bg-shironezumi/7 p-4 dark:border-nalika-border dark:bg-nalika-surface"
+    class="mb-6 rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
   >
     <div class="mb-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
       <h2
-        class="text-sm font-bold tracking-wider text-gray-500 uppercase dark:text-nalika-text-muted"
+        class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
       >
         {{ title }}
       </h2>

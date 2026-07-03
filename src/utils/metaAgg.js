@@ -40,7 +40,7 @@ export async function aggregateCards(seriesKey) {
 
   const cards = Object.values(cardMap)
 
-  const topSigCards = Object.entries(sigCardCounts)
+  const sigCards = Object.entries(sigCardCounts)
     .map(([cardId, count]) => {
       const info = cardMap[cardId] || {}
       return {
@@ -51,12 +51,12 @@ export async function aggregateCards(seriesKey) {
       }
     })
     .sort((a, b) => b.archetypeCount - a.archetypeCount)
-    .slice(0, 10)
 
   return {
     cards,
     topPlayed: [...cards].sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded).slice(0, 10),
     topWinner: [...cards].sort((a, b) => b.totalWinnerDecks - a.totalWinnerDecks).slice(0, 10),
-    topSigCards,
+    topSigCards: sigCards.slice(0, 10),
+    sigCards,
   }
 }

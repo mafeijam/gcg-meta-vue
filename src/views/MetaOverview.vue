@@ -20,13 +20,13 @@
       />
     </div>
 
-    <!-- Tier Distribution + Color Distribution -->
-    <div class="mb-6 grid gap-4 md:grid-cols-2">
+    <!-- Tier Distribution + Color Distribution + Win Rate -->
+    <div class="mb-6 grid gap-4 md:grid-cols-3">
       <div
-        class="rounded border border-gray-500/10 bg-shironezumi/7 p-4 dark:border-nalika-border dark:bg-nalika-surface"
+        class="rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
       >
         <h2
-          class="mb-3 text-sm font-bold tracking-wider text-gray-500 uppercase dark:text-nalika-text-muted"
+          class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
         >
           Tier Distribution
         </h2>
@@ -55,10 +55,10 @@
       </div>
 
       <div
-        class="rounded border border-gray-500/10 bg-shironezumi/7 p-4 dark:border-nalika-border dark:bg-nalika-surface"
+        class="rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
       >
         <h2
-          class="mb-3 text-sm font-bold tracking-wider text-gray-500 uppercase dark:text-nalika-text-muted"
+          class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
         >
           Color Distribution
         </h2>
@@ -75,7 +75,7 @@
             <span class="w-22 truncate text-xs font-medium text-aisumicha dark:text-nalika-text">
               {{ item.colors }}
             </span>
-            <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
+            <div class="h-2 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
               <div
                 class="h-full rounded-full"
                 :style="{ width: `${item.percent}%`, background: item.barGradient }"
@@ -90,11 +90,81 @@
         </div>
         <p v-else class="text-xs text-gray-400 dark:text-gray-500">No data</p>
       </div>
+
+      <div
+        class="rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+      >
+        <h2
+          class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
+        >
+          Win Rate by Color Combo
+        </h2>
+        <div v-if="winRateDist.length" class="space-y-2">
+          <div v-for="item in winRateDist" :key="item.colors" class="flex items-center gap-2">
+            <div class="flex shrink-0 items-center gap-0.5">
+              <div
+                v-for="dot in item.colorDots"
+                :key="dot.name"
+                class="inline-block h-2.5 w-2.5 rounded-full"
+                :style="{ background: dot.hex }"
+              />
+            </div>
+            <span class="w-22 truncate text-xs font-medium text-aisumicha dark:text-nalika-text">
+              {{ item.colors }}
+            </span>
+            <div class="h-2 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
+              <div
+                class="h-full rounded-full"
+                :style="{ width: `${item.barPercent}%`, background: item.barGradient }"
+              />
+            </div>
+            <span
+              class="w-14 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
+            >
+              {{ item.winRate.toFixed(1) }}%
+            </span>
+          </div>
+        </div>
+        <p v-else class="text-xs text-gray-400 dark:text-gray-500">No data</p>
+      </div>
+    </div>
+
+    <!-- Color filter tabs -->
+    <div class="mb-3">
+      <div class="overflow-x-auto">
+        <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
+          <button
+            class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+            :class="
+              !colorFilter
+                ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+            "
+            @click="colorFilter = null"
+          >
+            All
+          </button>
+          <button
+            v-for="c in Object.keys(COLOR_HEX)"
+            :key="c"
+            class="flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors"
+            :class="
+              colorFilter === c
+                ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+            "
+            @click="colorFilter = c"
+          >
+            <span class="inline-block h-2 w-2 rounded-full" :style="{ background: COLOR_HEX[c] }" />
+            {{ c }}
+          </button>
+        </div>
+      </div>
     </div>
 
     <MetaCardSection
       title="Top Signature Cards"
-      :cards="topSigCards"
+      :cards="filteredSigCards"
       @toggle-enlarge="toggleEnlarge"
     >
       <template #footer="{ card }">
@@ -106,36 +176,38 @@
 
     <MetaCardSection
       title="Top 10 Cards"
-      :cards="topCards"
+      :cards="filteredTopCards"
       :loading="loadingCards"
       show-rarity
       empty-text="Select a series to view card data"
       @toggle-enlarge="toggleEnlarge"
     >
       <template #tabs>
-        <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-          <button
-            class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-            :class="
-              cardTab === 'played'
-                ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-            "
-            @click="cardTab = 'played'"
-          >
-            Most Played
-          </button>
-          <button
-            class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-            :class="
-              cardTab === 'winner'
-                ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-            "
-            @click="cardTab = 'winner'"
-          >
-            Most Featured
-          </button>
+        <div class="overflow-x-auto">
+          <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
+            <button
+              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+              :class="
+                cardTab === 'played'
+                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+              "
+              @click="cardTab = 'played'"
+            >
+              Most Played
+            </button>
+            <button
+              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+              :class="
+                cardTab === 'winner'
+                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+              "
+              @click="cardTab = 'winner'"
+            >
+              Most Featured
+            </button>
+          </div>
         </div>
       </template>
       <template #footer="{ card }">
@@ -162,25 +234,27 @@
 
     <MetaCardSection
       title="Top 10 by Type"
-      :cards="topCardsByType"
+      :cards="filteredTopCardsByType"
       show-rarity
       @toggle-enlarge="toggleEnlarge"
     >
       <template #tabs>
-        <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-          <button
-            v-for="t in typeOrder"
-            :key="t"
-            class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-            :class="
-              typeTab === t
-                ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-            "
-            @click="typeTab = t"
-          >
-            {{ t }}
-          </button>
+        <div class="overflow-x-auto">
+          <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
+            <button
+              v-for="t in typeOrder"
+              :key="t"
+              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+              :class="
+                typeTab === t
+                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+              "
+              @click="typeTab = t"
+            >
+              {{ t }}
+            </button>
+          </div>
         </div>
       </template>
       <template #footer="{ card }">
@@ -223,10 +297,10 @@
 
     <!-- Top Archetypes -->
     <div
-      class="rounded border border-gray-500/10 bg-shironezumi/7 p-4 dark:border-nalika-border dark:bg-nalika-surface"
+      class="rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
     >
       <h2
-        class="mb-3 text-sm font-bold tracking-wider text-gray-500 uppercase dark:text-nalika-text-muted"
+        class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
       >
         Top Archetypes
       </h2>
@@ -273,6 +347,7 @@
 <script setup>
 import tierData from '$data/tiers.json'
 import { aggregateCards } from '@/utils/metaAgg'
+import { useStorage } from '@vueuse/core'
 
 const router = useRouter()
 const route = useRoute()
@@ -296,7 +371,8 @@ const { hideFilter } = useScrollHide()
 
 const allRows = computed(() => currentSeries.value?.rows ?? [])
 
-const cardTab = ref('played')
+const cardTab = useStorage('gcg-card-tab', 'played')
+const colorFilter = useStorage('gcg-color-filter', null)
 const enlargedCard = ref(null)
 
 function toggleEnlarge(cardId) {
@@ -334,7 +410,7 @@ const colorDist = computed(() => {
   }
   const items = Object.values(map).sort((a, b) => b.decks - a.decks)
   const maxDecks = items[0]?.decks || 1
-  return items.slice(0, 6).map(item => ({
+  return items.slice(0, 8).map(item => ({
     ...item,
     percent: (item.decks / maxDecks) * 100,
     barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
@@ -343,7 +419,7 @@ const colorDist = computed(() => {
 
 // ── Top 10 by type ──
 const typeOrder = ['UNIT', 'PILOT', 'COMMAND', 'BASE']
-const typeTab = ref('UNIT')
+const typeTab = useStorage('gcg-type-tab', 'UNIT')
 
 const topCardsByType = computed(() => {
   if (!aggregationResult.value) {
@@ -353,6 +429,29 @@ const topCardsByType = computed(() => {
     .filter(c => c.type === typeTab.value)
     .sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded)
     .slice(0, 10)
+})
+
+// ── Win rate by color combo ──
+const winRateDist = computed(() => {
+  const map = {}
+  for (const row of allRows.value) {
+    const key = row.colors
+    if (!map[key]) {
+      map[key] = { colors: key, colorDots: row.colorDots, decks: 0, wins: 0 }
+    }
+    map[key].decks += row.decks
+    map[key].wins += row.wins
+  }
+  const items = Object.values(map)
+    .map(item => ({ ...item, winRate: item.decks ? (item.wins / item.decks) * 100 : 0 }))
+    .sort((a, b) => b.winRate - a.winRate)
+    .slice(0, 8)
+  const maxWinRate = Math.max(...items.map(i => i.winRate), 1)
+  return items.map(item => ({
+    ...item,
+    barPercent: (item.winRate / maxWinRate) * 100,
+    barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
+  }))
 })
 
 // ── Top archetypes ──
@@ -377,6 +476,37 @@ const topCards = computed(() => {
 })
 
 const topSigCards = computed(() => aggregationResult.value?.topSigCards ?? [])
+
+const filteredSigCards = computed(() => {
+  if (!colorFilter.value) {
+    return topSigCards.value
+  }
+  return (aggregationResult.value?.sigCards ?? [])
+    .filter(c => c.color === colorFilter.value)
+    .slice(0, 10)
+})
+
+const filteredTopCards = computed(() => {
+  if (!colorFilter.value) {
+    return topCards.value
+  }
+  const cards = aggregationResult.value?.cards ?? []
+  const sorted =
+    cardTab.value === 'played'
+      ? [...cards].sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded)
+      : [...cards].sort((a, b) => b.archetypeCount - a.archetypeCount)
+  return sorted.filter(c => c.color === colorFilter.value).slice(0, 10)
+})
+
+const filteredTopCardsByType = computed(() => {
+  if (!colorFilter.value) {
+    return topCardsByType.value
+  }
+  return (aggregationResult.value?.cards ?? [])
+    .filter(c => c.type === typeTab.value && c.color === colorFilter.value)
+    .sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded)
+    .slice(0, 10)
+})
 
 async function loadCardData(seriesKey) {
   if (!seriesKey) {
