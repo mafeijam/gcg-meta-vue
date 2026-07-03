@@ -28,7 +28,7 @@
         <h2
           class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
         >
-          Card state
+          Card stats
         </h2>
 
         <div v-if="seriesTimeline" class="text-xs text-gray-500 dark:text-gray-400">
@@ -60,7 +60,7 @@
         >
           <span class="mr-1 inline-block h-2 w-2 rounded-full" :style="{ background: item.hex }" />
           <span class="mr-1 text-xxs">{{ item.color }}:</span>
-          <span class="font-mono text-gray-500 dark:text-gray-400">{{ item.count }}</span>
+          <span class="font-mono font-bold text-gray-500 dark:text-gray-400">{{ item.count }}</span>
         </span>
       </div>
       <div v-if="archetypeProductGroups.length" class="mt-3 space-y-4">
@@ -75,11 +75,11 @@
             class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           >
             <span class="mr-1 text-xxs">{{ item.name }}:</span>
-            <span class="font-mono text-gray-500 dark:text-gray-400">{{ item.count }}</span>
+            <span class="font-mono font-bold text-gray-500 dark:text-gray-400">{{ item.count }}</span>
           </span>
         </div>
       </div>
-      <p v-else class="mt-3 text-xs text-gray-400">Product info unavailable</p>
+      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">Product info unavailable</p>
     </div>
 
     <!-- Tier Distribution + Color Distribution + Win Rate -->
@@ -143,8 +143,10 @@
                 :style="{ background: dot.hex }"
               />
             </div>
-            <span class="w-22 truncate text-xs font-medium text-aisumicha dark:text-nalika-text">
-              {{ item.colors }}
+            <span
+              class="w-6 shrink-0 text-center text-xs font-medium text-aisumicha dark:text-nalika-text"
+            >
+              {{ item.colorDots.map(d => d.name[0]).join('') }}
             </span>
             <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
               <div
@@ -153,13 +155,13 @@
               />
             </div>
             <span
-              class="w-14 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
+              class="w-12 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
             >
               {{ item.decks }}
             </span>
           </div>
         </div>
-        <p v-else class="text-xs text-gray-400 dark:text-gray-500">No data</p>
+        <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
       </div>
 
       <div
@@ -189,8 +191,10 @@
                 :style="{ background: dot.hex }"
               />
             </div>
-            <span class="w-22 truncate text-xs font-medium text-aisumicha dark:text-nalika-text">
-              {{ item.colors }}
+            <span
+              class="w-6 shrink-0 text-center text-xs font-medium text-aisumicha dark:text-nalika-text"
+            >
+              {{ item.colorDots.map(d => d.name[0]).join('') }}
             </span>
             <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
               <div
@@ -199,14 +203,27 @@
               />
             </div>
             <span
-              class="w-14 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
+              class="w-12 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
             >
               {{ item.winRate.toFixed(1) }}%
             </span>
           </div>
         </div>
-        <p v-else class="text-xs text-gray-400 dark:text-gray-500">No data</p>
+        <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
       </div>
+    </div>
+
+    <!-- Archetype Quadrants (full width) -->
+    <div
+      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+    >
+      <h2
+        class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
+      >
+        Archetype Quadrants
+      </h2>
+      <QuadrantChart v-if="quadrantData.length" :items="quadrantData" />
+      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
     </div>
 
     <!-- View All modal -->
@@ -279,7 +296,7 @@
           </div>
         </div>
       </div>
-      <p v-else class="text-xs text-gray-400 dark:text-gray-500">No previous series</p>
+      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No previous series</p>
     </div>
 
     <!-- Card State vs Previous -->
@@ -396,100 +413,82 @@
       @toggle-enlarge="toggleEnlarge"
     >
       <template #tabs>
-        <div class="overflow-x-auto">
-          <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-            <button
-              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              :class="
-                cardTab === 'played'
-                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-              "
-              @click="cardTab = 'played'"
-            >
-              Most Played
-            </button>
-            <button
-              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              :class="
-                cardTab === 'winner'
-                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-              "
-              @click="cardTab = 'winner'"
-            >
-              Most Archetypes
-            </button>
+        <div class="ml-auto flex flex-col gap-2 sm:flex-row sm:items-center">
+          <div class="flex justify-end overflow-x-auto">
+            <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
+              <button
+                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                :class="
+                  cardTab === 'played'
+                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+                "
+                @click="cardTab = 'played'"
+              >
+                Most Played
+              </button>
+              <button
+                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                :class="
+                  cardTab === 'winner'
+                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+                "
+                @click="cardTab = 'winner'"
+              >
+                Most Archetypes
+              </button>
+            </div>
+          </div>
+          <div class="flex justify-end overflow-x-auto">
+            <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
+              <button
+                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                :class="
+                  typeTab === null
+                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+                "
+                @click="typeTab = null"
+              >
+                All
+              </button>
+              <button
+                v-for="t in typeOrder"
+                :key="t"
+                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                :class="
+                  typeTab === t
+                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+                "
+                @click="typeTab = t"
+              >
+                {{ t }}
+              </button>
+            </div>
           </div>
         </div>
       </template>
       <template #footer="{ card }">
-        <div
-          class="mt-2 flex items-center justify-center gap-2 text-xs @max-[150px]:flex-col @max-[150px]:gap-0"
-        >
+        <div class="mt-2 flex items-center justify-center gap-2 text-xs">
           <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
-            {{ card.totalDecksIncluded }} decks
+            {{ card.totalDecksIncluded }}
           </span>
-          <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span>
+          <span class="text-gray-300 dark:text-gray-500">·</span>
           <span
-            v-if="cardTab === 'wins'"
-            class="font-mono text-yellow-600 dark:text-yellow-600"
-            title="Champion decks"
-          >
-            {{ card.totalWinnerDecks }} wins
-          </span>
-          <span
-            v-else-if="cardTab === 'winner'"
+            v-if="cardTab === 'winner'"
             class="font-mono text-blue-500 dark:text-blue-400"
             title="Archetypes"
           >
-            {{ card.archetypeCount }} archs
+            {{ card.archetypeCount }}
           </span>
           <span
             v-else
             class="font-mono text-yellow-600 dark:text-yellow-600"
             title="Champion decks"
           >
-            {{ card.totalWinnerDecks }} wins
-          </span>
-        </div>
-      </template>
-    </MetaCardSection>
-
-    <MetaCardSection
-      title="Top 10 by Type"
-      :cards="filteredTopCardsByType"
-      @toggle-enlarge="toggleEnlarge"
-    >
-      <template #tabs>
-        <div class="overflow-x-auto">
-          <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-            <button
-              v-for="t in typeOrder"
-              :key="t"
-              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              :class="
-                typeTab === t
-                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-              "
-              @click="typeTab = t"
-            >
-              {{ t }}
-            </button>
-          </div>
-        </div>
-      </template>
-      <template #footer="{ card }">
-        <div
-          class="mt-2 flex items-center justify-center gap-2 text-xs @max-[150px]:flex-col @max-[150px]:gap-0"
-        >
-          <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
-            {{ card.totalDecksIncluded }} decks
-          </span>
-          <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span>
-          <span class="font-mono text-yellow-600 dark:text-yellow-600" title="Champion decks">
-            {{ card.totalWinnerDecks }} wins
+            {{ card.totalWinnerDecks }}
           </span>
         </div>
       </template>
@@ -512,59 +511,6 @@
           <span class="font-mono text-yellow-600 dark:text-yellow-600" title="Champion decks">
             {{ card.totalWinnerDecks }} wins
           </span>
-        </div>
-      </template>
-    </MetaCardSection>
-
-    <MetaCardSection
-      title="For Inspiration"
-      :cards="filteredInspirationCards"
-      @toggle-enlarge="toggleEnlarge"
-    >
-      <template #tabs>
-        <div class="overflow-x-auto">
-          <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-            <button
-              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              :class="
-                !inspirationTypeTab
-                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-              "
-              @click="inspirationTypeTab = null"
-            >
-              All
-            </button>
-            <button
-              v-for="t in typeOrder"
-              :key="t"
-              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              :class="
-                inspirationTypeTab === t
-                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-              "
-              @click="inspirationTypeTab = t"
-            >
-              {{ t }}
-            </button>
-          </div>
-        </div>
-      </template>
-      <template #footer="{ card }">
-        <div class="mt-2 text-center font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
-          {{ card.type }}
-        </div>
-      </template>
-      <template #bottom>
-        <div class="mt-3 flex items-center justify-between gap-2">
-          <span class="text-xs text-gray-400 dark:text-gray-500">Cards not in any archetype</span>
-          <button
-            class="rounded-md px-3 py-1 text-xs font-medium text-gray-500 transition-colors hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text"
-            @click="refreshUnused"
-          >
-            ↻ Refresh
-          </button>
         </div>
       </template>
     </MetaCardSection>
@@ -646,12 +592,21 @@ const { hideFilter } = useScrollHide()
 
 const allRows = computed(() => currentSeries.value?.rows ?? [])
 
+const quadrantData = computed(() =>
+  allRows.value.map(r => ({
+    archetype: r.archetype,
+    usePct: r.usePct,
+    winPerDk: r.winPerDk,
+    decks: r.decks,
+    wins: r.wins,
+    tier: r.tier,
+  })),
+)
+
 const cardTab = useStorage('gcg-card-tab', 'played')
 const colorFilter = useStorage('gcg-color-filter', null)
-const inspirationTypeTab = useStorage('gcg-inspiration-type', null)
 const enlargedCard = ref(null)
 const viewAllModal = ref(null)
-const unusedPool = ref([])
 const cardMeta = ref([])
 
 function toggleEnlarge(cardId) {
@@ -755,21 +710,12 @@ const seriesComparison = computed(() => {
     100
   const prevT1Share =
     (prev.rows.filter(r => r.tier === 'T1' || r.tier === 'T1.5').length / prev.rows.length) * 100
-  const currentWinRate = current.totalDecks > 0 ? (current.winDecks / current.totalDecks) * 100 : 0
-  const prevWinRate = prev.totalDecks > 0 ? (prev.winDecks / prev.totalDecks) * 100 : 0
-  const currentDpe = current.events > 0 ? current.totalDecks / current.events : 0
-  const prevDpe = prev.events > 0 ? prev.totalDecks / prev.events : 0
-  const currentWpe = current.events > 0 ? current.winDecks / current.events : 0
-  const prevWpe = prev.events > 0 ? prev.winDecks / prev.events : 0
   return {
     metrics: [
       makeMetric('Events', current.events, prev.events),
       makeMetric('Total decks', current.totalDecks, prev.totalDecks),
       makeMetric('Win decks', current.winDecks, prev.winDecks),
       makeMetric('Archetypes', current.rows.length, prev.rows.length),
-      makeMetric('Win rate', currentWinRate, prevWinRate, v => `${v.toFixed(1)}%`),
-      makeMetric('Decks/event', currentDpe, prevDpe, v => v.toFixed(1)),
-      makeMetric('Wins/event', currentWpe, prevWpe, v => v.toFixed(1)),
       makeMetric('T1 + T1.5%', currentT1Share, prevT1Share, v => `${v.toFixed(1)}%`),
     ],
     topColor: { current: topColor, previous: previousTopColor.value },
@@ -813,17 +759,7 @@ const cardStateComparison = computed(() => {
 
 // ── Top 10 by type ──
 const typeOrder = ['UNIT', 'PILOT', 'COMMAND', 'BASE']
-const typeTab = useStorage('gcg-type-tab', 'UNIT')
-
-const topCardsByType = computed(() => {
-  if (!aggregationResult.value) {
-    return []
-  }
-  return aggregationResult.value.cards
-    .filter(c => c.type === typeTab.value)
-    .sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded)
-    .slice(0, 10)
-})
+const typeTab = useStorage('gcg-type-tab', null)
 
 const recentlyUsedCards = computed(() => {
   if (!currentSeries.value || !aggregationResult.value) {
@@ -870,6 +806,7 @@ const recentlyUsedCards = computed(() => {
         totalWinnerDecks: used?.totalWinnerDecks || 0,
       }
     })
+    .filter(c => c.totalDecksIncluded > 0)
     .sort((a, b) => {
       if (b.totalDecksIncluded !== a.totalDecksIncluded) {
         return b.totalDecksIncluded - a.totalDecksIncluded
@@ -958,40 +895,26 @@ const filteredSigCards = computed(() => {
 })
 
 const filteredTopCards = computed(() => {
-  if (!colorFilter.value) {
+  if (!aggregationResult.value) {
+    return []
+  }
+  const hasFilter = colorFilter.value || typeTab.value
+  if (!hasFilter) {
     return topCards.value
   }
-  const cards = aggregationResult.value?.cards ?? []
+  const cards = aggregationResult.value.cards ?? []
   const sorted =
     cardTab.value === 'played'
       ? [...cards].sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded)
       : [...cards].sort((a, b) => b.archetypeCount - a.archetypeCount)
-  return sorted.filter(c => c.color === colorFilter.value).slice(0, 10)
-})
-
-const filteredTopCardsByType = computed(() => {
-  if (!colorFilter.value) {
-    return topCardsByType.value
-  }
-  return (aggregationResult.value?.cards ?? [])
-    .filter(c => c.type === typeTab.value && c.color === colorFilter.value)
-    .sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded)
-    .slice(0, 10)
-})
-
-const filteredInspirationCards = computed(() => {
-  const pool = unusedPool.value
-  if (!pool.length) {
-    return []
-  }
-  let filtered = pool
+  let filtered = sorted
   if (colorFilter.value) {
     filtered = filtered.filter(c => c.color === colorFilter.value)
   }
-  if (inspirationTypeTab.value) {
-    filtered = filtered.filter(c => c.type === inspirationTypeTab.value)
+  if (typeTab.value) {
+    filtered = filtered.filter(c => c.type === typeTab.value)
   }
-  return filtered.slice(0, 20)
+  return filtered.slice(0, 10)
 })
 
 const cardInfoById = computed(() => {
@@ -1058,6 +981,10 @@ const archetypeProducts = computed(() => {
     }
     return a.name.localeCompare(b.name)
   })
+  .map(item => ({
+    ...item,
+    name: item.name.replace(/^(.+?)\s+(\[[A-Z]{2}\d*\])$/i, '$2 $1'),
+  }))
 })
 
 const archetypeProductGroups = computed(() => {
@@ -1073,15 +1000,6 @@ const archetypeProductGroups = computed(() => {
   }
   return groups
 })
-
-function refreshUnused() {
-  const pool = [...unusedPool.value]
-  for (let i = pool.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
-    ;[pool[i], pool[j]] = [pool[j], pool[i]]
-  }
-  unusedPool.value = pool
-}
 
 const eligibleCards = computed(() =>
   cardMeta.value.filter(
@@ -1124,29 +1042,6 @@ async function loadCardData(seriesKey) {
   try {
     const result = await aggregateCards(seriesKey)
     aggregationResult.value = result
-    const cutoffDate = eventCutoffDate.value
-    const usedIds = new Set(result.cards.map(c => c.cardId))
-    const pool = cardMeta.value
-      .filter(
-        c =>
-          !c.id.includes('_p') &&
-          !usedIds.has(c.id) &&
-          typeOrder.includes(c.type) &&
-          isReleasedByCutoff(c, cutoffDate),
-      )
-      .map(c => ({
-        cardId: c.id,
-        name: c.name,
-        color: c.color,
-        type: c.type,
-        rarity: c.rarity,
-        acquisitionInfo: c.acquisitionInfo,
-      }))
-    for (let i = pool.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1))
-      ;[pool[i], pool[j]] = [pool[j], pool[i]]
-    }
-    unusedPool.value = pool
   } catch {
     aggregationResult.value = null
   } finally {

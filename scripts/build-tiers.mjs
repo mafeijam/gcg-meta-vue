@@ -637,6 +637,58 @@ function processSeries(series) {
     writeFileSync(file, JSON.stringify(arch, null, 2))
   }
 
+  // Pre-aggregated card data for MetaOverview (eliminates 73 runtime imports)
+  const cardMap = {}
+  const sigCardCounts = {}
+  for (const arch of mainDetails) {
+    for (const card of arch.cards) {
+      const c = cardMap[card.cardId]
+      if (c) {
+        c.totalDecksIncluded += card.decksIncluded
+        c.totalWinnerDecks += card.winnerDeckCount
+        c.archetypeCount += 1
+      } else {
+        cardMap[card.cardId] = {
+          cardId: card.cardId,
+          name: card.name,
+          color: card.color,
+          type: card.type,
+          rarity: card.rarity,
+          totalDecksIncluded: card.decksIncluded,
+          totalWinnerDecks: card.winnerDeckCount,
+          archetypeCount: 1,
+        }
+      }
+    }
+    for (const sigId of arch.sigCardIds ?? []) {
+      sigCardCounts[sigId] = (sigCardCounts[sigId] || 0) + 1
+    }
+  }
+
+  const cards = Object.values(cardMap)
+  const sigCards = Object.entries(sigCardCounts)
+    .map(([cardId, count]) => {
+      const info = cardMap[cardId] || {}
+      return {
+        cardId,
+        name: info.name || '?',
+        color: info.color || 'inherit',
+        rarity: info.rarity || '',
+        archetypeCount: count,
+      }
+    })
+    .sort((a, b) => b.archetypeCount - a.archetypeCount)
+
+  const aggregatedCards = {
+    cards,
+    topPlayed: [...cards].sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded).slice(0, 10),
+    topWinner: [...cards].sort((a, b) => b.totalWinnerDecks - a.totalWinnerDecks).slice(0, 10),
+    topSigCards: sigCards.slice(0, 10),
+    sigCards,
+  }
+
+  writeFileSync(`${seriesDir}/_cards.json`, JSON.stringify(aggregatedCards, null, 2))
+
   // Compute tier scores and thresholds
   const seriesProcessed = {
     value: series.value,
