@@ -28,7 +28,7 @@
         <h2
           class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
         >
-          Meta state
+          Card state
         </h2>
 
         <div v-if="seriesTimeline" class="text-xs text-gray-500 dark:text-gray-400">
@@ -52,15 +52,32 @@
           unused
         </span>
       </div>
-      <div v-if="archetypeProducts.length" class="mt-3 flex flex-wrap gap-1.5">
+      <div v-if="colorCounts.length" class="mt-3 mb-5 flex flex-wrap gap-1.5">
         <span
-          v-for="item in archetypeProducts"
-          :key="item.name"
+          v-for="item in colorCounts"
+          :key="item.color"
           class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
         >
-          <span class="mr-1 text-xxs">{{ item.name }}:</span>
+          <span class="mr-1 inline-block h-2 w-2 rounded-full" :style="{ background: item.hex }" />
+          <span class="mr-1 text-xxs">{{ item.color }}:</span>
           <span class="font-mono text-gray-500 dark:text-gray-400">{{ item.count }}</span>
         </span>
+      </div>
+      <div v-if="archetypeProductGroups.length" class="mt-3 space-y-4">
+        <div
+          v-for="group in archetypeProductGroups"
+          :key="group.prefix"
+          class="flex flex-wrap gap-1.5"
+        >
+          <span
+            v-for="item in group.items"
+            :key="item.name"
+            class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
+          >
+            <span class="mr-1 text-xxs">{{ item.name }}:</span>
+            <span class="font-mono text-gray-500 dark:text-gray-400">{{ item.count }}</span>
+          </span>
+        </div>
       </div>
       <p v-else class="mt-3 text-xs text-gray-400">Product info unavailable</p>
     </div>
@@ -201,6 +218,131 @@
       @close="viewAllModal = null"
     />
 
+    <!-- Series Comparison -->
+    <div
+      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+    >
+      <div class="mb-3 flex items-center justify-between max-sm:flex-col max-sm:items-start">
+        <h2
+          class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
+        >
+          vs Previous Series
+        </h2>
+        <div v-if="previousSeries" class="text-xs text-gray-500 dark:text-gray-400">
+          {{ previousSeries.label }}
+        </div>
+      </div>
+      <div v-if="seriesComparison" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          v-for="m in seriesComparison.metrics"
+          :key="m.label"
+          class="rounded border border-gray-500/10 bg-shironezumi/4 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        >
+          <div class="text-xs text-gray-500 dark:text-gray-400">{{ m.label }}</div>
+          <div class="mt-1 flex items-center justify-between">
+            <span class="text-lg font-bold text-gray-700 dark:text-nalika-text">
+              {{ m.format(m.current) }}
+            </span>
+            <span
+              class="text-xs font-medium"
+              :class="
+                m.format(m.current) === m.format(m.previous) || m.diff > 0
+                  ? 'text-green-600 dark:text-green-500'
+                  : m.diff < 0
+                    ? 'text-red-600 dark:text-red-500'
+                    : 'text-gray-500 dark:text-gray-400'
+              "
+            >
+              <template v-if="m.format(m.current) === m.format(m.previous)">same</template>
+              <template v-else>{{ m.diff > 0 ? '+' : '' }}{{ m.format(m.diff) }}</template>
+            </span>
+          </div>
+          <div class="text-xs text-gray-400 dark:text-gray-500">
+            previous: {{ m.format(m.previous) }}
+          </div>
+        </div>
+        <div
+          class="rounded border border-gray-500/10 bg-shironezumi/4 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        >
+          <div class="text-xs text-gray-500 dark:text-gray-400">Top color</div>
+          <div class="mt-1 flex items-center justify-between">
+            <span class="text-sm font-bold text-gray-700 dark:text-nalika-text">
+              {{ seriesComparison.topColor.current || '—' }}
+            </span>
+            <span
+              v-if="seriesComparison.topColor.current !== seriesComparison.topColor.previous"
+              class="text-xs text-gray-500 dark:text-gray-400"
+            >
+              was {{ seriesComparison.topColor.previous || '—' }}
+            </span>
+            <span v-else class="text-xs text-green-600 dark:text-green-500">same</span>
+          </div>
+        </div>
+      </div>
+      <p v-else class="text-xs text-gray-400 dark:text-gray-500">No previous series</p>
+    </div>
+
+    <!-- Card State vs Previous -->
+    <div
+      v-if="cardStateComparison"
+      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+    >
+      <div class="mb-3 flex items-center justify-between max-sm:flex-col max-sm:items-start">
+        <h2
+          class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
+        >
+          Card State vs Previous
+        </h2>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div
+          v-for="m in cardStateComparison.metrics"
+          :key="m.label"
+          class="rounded border border-gray-500/10 bg-shironezumi/4 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        >
+          <div class="text-xs text-gray-500 dark:text-gray-400">{{ m.label }}</div>
+          <div class="mt-1 flex items-center justify-between">
+            <span class="text-lg font-bold text-gray-700 dark:text-nalika-text">
+              {{ m.format(m.current) }}
+            </span>
+            <span
+              class="text-xs font-medium"
+              :class="
+                m.format(m.current) === m.format(m.previous) || m.diff > 0
+                  ? 'text-green-600 dark:text-green-500'
+                  : m.diff < 0
+                    ? 'text-red-600 dark:text-red-500'
+                    : 'text-gray-500 dark:text-gray-400'
+              "
+            >
+              <template v-if="m.format(m.current) === m.format(m.previous)">same</template>
+              <template v-else>{{ m.diff > 0 ? '+' : '' }}{{ m.format(m.diff) }}</template>
+            </span>
+          </div>
+          <div class="text-xs text-gray-400 dark:text-gray-500">
+            previous: {{ m.format(m.previous) }}
+          </div>
+        </div>
+        <div
+          class="rounded border border-gray-500/10 bg-shironezumi/4 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        >
+          <div class="text-xs text-gray-500 dark:text-gray-400">Top used color</div>
+          <div class="mt-1 flex items-center justify-between">
+            <span class="text-sm font-bold text-gray-700 dark:text-nalika-text">
+              {{ cardStateComparison.topColor.current || '—' }}
+            </span>
+            <span
+              v-if="cardStateComparison.topColor.current !== cardStateComparison.topColor.previous"
+              class="text-xs text-gray-500 dark:text-gray-400"
+            >
+              was {{ cardStateComparison.topColor.previous || '—' }}
+            </span>
+            <span v-else class="text-xs text-green-600 dark:text-green-500">same</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Color filter tabs -->
     <div class="mb-3">
       <div class="overflow-x-auto">
@@ -276,7 +418,7 @@
               "
               @click="cardTab = 'winner'"
             >
-              Most Featured
+              Most Archetypes
             </button>
           </div>
         </div>
@@ -290,14 +432,25 @@
           </span>
           <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span>
           <span
-            v-if="cardTab === 'played'"
+            v-if="cardTab === 'wins'"
             class="font-mono text-yellow-600 dark:text-yellow-600"
             title="Champion decks"
           >
             {{ card.totalWinnerDecks }} wins
           </span>
-          <span v-else class="font-mono text-blue-500 dark:text-blue-400" title="Archetypes">
+          <span
+            v-else-if="cardTab === 'winner'"
+            class="font-mono text-blue-500 dark:text-blue-400"
+            title="Archetypes"
+          >
             {{ card.archetypeCount }} archs
+          </span>
+          <span
+            v-else
+            class="font-mono text-yellow-600 dark:text-yellow-600"
+            title="Champion decks"
+          >
+            {{ card.totalWinnerDecks }} wins
           </span>
         </div>
       </template>
@@ -343,12 +496,68 @@
     </MetaCardSection>
 
     <MetaCardSection
+      title="Newcomers"
+      :cards="recentlyUsedCards"
+      empty-text="No new cards used"
+      @toggle-enlarge="toggleEnlarge"
+    >
+      <template #footer="{ card }">
+        <div
+          class="mt-2 flex items-center justify-center gap-2 text-xs @max-[150px]:flex-col @max-[150px]:gap-0"
+        >
+          <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
+            {{ card.totalDecksIncluded }} decks
+          </span>
+          <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span>
+          <span class="font-mono text-yellow-600 dark:text-yellow-600" title="Champion decks">
+            {{ card.totalWinnerDecks }} wins
+          </span>
+        </div>
+      </template>
+    </MetaCardSection>
+
+    <MetaCardSection
       title="For Inspiration"
       :cards="filteredInspirationCards"
       @toggle-enlarge="toggleEnlarge"
     >
       <template #tabs>
-        <div class="flex items-center justify-between gap-2">
+        <div class="overflow-x-auto">
+          <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
+            <button
+              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+              :class="
+                !inspirationTypeTab
+                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+              "
+              @click="inspirationTypeTab = null"
+            >
+              All
+            </button>
+            <button
+              v-for="t in typeOrder"
+              :key="t"
+              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+              :class="
+                inspirationTypeTab === t
+                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+              "
+              @click="inspirationTypeTab = t"
+            >
+              {{ t }}
+            </button>
+          </div>
+        </div>
+      </template>
+      <template #footer="{ card }">
+        <div class="mt-2 text-center font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
+          {{ card.type }}
+        </div>
+      </template>
+      <template #bottom>
+        <div class="mt-3 flex items-center justify-between gap-2">
           <span class="text-xs text-gray-400 dark:text-gray-500">Cards not in any archetype</span>
           <button
             class="rounded-md px-3 py-1 text-xs font-medium text-gray-500 transition-colors hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text"
@@ -356,11 +565,6 @@
           >
             ↻ Refresh
           </button>
-        </div>
-      </template>
-      <template #footer="{ card }">
-        <div class="mt-2 text-center font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
-          {{ card.type }}
         </div>
       </template>
     </MetaCardSection>
@@ -393,7 +597,6 @@
 <script setup>
 import tierData from '$data/tiers.json'
 import { useStorage } from '@vueuse/core'
-import allCards from '$raw/cards.json'
 
 const router = useRouter()
 const route = useRoute()
@@ -412,6 +615,17 @@ watch(selectedKey, val => {
 })
 
 const currentSeries = computed(() => tierData.find(s => s.value === selectedKey.value))
+const previousSeries = computed(() => {
+  const current = currentSeries.value
+  if (!current?.eventMinDate) {
+    return null
+  }
+  const candidates = tierData.filter(
+    s => s.value !== current.value && s.eventMaxDate && s.eventMaxDate < current.eventMinDate,
+  )
+  candidates.sort((a, b) => b.eventMaxDate.localeCompare(a.eventMaxDate))
+  return candidates[0] || null
+})
 const eventCutoffDate = computed(() => currentSeries.value?.eventMaxDate ?? null)
 const seriesTimeline = computed(() => {
   const min = currentSeries.value?.eventMinDate
@@ -434,9 +648,11 @@ const allRows = computed(() => currentSeries.value?.rows ?? [])
 
 const cardTab = useStorage('gcg-card-tab', 'played')
 const colorFilter = useStorage('gcg-color-filter', null)
+const inspirationTypeTab = useStorage('gcg-inspiration-type', null)
 const enlargedCard = ref(null)
 const viewAllModal = ref(null)
 const unusedPool = ref([])
+const cardMeta = ref([])
 
 function toggleEnlarge(cardId) {
   enlargedCard.value = enlargedCard.value === cardId ? null : cardId
@@ -509,6 +725,92 @@ const allColorDist = computed(() => {
   }))
 })
 
+// ── Series comparison ──
+const previousSeriesRows = computed(() => previousSeries.value?.rows ?? [])
+const previousTopColor = computed(() => {
+  const map = {}
+  for (const row of previousSeriesRows.value) {
+    map[row.colors] = (map[row.colors] || 0) + row.decks
+  }
+  const items = Object.entries(map).sort((a, b) => b[1] - a[1])
+  return items[0]?.[0] || null
+})
+
+const seriesComparison = computed(() => {
+  const current = currentSeries.value
+  const prev = previousSeries.value
+  if (!current || !prev) {
+    return null
+  }
+  const topColor = allColorDist.value[0]?.colors || null
+  const makeMetric = (label, currentVal, previousVal, format = v => v) => ({
+    label,
+    current: currentVal,
+    previous: previousVal,
+    diff: currentVal - previousVal,
+    format,
+  })
+  const currentT1Share =
+    (current.rows.filter(r => r.tier === 'T1' || r.tier === 'T1.5').length / current.rows.length) * 100
+  const prevT1Share =
+    (prev.rows.filter(r => r.tier === 'T1' || r.tier === 'T1.5').length / prev.rows.length) * 100
+  const currentWinRate =
+    current.totalDecks > 0 ? (current.winDecks / current.totalDecks) * 100 : 0
+  const prevWinRate = prev.totalDecks > 0 ? (prev.winDecks / prev.totalDecks) * 100 : 0
+  const currentDpe = current.events > 0 ? current.totalDecks / current.events : 0
+  const prevDpe = prev.events > 0 ? prev.totalDecks / prev.events : 0
+  const currentWpe = current.events > 0 ? current.winDecks / current.events : 0
+  const prevWpe = prev.events > 0 ? prev.winDecks / prev.events : 0
+  return {
+    metrics: [
+      makeMetric('Events', current.events, prev.events),
+      makeMetric('Total decks', current.totalDecks, prev.totalDecks),
+      makeMetric('Win decks', current.winDecks, prev.winDecks),
+      makeMetric('Archetypes', current.rows.length, prev.rows.length),
+      makeMetric('Win rate', currentWinRate, prevWinRate, v => `${v.toFixed(1)}%`),
+      makeMetric('Decks/event', currentDpe, prevDpe, v => v.toFixed(1)),
+      makeMetric('Wins/event', currentWpe, prevWpe, v => v.toFixed(1)),
+      makeMetric('T1 + T1.5%', currentT1Share, prevT1Share, v => `${v.toFixed(1)}%`),
+    ],
+    topColor: { current: topColor, previous: previousTopColor.value },
+  }
+})
+
+// ── Card state comparison ──
+const cardStateComparison = computed(() => {
+  const current = currentSeries.value
+  const prev = previousSeries.value
+  if (!current?.cardState || !prev?.cardState) {
+    return null
+  }
+  const currentState = current.cardState
+  const prevState = prev.cardState
+  const makeMetric = (label, currentVal, previousVal, format = v => v) => ({
+    label,
+    current: currentVal,
+    previous: previousVal,
+    diff: currentVal - previousVal,
+    format,
+  })
+  const currentUsedPct =
+    currentState.releasedCards > 0 ? (currentState.usedCards / currentState.releasedCards) * 100 : 0
+  const prevUsedPct =
+    prevState.releasedCards > 0 ? (prevState.usedCards / prevState.releasedCards) * 100 : 0
+  const currentTopColor =
+    Object.entries(currentState.usedByColor).sort((a, b) => b[1] - a[1])[0]?.[0] || null
+  const prevTopColor =
+    Object.entries(prevState.usedByColor).sort((a, b) => b[1] - a[1])[0]?.[0] || null
+  return {
+    metrics: [
+      makeMetric('Released', currentState.releasedCards, prevState.releasedCards),
+      makeMetric('Used', currentState.usedCards, prevState.usedCards),
+      makeMetric('Unused', currentState.unusedCards, prevState.unusedCards),
+      makeMetric('Used %', currentUsedPct, prevUsedPct, v => `${v.toFixed(1)}%`),
+    ],
+    topColor: { current: currentTopColor, previous: prevTopColor },
+  }
+})
+
 // ── Top 10 by type ──
 const typeOrder = ['UNIT', 'PILOT', 'COMMAND', 'BASE']
 const typeTab = useStorage('gcg-type-tab', 'UNIT')
@@ -521,6 +823,60 @@ const topCardsByType = computed(() => {
     .filter(c => c.type === typeTab.value)
     .sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded)
     .slice(0, 10)
+})
+
+const recentlyUsedCards = computed(() => {
+  if (!currentSeries.value || !aggregationResult.value) {
+    return []
+  }
+  const max = currentSeries.value?.eventMaxDate
+  if (!max) {
+    return []
+  }
+  const usedMap = {}
+  for (const c of aggregationResult.value.cards) {
+    usedMap[c.cardId] = c
+  }
+  let latestRelease = null
+  for (const card of eligibleCards.value) {
+    if (card.releaseDate && card.releaseDate <= max) {
+      if (!latestRelease || card.releaseDate > latestRelease) {
+        latestRelease = card.releaseDate
+      }
+    }
+  }
+  if (!latestRelease) {
+    return []
+  }
+  return eligibleCards.value
+    .filter(c => {
+      if (c.releaseDate !== latestRelease) {
+        return false
+      }
+      if (!colorFilter.value) {
+        return true
+      }
+      return c.color === colorFilter.value
+    })
+    .map(c => {
+      const used = usedMap[c.id]
+      return {
+        cardId: c.id,
+        name: c.name,
+        color: c.color,
+        type: c.type,
+        rarity: c.rarity,
+        totalDecksIncluded: used?.totalDecksIncluded || 0,
+        totalWinnerDecks: used?.totalWinnerDecks || 0,
+      }
+    })
+    .sort((a, b) => {
+      if (b.totalDecksIncluded !== a.totalDecksIncluded) {
+        return b.totalDecksIncluded - a.totalDecksIncluded
+      }
+      return a.cardId.localeCompare(b.cardId)
+    })
+    .slice(0, 20)
 })
 
 // ── Win rate by color combo ──
@@ -628,21 +984,47 @@ const filteredInspirationCards = computed(() => {
   if (!pool.length) {
     return []
   }
-  if (!colorFilter.value) {
-    return pool.slice(0, 20)
+  let filtered = pool
+  if (colorFilter.value) {
+    filtered = filtered.filter(c => c.color === colorFilter.value)
   }
-  return pool.filter(c => c.color === colorFilter.value).slice(0, 20)
+  if (inspirationTypeTab.value) {
+    filtered = filtered.filter(c => c.type === inspirationTypeTab.value)
+  }
+  return filtered.slice(0, 20)
 })
 
 const cardInfoById = computed(() => {
   const map = {}
-  for (const card of allCards) {
+  for (const card of cardMeta.value) {
     if (card.id) {
       map[card.id] = card
     }
   }
   return map
 })
+
+const colorCounts = computed(() => {
+  if (!aggregationResult.value?.cards?.length) {
+    return []
+  }
+  const counts = {}
+  for (const card of aggregationResult.value.cards) {
+    counts[card.color] = (counts[card.color] || 0) + 1
+  }
+  return Object.entries(counts)
+    .map(([color, count]) => ({
+      color,
+      count,
+      hex: COLOR_HEX[color] || '#718096',
+    }))
+    .sort((a, b) => b.count - a.count)
+})
+
+const extractProductPrefix = name => {
+  const match = name?.match(/\[([A-Z]{2})\d*\]/i)
+  return match ? match[1].toUpperCase() : null
+}
 
 const archetypeProducts = computed(() => {
   if (!aggregationResult.value?.cards?.length) {
@@ -658,24 +1040,38 @@ const archetypeProducts = computed(() => {
     counts[acquisition] = (counts[acquisition] || 0) + 1
   }
   const entries = Object.entries(counts).map(([name, count]) => ({ name, count }))
-  const extractCode = name => {
-    const match = name?.match(/\[([A-Z]{2}\d{2})\]/i)
-    return match ? match[1].toUpperCase() : null
-  }
   return entries.sort((a, b) => {
-    const codeA = extractCode(a.name)
-    const codeB = extractCode(b.name)
-    if (codeA && codeB) {
-      return codeA.localeCompare(codeB)
+    const prefixA = extractProductPrefix(a.name)
+    const prefixB = extractProductPrefix(b.name)
+    if (prefixA && prefixB) {
+      const prefixCompare = prefixA.localeCompare(prefixB)
+      if (prefixCompare !== 0) {
+        return prefixCompare
+      }
+      return b.count - a.count
     }
-    if (codeA) {
+    if (prefixA) {
       return -1
     }
-    if (codeB) {
+    if (prefixB) {
       return 1
     }
     return a.name.localeCompare(b.name)
   })
+})
+
+const archetypeProductGroups = computed(() => {
+  const groups = []
+  let currentGroup = null
+  for (const item of archetypeProducts.value) {
+    const prefix = extractProductPrefix(item.name) || 'Other'
+    if (!currentGroup || currentGroup.prefix !== prefix) {
+      currentGroup = { prefix, items: [] }
+      groups.push(currentGroup)
+    }
+    currentGroup.items.push(item)
+  }
+  return groups
 })
 
 function refreshUnused() {
@@ -688,7 +1084,7 @@ function refreshUnused() {
 }
 
 const eligibleCards = computed(() =>
-  allCards.filter(
+  cardMeta.value.filter(
     c =>
       !c.id.includes('_p') &&
       typeOrder.includes(c.type) &&
@@ -706,18 +1102,31 @@ const usedCardCount = computed(() => {
   return eligibleCards.value.filter(c => usedIds.has(c.id)).length
 })
 
+async function loadCardMeta() {
+  if (cardMeta.value.length) {
+    return
+  }
+  try {
+    const mod = await import('$data/card-meta.json')
+    cardMeta.value = mod.default ?? []
+  } catch {
+    cardMeta.value = []
+  }
+}
+
 async function loadCardData(seriesKey) {
   if (!seriesKey) {
     aggregationResult.value = null
     return
   }
+  await loadCardMeta()
   loadingCards.value = true
   try {
     const result = await aggregateCards(seriesKey)
     aggregationResult.value = result
     const cutoffDate = eventCutoffDate.value
     const usedIds = new Set(result.cards.map(c => c.cardId))
-    const pool = allCards
+    const pool = cardMeta.value
       .filter(
         c =>
           !c.id.includes('_p') &&

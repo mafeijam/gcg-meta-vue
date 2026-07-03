@@ -51,6 +51,60 @@ function createCardLookups() {
 }
 
 const { lookup, vanillaGroup } = createCardLookups()
+const cardsRaw = loadJSON('data/cards.json')
+
+// Write lean card metadata for the meta page
+function writeCardMeta() {
+  const meta = cardsRaw
+    .filter(c => !c.id.includes('_p'))
+    .map(c => ({
+      id: c.id,
+      name: c.name,
+      color: c.color,
+      type: c.type,
+      rarity: c.rarity,
+      releaseDate: c.releaseDate,
+      acquisitionInfo: c.acquisitionInfo,
+    }))
+  writeFileSync('data-processed/card-meta.json', JSON.stringify(meta, null, 2))
+  console.log(`Saved data-processed/card-meta.json (${meta.length} cards)`)
+}
+
+writeCardMeta()
+
+function buildCardState(mainDetails, eventMaxDate) {
+  const usedCardIds = new Set()
+  for (const arch of mainDetails) {
+    for (const card of arch.cards) {
+      usedCardIds.add(card.cardId)
+    }
+    for (const card of arch.filteredCards) {
+      usedCardIds.add(card.cardId)
+    }
+  }
+
+  const usedByColor = {}
+  const cardMap = new Map(cardsRaw.map(c => [c.id, c]))
+  for (const id of usedCardIds) {
+    const color = cardMap.get(id)?.color || '?'
+    usedByColor[color] = (usedByColor[color] || 0) + 1
+  }
+
+  const releasedCards = cardsRaw.filter(
+    c =>
+      !c.id.includes('_p') &&
+      TYPE_PICK_ORDER.includes(c.type) &&
+      c.releaseDate &&
+      c.releaseDate <= eventMaxDate,
+  ).length
+
+  return {
+    releasedCards,
+    usedCards: usedCardIds.size,
+    unusedCards: releasedCards - usedCardIds.size,
+    usedByColor,
+  }
+}
 
 // ── Deck analysis ────────────────────────────────────────────────────────────
 
@@ -626,6 +680,9 @@ function processSeries(series) {
     })),
   }
 
+  // Card state for current series
+  const cardState = buildCardState(mainDetails, eventMaxDate)
+
   // Build tiers.json rows
   const tierEntry = {
     value: series.value,
@@ -636,6 +693,7 @@ function processSeries(series) {
     winDecks: winners.length,
     totalDecks: allPlayers.length,
     rows: formatTierRows(seriesProcessed),
+    cardState,
   }
 
   return { tierEntry, manifestEntry }
