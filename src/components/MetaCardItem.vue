@@ -9,7 +9,7 @@
         {{ card.cardId }}
       </span>
       <span
-        v-if="showRarity && card.rarity"
+        v-if="card.rarity"
         class="font-mono text-xs"
         :class="{
           'font-semibold text-yellow-600 dark:text-yellow-400/80': card.rarity.startsWith('LR'),
@@ -39,7 +39,6 @@
 <script setup>
 const props = defineProps({
   card: { type: Object, required: true },
-  showRarity: { type: Boolean, default: false },
 })
 
 defineEmits(['toggle-enlarge'])

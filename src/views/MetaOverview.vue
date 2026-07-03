@@ -23,7 +23,7 @@
     <!-- Tier Distribution + Color Distribution + Win Rate -->
     <div class="mb-6 grid gap-4 md:grid-cols-3">
       <div
-        class="rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        class="rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
       >
         <h2
           class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
@@ -55,7 +55,7 @@
       </div>
 
       <div
-        class="rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        class="rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
       >
         <div class="mb-3 flex items-center justify-between">
           <h2
@@ -101,7 +101,7 @@
       </div>
 
       <div
-        class="rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        class="rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
       >
         <div class="mb-3 flex items-center justify-between">
           <h2
@@ -205,7 +205,6 @@
       title="Top 10 Cards"
       :cards="filteredTopCards"
       :loading="loadingCards"
-      show-rarity
       empty-text="Select a series to view card data"
       @toggle-enlarge="toggleEnlarge"
     >
@@ -262,7 +261,6 @@
     <MetaCardSection
       title="Top 10 by Type"
       :cards="filteredTopCardsByType"
-      show-rarity
       @toggle-enlarge="toggleEnlarge"
     >
       <template #tabs>
@@ -299,6 +297,34 @@
       </template>
     </MetaCardSection>
 
+    <MetaCardSection
+      title="For Inspiration"
+      :cards="filteredInspirationCards"
+      @toggle-enlarge="toggleEnlarge"
+    >
+      <template #tabs>
+        <div class="flex items-center justify-between gap-2">
+          <span class="text-xs text-gray-400 dark:text-gray-500">Cards not in any archetype</span>
+          <button
+            class="rounded-md px-3 py-1 text-xs font-medium text-gray-500 transition-colors hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text"
+            @click="refreshUnused"
+          >
+            ↻ Refresh
+          </button>
+        </div>
+      </template>
+      <template #bottom>
+        <div class="mt-3 text-center text-xs text-gray-400 dark:text-gray-500">
+          {{ totalCardCount - usedCardCount }} / {{ totalCardCount }} unused
+        </div>
+      </template>
+      <template #footer="{ card }">
+        <div class="mt-2 text-center font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
+          {{ card.type }}
+        </div>
+      </template>
+    </MetaCardSection>
+
     <!-- Enlarged card overlay -->
     <Teleport to="body">
       <div
@@ -327,6 +353,7 @@
 <script setup>
 import tierData from '$data/tiers.json'
 import { useStorage } from '@vueuse/core'
+import allCards from '$raw/cards.json'
 
 const router = useRouter()
 const route = useRoute()
@@ -354,6 +381,7 @@ const cardTab = useStorage('gcg-card-tab', 'played')
 const colorFilter = useStorage('gcg-color-filter', null)
 const enlargedCard = ref(null)
 const viewAllModal = ref(null)
+const unusedPool = ref([])
 
 function toggleEnlarge(cardId) {
   enlargedCard.value = enlargedCard.value === cardId ? null : cardId
@@ -530,6 +558,40 @@ const filteredTopCardsByType = computed(() => {
     .slice(0, 10)
 })
 
+const filteredInspirationCards = computed(() => {
+  const pool = unusedPool.value
+  if (!pool.length) {
+    return []
+  }
+  if (!colorFilter.value) {
+    return pool.slice(0, 20)
+  }
+  return pool.filter(c => c.color === colorFilter.value).slice(0, 20)
+})
+
+function refreshUnused() {
+  const pool = [...unusedPool.value]
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+  }
+  unusedPool.value = pool
+}
+
+const totalCardCount = computed(() =>
+  allCards.filter(c => !c.id.includes('_p') && typeOrder.includes(c.type)).length
+)
+
+const usedCardCount = computed(() => {
+  if (!aggregationResult.value) {
+    return 0
+  }
+  const usedIds = new Set(aggregationResult.value.cards.map(c => c.cardId))
+  return allCards.filter(
+    c => !c.id.includes('_p') && usedIds.has(c.id) && typeOrder.includes(c.type)
+  ).length
+})
+
 async function loadCardData(seriesKey) {
   if (!seriesKey) {
     aggregationResult.value = null
@@ -537,7 +599,23 @@ async function loadCardData(seriesKey) {
   }
   loadingCards.value = true
   try {
-    aggregationResult.value = await aggregateCards(seriesKey)
+    const result = await aggregateCards(seriesKey)
+    aggregationResult.value = result
+    const usedIds = new Set(result.cards.map(c => c.cardId))
+    const pool = allCards
+      .filter(c => !c.id.includes('_p') && !usedIds.has(c.id) && typeOrder.includes(c.type))
+      .map(c => ({
+        cardId: c.id,
+        name: c.name,
+        color: c.color,
+        type: c.type,
+        rarity: c.rarity,
+      }))
+    for (let i = pool.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[pool[i], pool[j]] = [pool[j], pool[i]]
+    }
+    unusedPool.value = pool
   } catch {
     aggregationResult.value = null
   } finally {

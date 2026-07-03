@@ -11,10 +11,11 @@
     "lint:fix": "eslint . --fix && prettier --write .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "scrape:products": "node scripts/scrape-products.mjs",
     "scrape:cards": "node scripts/scrape-cards.mjs",
     "scrape:tournament": "node scripts/scrape-tournaments.mjs",
     "build:tiers": "node scripts/build-tiers.mjs",
-    "data": "node scripts/scrape-cards.mjs && node scripts/scrape-tournaments.mjs && node scripts/build-tiers.mjs",
+    "data": "node scripts/scrape-products.mjs && node scripts/scrape-cards.mjs && node scripts/scrape-tournaments.mjs && node scripts/build-tiers.mjs",
     "postinstall": "node scripts/generate.mjs"
   },
   "dependencies": {

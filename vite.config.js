@@ -11,6 +11,7 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
       $data: fileURLToPath(new URL('./data-processed', import.meta.url)),
+      $raw: fileURLToPath(new URL('./data', import.meta.url)),
     },
   },
   build: {

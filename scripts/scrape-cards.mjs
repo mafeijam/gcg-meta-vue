@@ -4,6 +4,7 @@ import { readFileSync, writeFileSync, existsSync } from 'node:fs'
 
 const baseUrl = 'https://www.gundam-gcg.com/jp/cards/'
 const dataFile = 'data/cards.json'
+const productsFile = 'data/products.json'
 
 async function fetchPackages() {
   const res = await axios.get(baseUrl)
@@ -30,6 +31,41 @@ function loadCached() {
   } catch {
     return []
   }
+}
+
+function loadProductsMap() {
+  if (!existsSync(productsFile)) {
+    return {}
+  }
+  try {
+    return JSON.parse(readFileSync(productsFile, 'utf8'))
+  } catch {
+    return {}
+  }
+}
+
+function extractSetCode(value) {
+  if (!value) {
+    return null
+  }
+  const m = value.toUpperCase().match(/^([A-Z]{2}\d{2})-/)
+  if (m) {
+    return m[1].toLowerCase()
+  }
+  const bracket = value.toUpperCase().match(/\[([A-Z]{2}\d{2})\]/)
+  if (bracket) {
+    return bracket[1].toLowerCase()
+  }
+  return null
+}
+
+function resolveReleaseDate(card, productsMap) {
+  const code =
+    extractSetCode(card.cardNo) ?? extractSetCode(card.id) ?? extractSetCode(card.acquisitionInfo)
+  if (!code) {
+    return null
+  }
+  return productsMap[code]?.releaseDate ?? null
 }
 
 async function fetchCardList(packageCode) {
@@ -81,7 +117,14 @@ async function fetchCardDetail(cardId) {
 }
 
 const cached = loadCached()
+const productsMap = loadProductsMap()
 const cachedMap = new Map(cached.map(c => [c.id, c]))
+
+if (!Object.keys(productsMap).length) {
+  console.warn(
+    `Warning: ${productsFile} not found/empty. releaseDate will be null. Run \`npm run scrape:products\` first.`
+  )
+}
 
 const packages = await fetchPackages()
 console.log(`Loaded ${packages.length} packages from website`)
@@ -102,15 +145,21 @@ let fetched = 0
 let skipped = 0
 const results = []
 for (const id of allCardIds) {
+  let card
   if (cachedMap.has(id)) {
-    results.push(cachedMap.get(id))
+    card = cachedMap.get(id)
     skipped++
   } else {
     console.log(`  Fetching ${id}...`)
     const detail = await fetchCardDetail(id)
-    results.push(detail)
+    card = detail
     fetched++
   }
+
+  results.push({
+    ...card,
+    releaseDate: resolveReleaseDate(card, productsMap),
+  })
 }
 
 console.log(`\nDone. ${results.length} total, ${fetched} fetched, ${skipped} cached`)

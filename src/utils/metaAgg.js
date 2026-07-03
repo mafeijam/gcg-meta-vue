@@ -47,6 +47,7 @@ export async function aggregateCards(seriesKey) {
         cardId,
         name: info.name || '?',
         color: info.color || 'inherit',
+        rarity: info.rarity || '',
         archetypeCount: count,
       }
     })
