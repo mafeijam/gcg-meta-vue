@@ -1,6 +1,6 @@
 <template>
   <div
-    class="@container rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+    class="@container rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
     @click="$emit('toggle-enlarge', card.cardId)"
   >
     <div class="flex items-center gap-1">

@@ -23,7 +23,7 @@
     <!-- Tier Distribution + Color Distribution + Win Rate -->
     <div class="mb-6 grid gap-4 md:grid-cols-3">
       <div
-        class="rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        class="rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
       >
         <h2
           class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
@@ -55,13 +55,22 @@
       </div>
 
       <div
-        class="rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        class="rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
       >
-        <h2
-          class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-        >
-          Color Distribution
-        </h2>
+        <div class="mb-3 flex items-center justify-between">
+          <h2
+            class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
+          >
+            Color Distribution
+          </h2>
+          <button
+            v-if="allColorDist.length > colorDist.length"
+            class="text-xxs font-medium text-ruri hover:underline"
+            @click="viewAllModal = 'colors'"
+          >
+            View All →
+          </button>
+        </div>
         <div v-if="colorDist.length" class="space-y-2">
           <div v-for="item in colorDist" :key="item.colors" class="flex items-center gap-2">
             <div class="flex shrink-0 items-center gap-0.5">
@@ -75,7 +84,7 @@
             <span class="w-22 truncate text-xs font-medium text-aisumicha dark:text-nalika-text">
               {{ item.colors }}
             </span>
-            <div class="h-3 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
+            <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
               <div
                 class="h-full rounded-full"
                 :style="{ width: `${item.percent}%`, background: item.barGradient }"
@@ -92,13 +101,22 @@
       </div>
 
       <div
-        class="rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+        class="rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
       >
-        <h2
-          class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-        >
-          Win Rate by Color Combo
-        </h2>
+        <div class="mb-3 flex items-center justify-between">
+          <h2
+            class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
+          >
+            Events Won by Color Combo
+          </h2>
+          <button
+            v-if="allWinRateDist.length > winRateDist.length"
+            class="text-xxs font-medium text-ruri hover:underline"
+            @click="viewAllModal = 'winrate'"
+          >
+            View All →
+          </button>
+        </div>
         <div v-if="winRateDist.length" class="space-y-2">
           <div v-for="item in winRateDist" :key="item.colors" class="flex items-center gap-2">
             <div class="flex shrink-0 items-center gap-0.5">
@@ -112,7 +130,7 @@
             <span class="w-22 truncate text-xs font-medium text-aisumicha dark:text-nalika-text">
               {{ item.colors }}
             </span>
-            <div class="h-3 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
+            <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
               <div
                 class="h-full rounded-full"
                 :style="{ width: `${item.barPercent}%`, background: item.barGradient }"
@@ -128,6 +146,15 @@
         <p v-else class="text-xs text-gray-400 dark:text-gray-500">No data</p>
       </div>
     </div>
+
+    <!-- View All modal -->
+    <ViewAllModal
+      :visible="!!viewAllModal"
+      :items="viewAllModal === 'colors' ? allColorDist : allWinRateDist"
+      :mode="viewAllModal || 'colors'"
+      :title="viewAllModal === 'colors' ? 'Color Distribution' : 'Events Won by Color Combo'"
+      @close="viewAllModal = null"
+    />
 
     <!-- Color filter tabs -->
     <div class="mb-3">
@@ -294,59 +321,11 @@
         </div>
       </div>
     </Teleport>
-
-    <!-- Top Archetypes -->
-    <div
-      class="rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-    >
-      <h2
-        class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-      >
-        Top Archetypes
-      </h2>
-      <div v-if="topArchetypes.length" class="space-y-2">
-        <div
-          v-for="row in topArchetypes"
-          :key="row.archetype"
-          class="flex flex-wrap items-center gap-2"
-        >
-          <span
-            class="w-10 rounded px-1.5 py-0.5 text-center text-xs font-bold"
-            :class="tierPillClass(row.tier)"
-          >
-            {{ row.tier }}
-          </span>
-          <div class="flex shrink-0 items-center gap-0.5">
-            <div
-              v-for="dot in row.colorDots"
-              :key="dot.name"
-              class="inline-block h-2 w-2 rounded-full"
-              :style="{ background: dot.hex }"
-            />
-          </div>
-          <span
-            class="min-w-0 flex-1 truncate text-xs font-medium text-aisumicha dark:text-nalika-text"
-          >
-            {{ row.archetype }}
-          </span>
-          <div class="flex w-full items-center justify-end gap-2 sm:w-auto">
-            <span class="font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
-              {{ row.decks }} decks
-            </span>
-            <span class="font-mono text-xs text-yellow-600 dark:text-yellow-600">
-              {{ row.wins }} wins
-            </span>
-          </div>
-        </div>
-      </div>
-      <p v-else class="text-xs text-gray-400 dark:text-gray-500">No data</p>
-    </div>
   </div>
 </template>
 
 <script setup>
 import tierData from '$data/tiers.json'
-import { aggregateCards } from '@/utils/metaAgg'
 import { useStorage } from '@vueuse/core'
 
 const router = useRouter()
@@ -374,6 +353,7 @@ const allRows = computed(() => currentSeries.value?.rows ?? [])
 const cardTab = useStorage('gcg-card-tab', 'played')
 const colorFilter = useStorage('gcg-color-filter', null)
 const enlargedCard = ref(null)
+const viewAllModal = ref(null)
 
 function toggleEnlarge(cardId) {
   enlargedCard.value = enlargedCard.value === cardId ? null : cardId
@@ -410,7 +390,26 @@ const colorDist = computed(() => {
   }
   const items = Object.values(map).sort((a, b) => b.decks - a.decks)
   const maxDecks = items[0]?.decks || 1
-  return items.slice(0, 8).map(item => ({
+  return items.slice(0, 6).map(item => ({
+    ...item,
+    percent: (item.decks / maxDecks) * 100,
+    barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
+  }))
+})
+
+// ── All color distribution (no slice) ──
+const allColorDist = computed(() => {
+  const map = {}
+  for (const row of allRows.value) {
+    const key = row.colors
+    if (!map[key]) {
+      map[key] = { colors: key, colorDots: row.colorDots, decks: 0 }
+    }
+    map[key].decks += row.decks
+  }
+  const items = Object.values(map).sort((a, b) => b.decks - a.decks)
+  const maxDecks = items[0]?.decks || 1
+  return items.map(item => ({
     ...item,
     percent: (item.decks / maxDecks) * 100,
     barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
@@ -443,9 +442,12 @@ const winRateDist = computed(() => {
     map[key].wins += row.wins
   }
   const items = Object.values(map)
-    .map(item => ({ ...item, winRate: item.decks ? (item.wins / item.decks) * 100 : 0 }))
+    .map(item => ({
+      ...item,
+      winRate: (item.wins / (currentSeries.value?.events || 1)) * 100,
+    }))
     .sort((a, b) => b.winRate - a.winRate)
-    .slice(0, 8)
+    .slice(0, 6)
   const maxWinRate = Math.max(...items.map(i => i.winRate), 1)
   return items.map(item => ({
     ...item,
@@ -454,10 +456,30 @@ const winRateDist = computed(() => {
   }))
 })
 
-// ── Top archetypes ──
-const topArchetypes = computed(() =>
-  [...allRows.value].sort((a, b) => b.decks - a.decks).slice(0, 10),
-)
+// ── All win rate by color combo (no slice) ──
+const allWinRateDist = computed(() => {
+  const map = {}
+  for (const row of allRows.value) {
+    const key = row.colors
+    if (!map[key]) {
+      map[key] = { colors: key, colorDots: row.colorDots, decks: 0, wins: 0 }
+    }
+    map[key].decks += row.decks
+    map[key].wins += row.wins
+  }
+  const items = Object.values(map)
+    .map(item => ({
+      ...item,
+      winRate: (item.wins / (currentSeries.value?.events || 1)) * 100,
+    }))
+    .sort((a, b) => b.winRate - a.winRate)
+  const maxWinRate = Math.max(...items.map(i => i.winRate), 1)
+  return items.map(item => ({
+    ...item,
+    barPercent: (item.winRate / maxWinRate) * 100,
+    barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
+  }))
+})
 
 // ── Card aggregation (async) ──
 const aggregationResult = ref(null)
