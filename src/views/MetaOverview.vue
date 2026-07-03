@@ -232,7 +232,7 @@
           {{ previousSeries.label }}
         </div>
       </div>
-      <div v-if="seriesComparison" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div v-if="seriesComparison" class="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <div
           v-for="m in seriesComparison.metrics"
           :key="m.label"
@@ -294,7 +294,7 @@
           Card State vs Previous
         </h2>
       </div>
-      <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-3">
         <div
           v-for="m in cardStateComparison.metrics"
           :key="m.label"
@@ -751,11 +751,11 @@ const seriesComparison = computed(() => {
     format,
   })
   const currentT1Share =
-    (current.rows.filter(r => r.tier === 'T1' || r.tier === 'T1.5').length / current.rows.length) * 100
+    (current.rows.filter(r => r.tier === 'T1' || r.tier === 'T1.5').length / current.rows.length) *
+    100
   const prevT1Share =
     (prev.rows.filter(r => r.tier === 'T1' || r.tier === 'T1.5').length / prev.rows.length) * 100
-  const currentWinRate =
-    current.totalDecks > 0 ? (current.winDecks / current.totalDecks) * 100 : 0
+  const currentWinRate = current.totalDecks > 0 ? (current.winDecks / current.totalDecks) * 100 : 0
   const prevWinRate = prev.totalDecks > 0 ? (prev.winDecks / prev.totalDecks) * 100 : 0
   const currentDpe = current.events > 0 ? current.totalDecks / current.events : 0
   const prevDpe = prev.events > 0 ? prev.totalDecks / prev.events : 0
