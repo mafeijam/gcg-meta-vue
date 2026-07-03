@@ -222,7 +222,7 @@
       >
         Archetype Quadrants
       </h2>
-      <QuadrantChart v-if="quadrantData.length" :items="quadrantData" />
+      <QuadrantChart v-if="quadrantData.length" :items="quadrantData" :card-items="cardItems" />
       <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
     </div>
 
@@ -597,10 +597,17 @@ const quadrantData = computed(() =>
     archetype: r.archetype,
     usePct: r.usePct,
     winPerDk: r.winPerDk,
+    winPerEv: r.winPerEv,
+    t4PerDk: r.t4PerDk,
+    score: r.score,
     decks: r.decks,
     wins: r.wins,
     tier: r.tier,
   })),
+)
+
+const cardItems = computed(() =>
+  (aggregationResult.value?.cards ?? []).filter(c => c.totalDecksIncluded >= 20),
 )
 
 const cardTab = useStorage('gcg-card-tab', 'played')
@@ -983,7 +990,7 @@ const archetypeProducts = computed(() => {
   })
   .map(item => ({
     ...item,
-    name: item.name.replace(/^(.+?)\s+(\[[A-Z]{2}\d*\])$/i, '$2 $1'),
+    name: item.name.replace(/^(.+?)\s*(\[[A-Z]{2}\d*\])$/i, '$2 $1'),
   }))
 })
 
