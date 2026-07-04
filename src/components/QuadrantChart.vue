@@ -51,6 +51,8 @@ const props = defineProps({
 
 const TIER_ORDER = ['T1', 'T1.5', 'T2', 'T2.5', 'T3', '--']
 const TIER_COLORS = ['#fca5a5', '#fdba74', '#fbbf24', '#86efac', '#93c5fd', '#d1d5db']
+// Dark-mode variants for archetype bubbles (Tier colors)
+const TIER_COLORS_DARK = ['#c53030', '#dd6b20', '#d69e2e', '#2f855a', '#2b6cb0', '#4b5563']
 const CARD_COLOR_ORDER = ['Blue', 'Green', 'Purple', 'Red', 'White']
 const CARD_COLOR_MAP = {
   Blue: '#2b6cb0',
@@ -286,7 +288,8 @@ const seriesColors = computed(() => {
     return CARD_COLOR_ORDER.filter(c => present.has(c)).map(c => CARD_COLOR_MAP[c])
   }
   const present = new Set(chartSeries.value.map(s => s.name))
-  return TIER_ORDER.filter(t => present.has(t)).map((_, i) => TIER_COLORS[i])
+  const base = isDark.value ? TIER_COLORS_DARK : TIER_COLORS
+  return TIER_ORDER.filter(t => present.has(t)).map((_, i) => base[i])
 })
 
 const chartOptions = computed(() => {

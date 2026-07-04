@@ -122,7 +122,7 @@ const cachedMap = new Map(cached.map(c => [c.id, c]))
 
 if (!Object.keys(productsMap).length) {
   console.warn(
-    `Warning: ${productsFile} not found/empty. releaseDate will be null. Run \`npm run scrape:products\` first.`
+    `Warning: ${productsFile} not found/empty. releaseDate will be null. Run \`npm run scrape:products\` first.`,
   )
 }
 
