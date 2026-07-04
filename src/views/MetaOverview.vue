@@ -262,6 +262,7 @@
         :items="quadrantData"
         :card-items="filteredCardItems"
         :card-type-chart="cardTypeChart"
+        :series-key="selectedKey"
       />
       <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
     </div>
@@ -516,7 +517,7 @@
         <div class="mt-2 flex flex-col items-center justify-center text-xs">
           <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
             {{ card.totalDecksIncluded }} ({{
-              percentOf(card.totalDecksIncluded, totalSeriesDecks)
+              percentOf1(card.totalDecksIncluded, totalSeriesDecks)
             }}%)
           </span>
           <!-- <span class="text-gray-300 dark:text-gray-500">·</span> -->
@@ -527,7 +528,7 @@
           >
             {{ card.archetypeCount }}
             <span v-if="card.archetypeCount">
-              ({{ percentOf(card.archetypeCount, totalArchetypes) }}%)
+              ({{ percentOf1(card.archetypeCount, totalArchetypes) }}%)
             </span>
           </span>
           <span
@@ -536,7 +537,7 @@
             title="Champion decks"
           >
             {{ card.totalWinnerDecks }} ({{
-              percentOf(card.totalWinnerDecks, totalSeriesWinnerDecks)
+              percentOf1(card.totalWinnerDecks, totalSeriesWinnerDecks)
             }}%)
           </span>
         </div>
@@ -615,6 +616,7 @@ const currentSeries = computed(() => tierData.find(s => s.value === selectedKey.
 const totalSeriesDecks = computed(() => currentSeries.value?.totalDecks ?? 0)
 const totalSeriesWinnerDecks = computed(() => currentSeries.value?.winDecks ?? 0)
 const percentOf = (value, total) => (total ? Math.round((value / total) * 100) : 0)
+const percentOf1 = (value, total) => (total ? ((value / total) * 100).toFixed(1) : 0)
 const previousSeries = computed(() => {
   const current = currentSeries.value
   if (!current?.eventMinDate) {
@@ -627,6 +629,7 @@ const previousSeries = computed(() => {
   return candidates[0] || null
 })
 const eventCutoffDate = computed(() => currentSeries.value?.eventMaxDate ?? null)
+const eventMinDate = computed(() => currentSeries.value?.eventMinDate ?? null)
 const seriesTimeline = computed(() => {
   const min = currentSeries.value?.eventMinDate
   const max = currentSeries.value?.eventMaxDate
@@ -657,6 +660,7 @@ const quadrantData = computed(() =>
     score: r.score,
     decks: r.decks,
     wins: r.wins,
+    top4: r.top4,
     tier: r.tier,
   })),
 )
@@ -696,6 +700,15 @@ function toggleEnlarge(cardId) {
   enlargedCard.value = enlargedCard.value === cardId ? null : cardId
 }
 
+function addDays(dateStr, days) {
+  if (!dateStr) {
+    return dateStr
+  }
+  const d = new Date(dateStr)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
+
 function isReleasedByCutoff(card, cutoffDate) {
   if (!cutoffDate) {
     return true
@@ -703,7 +716,7 @@ function isReleasedByCutoff(card, cutoffDate) {
   if (!card.releaseDate) {
     return false
   }
-  return card.releaseDate <= cutoffDate
+  return addDays(card.releaseDate, 7) <= cutoffDate
 }
 
 // ── Tier distribution ──
@@ -857,7 +870,7 @@ const recentlyUsedCards = computed(() => {
     usedMap[c.cardId] = c
   }
   let latestRelease = null
-  for (const card of eligibleCards.value) {
+  for (const card of newcomerEligibleCards.value) {
     if (card.releaseDate && card.releaseDate <= max) {
       if (!latestRelease || card.releaseDate > latestRelease) {
         latestRelease = card.releaseDate
@@ -867,7 +880,7 @@ const recentlyUsedCards = computed(() => {
   if (!latestRelease) {
     return []
   }
-  return eligibleCards.value
+  return newcomerEligibleCards.value
     .filter(c => {
       if (c.releaseDate !== latestRelease) {
         return false
@@ -1095,6 +1108,22 @@ const eligibleCards = computed(() =>
 )
 
 const totalCardCount = computed(() => eligibleCards.value.length)
+
+const newcomerEligibleCards = computed(() => {
+  const cutoff = eventCutoffDate.value
+  const min = eventMinDate.value
+  if (!cutoff || !min) {
+    return []
+  }
+  return cardMeta.value.filter(
+    c =>
+      !c.id.includes('_p') &&
+      typeOrder.includes(c.type) &&
+      c.releaseDate &&
+      addDays(c.releaseDate, 7) <= cutoff &&
+      c.releaseDate >= addDays(min, -20),
+  )
+})
 
 const usedCardCount = computed(() => {
   if (!aggregationResult.value) {

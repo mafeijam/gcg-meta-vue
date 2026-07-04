@@ -20,19 +20,15 @@
     <p v-if="!hasDataForMode" class="py-4 text-center text-xs text-gray-400 dark:text-gray-500">
       Loading card data…
     </p>
-    <Suspense v-else>
-      <VueApexCharts
-        :key="`${chartMode}-${props.cardTypeChart ?? 'all'}`"
-        type="bubble"
-        :height="chartHeight"
-        width="100%"
-        :options="chartOptions"
-        :series="chartSeries"
-      />
-      <template #fallback>
-        <div class="py-4 text-center text-xs text-gray-400 dark:text-gray-500">Loading chart…</div>
-      </template>
-    </Suspense>
+    <VueApexCharts
+      v-else
+      :key="`${props.seriesKey}-${chartMode}-${props.cardTypeChart ?? 'all'}`"
+      type="bubble"
+      :height="chartHeight"
+      width="100%"
+      :options="chartOptions"
+      :series="chartSeries"
+    />
   </div>
 </template>
 
@@ -41,12 +37,13 @@ import { computed } from 'vue'
 import { useStorage, useWindowSize } from '@vueuse/core'
 import { isDark } from '@/composables/useDarkMode'
 
-const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
+import VueApexCharts from 'vue3-apexcharts'
 
 const props = defineProps({
   items: { type: Array, default: () => [] },
   cardItems: { type: Array, default: () => [] },
   cardTypeChart: { type: String, default: null },
+  seriesKey: { type: String, default: '' },
 })
 
 const TIER_ORDER = ['T1', 'T1.5', 'T2', 'T2.5', 'T3', '--']
@@ -177,6 +174,9 @@ const parsed = computed(() => {
     return baseItems
       .filter(item => {
         if (cfg.key === 'card-versatility' && item.archetypeCount <= 1) {
+          return false
+        }
+        if (cfg.key === 'card-impact' && item.totalWinnerDecks <= 0) {
           return false
         }
         return true
@@ -427,6 +427,7 @@ const chartOptions = computed(() => {
             fontSize: '11px',
             fontWeight: 'bold',
             fontFamily,
+            pointerEvents: 'none',
             cssClass: 'tracking-wider',
           },
         },

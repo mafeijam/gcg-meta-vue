@@ -6,6 +6,15 @@ function loadJSON(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
 }
 
+function addDays(dateStr, days) {
+  if (!dateStr) {
+    return dateStr
+  }
+  const d = new Date(dateStr)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
+
 // ── Card lookups ─────────────────────────────────────────────────────────────
 
 // Builds cardId→info map, name→color lookup, and vanilla grouping key.
@@ -95,7 +104,7 @@ function buildCardState(mainDetails, eventMaxDate) {
       !c.id.includes('_p') &&
       TYPE_PICK_ORDER.includes(c.type) &&
       c.releaseDate &&
-      c.releaseDate <= eventMaxDate,
+      addDays(c.releaseDate, 7) <= eventMaxDate,
   ).length
 
   return {
