@@ -20,23 +20,30 @@
     <p v-if="!hasDataForMode" class="py-4 text-center text-xs text-gray-400 dark:text-gray-500">
       Loading card data…
     </p>
-    <VueApexCharts
-      v-else
-      :key="chartMode"
-      type="bubble"
-      :height="chartHeight"
-      width="100%"
-      :options="chartOptions"
-      :series="chartSeries"
-    />
+    <Suspense v-else>
+      <VueApexCharts
+        :key="chartMode"
+        type="bubble"
+        :height="chartHeight"
+        width="100%"
+        :options="chartOptions"
+        :series="chartSeries"
+      />
+      <template #fallback>
+        <div class="py-4 text-center text-xs text-gray-400 dark:text-gray-500">
+          Loading chart…
+        </div>
+      </template>
+    </Suspense>
   </div>
 </template>
 
 <script setup>
 import { computed } from 'vue'
-import VueApexCharts from 'vue3-apexcharts'
 import { useStorage, useWindowSize } from '@vueuse/core'
 import { isDark } from '@/composables/useDarkMode'
+
+const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 
 const props = defineProps({
   items: { type: Array, default: () => [] },
@@ -280,6 +287,7 @@ const chartOptions = computed(() => {
   const gridColor = dark ? '#374151' : '#e5e7eb'
   const annotColor = dark ? '#6b7280' : '#999'
   const labelColor = dark ? '#6b7280' : '#bbb'
+  const fontFamily = "'Roboto Mono', 'Noto Sans TC', monospace"
   const isCard = cfg.group === 'card'
 
   const fmtX = v => (cfg.xIsPercent ? Math.round(v) + '%' : Math.round(v))
@@ -318,20 +326,26 @@ const chartOptions = computed(() => {
       min: 0,
       max: xMax.value,
       tickAmount: 5,
-      title: { text: cfg.xLabel, style: { fontSize: '10px', color: textColor } },
+      title: {
+        text: cfg.xLabel,
+        style: { fontSize: '12px', color: textColor, fontFamily, cssClass: 'tracking-wider' },
+      },
       labels: {
         formatter: fmtX,
-        style: { fontSize: '10px', colors: textColor },
+        style: { fontSize: '12px', colors: textColor, fontFamily, cssClass: 'tracking-wider' },
       },
     },
     yaxis: {
       min: 0,
       max: yMax.value,
       tickAmount: 5,
-      title: { text: cfg.yLabel, style: { fontSize: '10px', color: textColor } },
+      title: {
+        text: cfg.yLabel,
+        style: { fontSize: '12px', color: textColor, fontFamily, cssClass: 'tracking-wider' },
+      },
       labels: {
         formatter: fmtY,
-        style: { fontSize: '10px', colors: textColor },
+        style: { fontSize: '12px', colors: textColor, fontFamily, cssClass: 'tracking-wider' },
       },
     },
     tooltip: {
@@ -381,6 +395,8 @@ const chartOptions = computed(() => {
             color: labelColor,
             fontSize: '11px',
             fontWeight: 'bold',
+            fontFamily,
+            cssClass: 'tracking-wider',
           },
         },
       })),

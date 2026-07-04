@@ -75,11 +75,15 @@
             class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
           >
             <span class="mr-1 text-xxs">{{ item.name }}:</span>
-            <span class="font-mono font-bold text-gray-500 dark:text-gray-400">{{ item.count }}</span>
+            <span class="font-mono font-bold text-gray-500 dark:text-gray-400">
+              {{ item.count }}
+            </span>
           </span>
         </div>
       </div>
-      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">Product info unavailable</p>
+      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
+        Product info unavailable
+      </p>
     </div>
 
     <!-- Tier Distribution + Color Distribution + Win Rate -->
@@ -296,7 +300,9 @@
           </div>
         </div>
       </div>
-      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No previous series</p>
+      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
+        No previous series
+      </p>
     </div>
 
     <!-- Card State vs Previous -->
@@ -413,7 +419,7 @@
       @toggle-enlarge="toggleEnlarge"
     >
       <template #tabs>
-        <div class="ml-auto flex flex-col gap-2 sm:flex-row sm:items-center">
+        <div class="ml-auto flex flex-col gap-2 sm:flex-row">
           <div class="flex justify-end overflow-x-auto">
             <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
               <button
@@ -970,28 +976,29 @@ const archetypeProducts = computed(() => {
     counts[acquisition] = (counts[acquisition] || 0) + 1
   }
   const entries = Object.entries(counts).map(([name, count]) => ({ name, count }))
-  return entries.sort((a, b) => {
-    const prefixA = extractProductPrefix(a.name)
-    const prefixB = extractProductPrefix(b.name)
-    if (prefixA && prefixB) {
-      const prefixCompare = prefixA.localeCompare(prefixB)
-      if (prefixCompare !== 0) {
-        return prefixCompare
+  return entries
+    .sort((a, b) => {
+      const prefixA = extractProductPrefix(a.name)
+      const prefixB = extractProductPrefix(b.name)
+      if (prefixA && prefixB) {
+        const prefixCompare = prefixA.localeCompare(prefixB)
+        if (prefixCompare !== 0) {
+          return prefixCompare
+        }
+        return b.count - a.count
       }
-      return b.count - a.count
-    }
-    if (prefixA) {
-      return -1
-    }
-    if (prefixB) {
-      return 1
-    }
-    return a.name.localeCompare(b.name)
-  })
-  .map(item => ({
-    ...item,
-    name: item.name.replace(/^(.+?)\s*(\[[A-Z]{2}\d*\])$/i, '$2 $1'),
-  }))
+      if (prefixA) {
+        return -1
+      }
+      if (prefixB) {
+        return 1
+      }
+      return a.name.localeCompare(b.name)
+    })
+    .map(item => ({
+      ...item,
+      name: item.name.replace(/^(.+?)\s*(\[[A-Z]{2}\d*\])$/i, '$2 $1'),
+    }))
 })
 
 const archetypeProductGroups = computed(() => {

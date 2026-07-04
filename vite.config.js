@@ -15,12 +15,20 @@ export default defineConfig({
     },
   },
   build: {
-    rollupOptions: {
+    chunkSizeWarningLimit: 1300,
+    rolldownOptions: {
       output: {
+        codeSplitting: true,
         manualChunks(id) {
           if (id.includes('node_modules')) {
             if (id.includes('vue-router')) {
               return 'vendor-vue-router'
+            }
+            if (id.includes('apexcharts') || id.includes('vue3-apexcharts')) {
+              return 'vendor-charts'
+            }
+            if (id.includes('@vueuse')) {
+              return 'vendor-vueuse'
             }
             if (id.includes('vue')) {
               return 'vendor-vue'
