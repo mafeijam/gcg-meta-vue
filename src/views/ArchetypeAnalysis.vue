@@ -43,8 +43,6 @@
 <script setup>
 import manifest from '$data/archetypes/index.json'
 import tierData from '$data/tiers.json'
-import archModules from '@/utils/archModules'
-
 function comboColors(combo) {
   const baseCombo = (combo ?? '').split(' (')[0]
   return baseCombo

@@ -64,8 +64,6 @@
 <script setup>
 import tierData from '$data/tiers.json'
 import manifest from '$data/archetypes/index.json'
-import archModules from '@/utils/archModules'
-
 function normalizeName(name) {
   return name.replace(/[（）]/g, c => (c === '（' ? '(' : ')')).replace(/\s*\(/g, '(')
 }

@@ -33,9 +33,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
 import { useStorage, useWindowSize } from '@vueuse/core'
-import { isDark } from '@/composables/useDarkMode'
 
 import VueApexCharts from 'vue3-apexcharts'
 

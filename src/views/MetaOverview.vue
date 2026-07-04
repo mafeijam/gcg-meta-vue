@@ -20,202 +20,22 @@
       />
     </div>
 
-    <!-- State Overview -->
-    <div
-      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-    >
-      <div class="mb-3 flex items-center justify-between gap-1">
-        <h2
-          class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-        >
-          Card stats
-        </h2>
+    <CardStatsSection
+      :total-card-count="totalCardCount"
+      :used-card-count="usedCardCount"
+      :series-timeline="seriesTimeline"
+      :color-counts="colorCounts"
+      :archetype-product-groups="archetypeProductGroups"
+    />
 
-        <div v-if="seriesTimeline" class="text-xs text-gray-500 dark:text-gray-400">
-          {{ seriesTimeline }}
-        </div>
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
-        <span>
-          <strong class="text-gray-700 dark:text-nalika-text">{{ totalCardCount }}</strong>
-          released
-        </span>
-        <span>
-          <strong class="text-gray-700 dark:text-nalika-text">{{ usedCardCount }}</strong>
-          used
-        </span>
-        <span>
-          <strong class="text-gray-700 dark:text-nalika-text">
-            {{ totalCardCount - usedCardCount }}
-          </strong>
-          unused
-        </span>
-      </div>
-      <div v-if="colorCounts.length" class="mt-3 mb-5 flex flex-wrap gap-1.5">
-        <span
-          v-for="item in colorCounts"
-          :key="item.color"
-          class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
-        >
-          <span class="mr-1 inline-block h-2 w-2 rounded-full" :style="{ background: item.hex }" />
-          <span class="mr-1 text-xxs">{{ item.color }}:</span>
-          <span class="font-mono font-bold text-gray-500 dark:text-gray-400">{{ item.count }}</span>
-        </span>
-      </div>
-      <div v-if="archetypeProductGroups.length" class="mt-3 space-y-4">
-        <div
-          v-for="group in archetypeProductGroups"
-          :key="group.prefix"
-          class="flex flex-wrap gap-1.5"
-        >
-          <span
-            v-for="item in group.items"
-            :key="item.name"
-            class="rounded-full border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300"
-          >
-            <span class="mr-1 text-xxs">{{ item.name }}:</span>
-            <span class="font-mono font-bold text-gray-500 dark:text-gray-400">
-              {{ item.count }}
-            </span>
-          </span>
-        </div>
-      </div>
-      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
-        Product info unavailable
-      </p>
-    </div>
-
-    <!-- Tier Distribution + Color Distribution + Win Rate -->
-    <div class="mb-6 grid gap-4 md:grid-cols-3">
-      <div
-        class="rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-      >
-        <h2
-          class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-        >
-          Tier Distribution
-        </h2>
-        <div class="space-y-2">
-          <div v-for="item in tierDist" :key="item.tier" class="flex items-center gap-2">
-            <span
-              class="w-10 rounded px-1.5 py-0.5 text-center text-xs font-bold"
-              :class="tierPillClass(item.tier)"
-            >
-              {{ item.tier }}
-            </span>
-            <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
-              <div
-                class="h-full rounded-full transition-all"
-                :class="tierBarClass(item.tier)"
-                :style="{ width: `${item.percent}%` }"
-              />
-            </div>
-            <span
-              class="w-8 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
-            >
-              {{ item.count }}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      <div
-        class="rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-      >
-        <div class="mb-3 flex items-center justify-between">
-          <h2
-            class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-          >
-            Color Distribution
-          </h2>
-          <button
-            v-if="allColorDist.length > colorDist.length"
-            class="text-xxs font-medium text-ruri hover:underline"
-            @click="viewAllModal = 'colors'"
-          >
-            View All →
-          </button>
-        </div>
-        <div v-if="colorDist.length" class="space-y-2">
-          <div v-for="item in colorDist" :key="item.colors" class="flex items-center gap-2">
-            <div class="flex shrink-0 items-center gap-0.5">
-              <div
-                v-for="dot in item.colorDots"
-                :key="dot.name"
-                class="inline-block h-2.5 w-2.5 rounded-full"
-                :style="{ background: dot.hex }"
-              />
-            </div>
-            <span
-              class="w-6 shrink-0 text-center text-xs font-medium text-aisumicha dark:text-nalika-text"
-            >
-              {{ item.colorDots.map(d => d.name[0]).join('') }}
-            </span>
-            <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
-              <div
-                class="h-full rounded-full"
-                :style="{ width: `${item.percent}%`, background: item.barGradient }"
-              />
-            </div>
-            <span
-              class="w-12 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
-            >
-              {{ item.decks }}
-            </span>
-          </div>
-        </div>
-        <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
-      </div>
-
-      <div
-        class="rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-      >
-        <div class="mb-3 flex items-center justify-between">
-          <h2
-            class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-          >
-            Events Won by Color Combo
-          </h2>
-          <button
-            v-if="allWinRateDist.length > winRateDist.length"
-            class="text-xxs font-medium text-ruri hover:underline"
-            @click="viewAllModal = 'winrate'"
-          >
-            View All →
-          </button>
-        </div>
-        <div v-if="winRateDist.length" class="space-y-2">
-          <div v-for="item in winRateDist" :key="item.colors" class="flex items-center gap-2">
-            <div class="flex shrink-0 items-center gap-0.5">
-              <div
-                v-for="dot in item.colorDots"
-                :key="dot.name"
-                class="inline-block h-2.5 w-2.5 rounded-full"
-                :style="{ background: dot.hex }"
-              />
-            </div>
-            <span
-              class="w-6 shrink-0 text-center text-xs font-medium text-aisumicha dark:text-nalika-text"
-            >
-              {{ item.colorDots.map(d => d.name[0]).join('') }}
-            </span>
-            <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
-              <div
-                class="h-full rounded-full"
-                :style="{ width: `${item.barPercent}%`, background: item.barGradient }"
-              />
-            </div>
-            <span
-              class="w-12 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
-            >
-              {{ item.winRate.toFixed(1) }}%
-            </span>
-          </div>
-        </div>
-        <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
-      </div>
-    </div>
+    <DistributionsGrid
+      :tier-dist="tierDist"
+      :color-dist="colorDist"
+      :all-color-dist="allColorDist"
+      :win-rate-dist="winRateDist"
+      :all-win-rate-dist="allWinRateDist"
+      @view-all="viewAllModal = $event"
+    />
 
     <!-- Archetype Quadrants (full width) -->
     <div
@@ -276,132 +96,12 @@
       @close="viewAllModal = null"
     />
 
-    <!-- Series Comparison -->
-    <div
-      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-    >
-      <div class="mb-3 flex items-center justify-between max-sm:flex-col max-sm:items-start">
-        <h2
-          class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-        >
-          vs Previous Series
-        </h2>
-        <div v-if="previousSeries" class="text-xs text-gray-500 dark:text-gray-400">
-          {{ previousSeries.label }}
-        </div>
-      </div>
-      <div v-if="seriesComparison" class="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <div
-          v-for="m in seriesComparison.metrics"
-          :key="m.label"
-          class="rounded border border-gray-500/10 bg-shironezumi/4 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-        >
-          <div class="text-xs text-gray-500 dark:text-gray-400">{{ m.label }}</div>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="text-lg font-bold text-gray-700 dark:text-nalika-text">
-              {{ m.format(m.current) }}
-            </span>
-            <span
-              class="text-xs font-medium"
-              :class="
-                m.format(m.current) === m.format(m.previous) || m.diff > 0
-                  ? 'text-green-600 dark:text-green-500'
-                  : m.diff < 0
-                    ? 'text-red-600 dark:text-red-500'
-                    : 'text-gray-500 dark:text-gray-400'
-              "
-            >
-              <template v-if="m.format(m.current) === m.format(m.previous)">same</template>
-              <template v-else>{{ m.diff > 0 ? '+' : '' }}{{ m.format(m.diff) }}</template>
-            </span>
-          </div>
-          <div class="text-xs text-gray-400 dark:text-gray-500">
-            previous: {{ m.format(m.previous) }}
-          </div>
-        </div>
-        <div
-          class="rounded border border-gray-500/10 bg-shironezumi/4 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-        >
-          <div class="text-xs text-gray-500 dark:text-gray-400">Top color</div>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="text-sm font-bold text-gray-700 dark:text-nalika-text">
-              {{ seriesComparison.topColor.current || '—' }}
-            </span>
-            <span
-              v-if="seriesComparison.topColor.current !== seriesComparison.topColor.previous"
-              class="text-xs text-gray-500 dark:text-gray-400"
-            >
-              was {{ seriesComparison.topColor.previous || '—' }}
-            </span>
-            <span v-else class="text-xs text-green-600 dark:text-green-500">same</span>
-          </div>
-        </div>
-      </div>
-      <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
-        No previous series
-      </p>
-    </div>
+    <SeriesComparisonCards
+      :series-comparison="seriesComparison"
+      :previous-series="previousSeries"
+    />
 
-    <!-- Card State vs Previous -->
-    <div
-      v-if="cardStateComparison"
-      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/2 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-    >
-      <div class="mb-3 flex items-center justify-between max-sm:flex-col max-sm:items-start">
-        <h2
-          class="text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-        >
-          Card State vs Previous
-        </h2>
-      </div>
-      <div class="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <div
-          v-for="m in cardStateComparison.metrics"
-          :key="m.label"
-          class="rounded border border-gray-500/10 bg-shironezumi/4 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-        >
-          <div class="text-xs text-gray-500 dark:text-gray-400">{{ m.label }}</div>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="text-lg font-bold text-gray-700 dark:text-nalika-text">
-              {{ m.format(m.current) }}
-            </span>
-            <span
-              class="text-xs font-medium"
-              :class="
-                m.format(m.current) === m.format(m.previous) || m.diff > 0
-                  ? 'text-green-600 dark:text-green-500'
-                  : m.diff < 0
-                    ? 'text-red-600 dark:text-red-500'
-                    : 'text-gray-500 dark:text-gray-400'
-              "
-            >
-              <template v-if="m.format(m.current) === m.format(m.previous)">same</template>
-              <template v-else>{{ m.diff > 0 ? '+' : '' }}{{ m.format(m.diff) }}</template>
-            </span>
-          </div>
-          <div class="text-xs text-gray-400 dark:text-gray-500">
-            previous: {{ m.format(m.previous) }}
-          </div>
-        </div>
-        <div
-          class="rounded border border-gray-500/10 bg-shironezumi/4 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-        >
-          <div class="text-xs text-gray-500 dark:text-gray-400">Top used color</div>
-          <div class="mt-1 flex items-center justify-between">
-            <span class="text-sm font-bold text-gray-700 dark:text-nalika-text">
-              {{ cardStateComparison.topColor.current || '—' }}
-            </span>
-            <span
-              v-if="cardStateComparison.topColor.current !== cardStateComparison.topColor.previous"
-              class="text-xs text-gray-500 dark:text-gray-400"
-            >
-              was {{ cardStateComparison.topColor.previous || '—' }}
-            </span>
-            <span v-else class="text-xs text-green-600 dark:text-green-500">same</span>
-          </div>
-        </div>
-      </div>
-    </div>
+    <CardStateCards :card-state-comparison="cardStateComparison" />
 
     <!-- Color filter tabs -->
     <div class="mb-3">
@@ -520,7 +220,6 @@
               percentOf1(card.totalDecksIncluded, totalSeriesDecks)
             }}%)
           </span>
-          <!-- <span class="text-gray-300 dark:text-gray-500">·</span> -->
           <span
             v-if="cardTab === 'archetype'"
             class="font-mono text-blue-500 dark:text-blue-400"
@@ -554,13 +253,12 @@
         <div class="mt-2 flex flex-col items-center justify-center text-xs">
           <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
             {{ card.totalDecksIncluded }} ({{
-              percentOf(card.totalDecksIncluded, totalSeriesDecks)
+              percentOf1(card.totalDecksIncluded, totalSeriesDecks)
             }}%)
           </span>
-          <!-- <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span> -->
           <span class="font-mono text-yellow-600 dark:text-yellow-600" title="Champion decks">
             {{ card.totalWinnerDecks }} ({{
-              percentOf(card.totalWinnerDecks, totalSeriesWinnerDecks)
+              percentOf1(card.totalWinnerDecks, totalSeriesWinnerDecks)
             }}%)
           </span>
         </div>
@@ -593,77 +291,29 @@
 </template>
 
 <script setup>
-import tierData from '$data/tiers.json'
 import { useStorage } from '@vueuse/core'
 
-const router = useRouter()
-const route = useRoute()
+const {
+  seriesOptions,
+  selectedKey,
+  currentSeries,
+  totalSeriesDecks,
+  totalSeriesWinnerDecks,
+  percentOf1,
+  previousSeries,
+  eventCutoffDate,
+  eventMinDate,
+  seriesTimeline,
+  hideFilter,
+  allRows,
+  totalArchetypes,
+  quadrantData,
+} = useSeriesState()
 
-const seriesOptions = tierData.map(s => ({
-  value: s.value,
-  label: s.label,
-}))
-
-const validSeries = tierData.map(s => s.value)
-const initial = validSeries.includes(route.query.series) ? route.query.series : tierData[0]?.value
-const selectedKey = ref(initial ?? '')
-
-watch(selectedKey, val => {
-  router.replace({ query: { series: val } })
-})
-
-const currentSeries = computed(() => tierData.find(s => s.value === selectedKey.value))
-const totalSeriesDecks = computed(() => currentSeries.value?.totalDecks ?? 0)
-const totalSeriesWinnerDecks = computed(() => currentSeries.value?.winDecks ?? 0)
-const percentOf = (value, total) => (total ? Math.round((value / total) * 100) : 0)
-const percentOf1 = (value, total) => (total ? ((value / total) * 100).toFixed(1) : 0)
-const previousSeries = computed(() => {
-  const current = currentSeries.value
-  if (!current?.eventMinDate) {
-    return null
-  }
-  const candidates = tierData.filter(
-    s => s.value !== current.value && s.eventMaxDate && s.eventMaxDate < current.eventMinDate,
-  )
-  candidates.sort((a, b) => b.eventMaxDate.localeCompare(a.eventMaxDate))
-  return candidates[0] || null
-})
-const eventCutoffDate = computed(() => currentSeries.value?.eventMaxDate ?? null)
-const eventMinDate = computed(() => currentSeries.value?.eventMinDate ?? null)
-const seriesTimeline = computed(() => {
-  const min = currentSeries.value?.eventMinDate
-  const max = currentSeries.value?.eventMaxDate
-  if (!min && !max) {
-    return null
-  }
-  if (!min) {
-    return `Until ${max}`
-  }
-  if (!max) {
-    return `From ${min}`
-  }
-  return `${min} → ${max}`
-})
-
-const { hideFilter } = useScrollHide()
-
-const allRows = computed(() => currentSeries.value?.rows ?? [])
-const totalArchetypes = computed(() => allRows.value.length)
-
-const quadrantData = computed(() =>
-  allRows.value.map(r => ({
-    archetype: r.archetype,
-    usePct: r.usePct,
-    winPerDk: r.winPerDk,
-    winPerEv: r.winPerEv,
-    t4PerDk: r.t4PerDk,
-    score: r.score,
-    decks: r.decks,
-    wins: r.wins,
-    top4: r.top4,
-    tier: r.tier,
-  })),
-)
+// ── Card aggregation (async) ──
+const aggregationResult = ref(null)
+const loadingCards = ref(false)
+const cardMeta = ref([])
 
 const cardItems = computed(() =>
   (aggregationResult.value?.cards ?? []).filter(c => c.totalDecksIncluded >= 20),
@@ -676,7 +326,11 @@ const CARD_TYPE_LABELS = {
   COMMAND: 'Command',
   BASE: 'Base',
 }
+
+const chartMode = useStorage('gcg-quadrant-mode', 'usage-winDk')
+const cardTypeChart = useStorage('gcg-card-type-chart', null)
 const showCardTypeFilter = computed(() => chartMode.value.startsWith('card-'))
+
 const filteredCardItems = computed(() => {
   if (!cardTypeChart.value) {
     return cardItems.value
@@ -685,21 +339,23 @@ const filteredCardItems = computed(() => {
   return cardItems.value.filter(card => (card.type ?? '').toUpperCase() === typeKey)
 })
 
+// ── Card tab state ──
 const cardTab = useStorage('gcg-card-tab', 'played')
-const chartMode = useStorage('gcg-quadrant-mode', 'usage-winDk')
-const cardTypeChart = useStorage('gcg-card-type-chart', null)
 if (cardTab.value === 'winner') {
   cardTab.value = 'archetype'
 }
+
+const typeOrder = ['UNIT', 'PILOT', 'COMMAND', 'BASE']
+const typeTab = useStorage('gcg-type-tab', null)
 const colorFilter = useStorage('gcg-color-filter', null)
 const enlargedCard = ref(null)
 const viewAllModal = ref(null)
-const cardMeta = ref([])
 
 function toggleEnlarge(cardId) {
   enlargedCard.value = enlargedCard.value === cardId ? null : cardId
 }
 
+// ── Date helpers ──
 function addDays(dateStr, days) {
   if (!dateStr) {
     return dateStr
@@ -757,7 +413,6 @@ const colorDist = computed(() => {
   }))
 })
 
-// ── All color distribution (no slice) ──
 const allColorDist = computed(() => {
   const map = {}
   for (const row of allRows.value) {
@@ -853,65 +508,6 @@ const cardStateComparison = computed(() => {
   }
 })
 
-// ── Top 10 by type ──
-const typeOrder = ['UNIT', 'PILOT', 'COMMAND', 'BASE']
-const typeTab = useStorage('gcg-type-tab', null)
-
-const recentlyUsedCards = computed(() => {
-  if (!currentSeries.value || !aggregationResult.value) {
-    return []
-  }
-  const max = currentSeries.value?.eventMaxDate
-  if (!max) {
-    return []
-  }
-  const usedMap = {}
-  for (const c of aggregationResult.value.cards) {
-    usedMap[c.cardId] = c
-  }
-  let latestRelease = null
-  for (const card of newcomerEligibleCards.value) {
-    if (card.releaseDate && card.releaseDate <= max) {
-      if (!latestRelease || card.releaseDate > latestRelease) {
-        latestRelease = card.releaseDate
-      }
-    }
-  }
-  if (!latestRelease) {
-    return []
-  }
-  return newcomerEligibleCards.value
-    .filter(c => {
-      if (c.releaseDate !== latestRelease) {
-        return false
-      }
-      if (!colorFilter.value) {
-        return true
-      }
-      return c.color === colorFilter.value
-    })
-    .map(c => {
-      const used = usedMap[c.id]
-      return {
-        cardId: c.id,
-        name: c.name,
-        color: c.color,
-        type: c.type,
-        rarity: c.rarity,
-        totalDecksIncluded: used?.totalDecksIncluded || 0,
-        totalWinnerDecks: used?.totalWinnerDecks || 0,
-      }
-    })
-    .filter(c => c.totalDecksIncluded > 0)
-    .sort((a, b) => {
-      if (b.totalDecksIncluded !== a.totalDecksIncluded) {
-        return b.totalDecksIncluded - a.totalDecksIncluded
-      }
-      return a.cardId.localeCompare(b.cardId)
-    })
-    .slice(0, 20)
-})
-
 // ── Win rate by color combo ──
 const winRateDist = computed(() => {
   const map = {}
@@ -938,7 +534,6 @@ const winRateDist = computed(() => {
   }))
 })
 
-// ── All win rate by color combo (no slice) ──
 const allWinRateDist = computed(() => {
   const map = {}
   for (const row of allRows.value) {
@@ -963,10 +558,7 @@ const allWinRateDist = computed(() => {
   }))
 })
 
-// ── Card aggregation (async) ──
-const aggregationResult = ref(null)
-const loadingCards = ref(false)
-
+// ── Card aggregation computed ──
 const topCards = computed(() => {
   if (!aggregationResult.value) {
     return []
@@ -1049,16 +641,27 @@ const archetypeProducts = computed(() => {
   if (!aggregationResult.value?.cards?.length) {
     return []
   }
-  const counts = {}
+  const map = {}
   const infoMap = cardInfoById.value
+  const min = eventMinDate.value
+  const max = eventCutoffDate.value
   for (const card of aggregationResult.value.cards) {
     const acquisition = infoMap[card.cardId]?.acquisitionInfo?.trim()
     if (!acquisition) {
       continue
     }
-    counts[acquisition] = (counts[acquisition] || 0) + 1
+    if (!map[acquisition]) {
+      map[acquisition] = { count: 0, isNew: false }
+    }
+    map[acquisition].count++
+    if (!map[acquisition].isNew && min && max) {
+      const releaseDate = infoMap[card.cardId]?.releaseDate
+      if (releaseDate && addDays(releaseDate, 7) <= max && releaseDate >= addDays(min, -20)) {
+        map[acquisition].isNew = true
+      }
+    }
   }
-  const entries = Object.entries(counts).map(([name, count]) => ({ name, count }))
+  const entries = Object.entries(map).map(([name, { count, isNew }]) => ({ name, count, isNew }))
   return entries
     .sort((a, b) => {
       const prefixA = extractProductPrefix(a.name)
@@ -1098,6 +701,7 @@ const archetypeProductGroups = computed(() => {
   return groups
 })
 
+// ── Eligible cards ──
 const eligibleCards = computed(() =>
   cardMeta.value.filter(
     c =>
@@ -1133,6 +737,62 @@ const usedCardCount = computed(() => {
   return eligibleCards.value.filter(c => usedIds.has(c.id)).length
 })
 
+const recentlyUsedCards = computed(() => {
+  if (!currentSeries.value || !aggregationResult.value) {
+    return []
+  }
+  const max = currentSeries.value?.eventMaxDate
+  if (!max) {
+    return []
+  }
+  const usedMap = {}
+  for (const c of aggregationResult.value.cards) {
+    usedMap[c.cardId] = c
+  }
+  let latestRelease = null
+  for (const card of newcomerEligibleCards.value) {
+    if (card.releaseDate && card.releaseDate <= max) {
+      if (!latestRelease || card.releaseDate > latestRelease) {
+        latestRelease = card.releaseDate
+      }
+    }
+  }
+  if (!latestRelease) {
+    return []
+  }
+  return newcomerEligibleCards.value
+    .filter(c => {
+      if (c.releaseDate !== latestRelease) {
+        return false
+      }
+      if (!colorFilter.value) {
+        return true
+      }
+      return c.color === colorFilter.value
+    })
+    .map(c => {
+      const used = usedMap[c.id]
+      return {
+        cardId: c.id,
+        name: c.name,
+        color: c.color,
+        type: c.type,
+        rarity: c.rarity,
+        totalDecksIncluded: used?.totalDecksIncluded || 0,
+        totalWinnerDecks: used?.totalWinnerDecks || 0,
+      }
+    })
+    .filter(c => c.totalDecksIncluded > 0)
+    .sort((a, b) => {
+      if (b.totalDecksIncluded !== a.totalDecksIncluded) {
+        return b.totalDecksIncluded - a.totalDecksIncluded
+      }
+      return a.cardId.localeCompare(b.cardId)
+    })
+    .slice(0, 20)
+})
+
+// ── Data loading ──
 async function loadCardMeta() {
   if (cardMeta.value.length) {
     return

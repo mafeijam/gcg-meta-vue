@@ -1,5 +1,3 @@
-import archModules from './archModules'
-
 export async function aggregateCards(seriesKey) {
   const entries = Object.entries(archModules).filter(
     ([path]) => path === `/data-processed/archetypes/${seriesKey}/_cards.json`,
