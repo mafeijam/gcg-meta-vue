@@ -422,28 +422,28 @@
         <div class="ml-auto flex flex-col gap-2 sm:flex-row">
           <div class="flex justify-end overflow-x-auto">
             <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-              <button
-                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-                :class="
-                  cardTab === 'played'
-                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-                "
-                @click="cardTab = 'played'"
-              >
-                Most Played
-              </button>
-              <button
-                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-                :class="
-                  cardTab === 'winner'
-                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-                "
-                @click="cardTab = 'winner'"
-              >
-                Most Archetypes
-              </button>
+            <button
+              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+              :class="
+                cardTab === 'played'
+                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+              "
+              @click="cardTab = 'played'"
+            >
+              Most Played
+            </button>
+            <button
+              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+              :class="
+                cardTab === 'archetype'
+                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+              "
+              @click="cardTab = 'archetype'"
+            >
+              Most Archetypes
+            </button>
             </div>
           </div>
           <div class="flex justify-end overflow-x-auto">
@@ -477,24 +477,31 @@
         </div>
       </template>
       <template #footer="{ card }">
-        <div class="mt-2 flex items-center justify-center gap-2 text-xs">
+        <div class="mt-2 flex flex-col items-center justify-center text-xs">
           <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
-            {{ card.totalDecksIncluded }}
+            {{ card.totalDecksIncluded }} ({{
+              percentOf(card.totalDecksIncluded, totalSeriesDecks)
+            }}%)
           </span>
-          <span class="text-gray-300 dark:text-gray-500">·</span>
+          <!-- <span class="text-gray-300 dark:text-gray-500">·</span> -->
           <span
-            v-if="cardTab === 'winner'"
+            v-if="cardTab === 'archetype'"
             class="font-mono text-blue-500 dark:text-blue-400"
             title="Archetypes"
           >
             {{ card.archetypeCount }}
+            <span v-if="card.archetypeCount">
+              ({{ percentOf(card.archetypeCount, totalArchetypes) }}%)
+            </span>
           </span>
           <span
             v-else
             class="font-mono text-yellow-600 dark:text-yellow-600"
             title="Champion decks"
           >
-            {{ card.totalWinnerDecks }}
+            {{ card.totalWinnerDecks }} ({{
+              percentOf(card.totalWinnerDecks, totalSeriesWinnerDecks)
+            }}%)
           </span>
         </div>
       </template>
@@ -507,15 +514,17 @@
       @toggle-enlarge="toggleEnlarge"
     >
       <template #footer="{ card }">
-        <div
-          class="mt-2 flex items-center justify-center gap-2 text-xs @max-[150px]:flex-col @max-[150px]:gap-0"
-        >
+        <div class="mt-2 flex flex-col items-center justify-center text-xs">
           <span class="font-mono text-gray-500 dark:text-nalika-text-muted" title="Decks included">
-            {{ card.totalDecksIncluded }} decks
+            {{ card.totalDecksIncluded }} ({{
+              percentOf(card.totalDecksIncluded, totalSeriesDecks)
+            }}%)
           </span>
-          <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span>
+          <!-- <span class="text-gray-300 @max-[150px]:hidden dark:text-gray-500">·</span> -->
           <span class="font-mono text-yellow-600 dark:text-yellow-600" title="Champion decks">
-            {{ card.totalWinnerDecks }} wins
+            {{ card.totalWinnerDecks }} ({{
+              percentOf(card.totalWinnerDecks, totalSeriesWinnerDecks)
+            }}%)
           </span>
         </div>
       </template>
@@ -567,6 +576,9 @@ watch(selectedKey, val => {
 })
 
 const currentSeries = computed(() => tierData.find(s => s.value === selectedKey.value))
+const totalSeriesDecks = computed(() => currentSeries.value?.totalDecks ?? 0)
+const totalSeriesWinnerDecks = computed(() => currentSeries.value?.winDecks ?? 0)
+const percentOf = (value, total) => (total ? Math.round((value / total) * 100) : 0)
 const previousSeries = computed(() => {
   const current = currentSeries.value
   if (!current?.eventMinDate) {
@@ -597,6 +609,7 @@ const seriesTimeline = computed(() => {
 const { hideFilter } = useScrollHide()
 
 const allRows = computed(() => currentSeries.value?.rows ?? [])
+const totalArchetypes = computed(() => allRows.value.length)
 
 const quadrantData = computed(() =>
   allRows.value.map(r => ({
@@ -617,6 +630,9 @@ const cardItems = computed(() =>
 )
 
 const cardTab = useStorage('gcg-card-tab', 'played')
+if (cardTab.value === 'winner') {
+  cardTab.value = 'archetype'
+}
 const colorFilter = useStorage('gcg-color-filter', null)
 const enlargedCard = ref(null)
 const viewAllModal = ref(null)

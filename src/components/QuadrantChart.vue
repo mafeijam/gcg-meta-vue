@@ -30,9 +30,7 @@
         :series="chartSeries"
       />
       <template #fallback>
-        <div class="py-4 text-center text-xs text-gray-400 dark:text-gray-500">
-          Loading chart…
-        </div>
+        <div class="py-4 text-center text-xs text-gray-400 dark:text-gray-500">Loading chart…</div>
       </template>
     </Suspense>
   </div>
@@ -125,11 +123,11 @@ const MODES = [
     label: 'Card Impact',
     group: 'card',
     xKey: 'totalDecksIncluded',
-    yKey: 'totalWinnerDecks',
+    yKey: '_winnerRate',
     xLabel: 'Decks Included',
-    yLabel: 'Winner Decks',
+    yLabel: 'Winner Rate (%)',
     xIsPercent: false,
-    yIsPercent: false,
+    yIsPercent: true,
   },
   {
     key: 'card-versatility',
@@ -170,24 +168,28 @@ const parsed = computed(() => {
   if (cfg.group === 'card') {
     return props.cardItems
       .filter(item => {
-        if (cfg.key === 'card-impact' && !item.totalWinnerDecks) {
-          return false
-        }
         if (cfg.key === 'card-versatility' && item.archetypeCount <= 1) {
           return false
         }
         return true
       })
       .sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded)
-      .slice(0, 40)
+      .slice(0, 60)
       .map(item => {
-        const x = parseFloat(item[cfg.xKey])
-        const v = item[cfg.yKey]
+        const enriched = { ...item }
+        if (cfg.yKey === '_winnerRate') {
+          enriched._winnerRate =
+            item.totalDecksIncluded > 0
+              ? (item.totalWinnerDecks / item.totalDecksIncluded) * 100
+              : 0
+        }
+        const x = parseFloat(enriched[cfg.xKey])
+        const v = enriched[cfg.yKey]
         const y = cfg.yIsPercent ? parseFloat(v) : Number(v)
         if (isNaN(x) || isNaN(y)) {
           return null
         }
-        return { ...item, _x: x, _y: y }
+        return { ...enriched, _x: x, _y: y }
       })
       .filter(Boolean)
   }
@@ -251,13 +253,17 @@ const chartSeries = computed(() => {
     group.push({
       x: item._x,
       y: item._y,
-      z: item.decks,
+      z: item.wins,
       meta: {
         archetype: item.archetype,
         usePct: item.usePct,
         winPerDk: item.winPerDk,
         winPerEv: item.winPerEv,
+        t4PerDk: item.t4PerDk,
         decks: item.decks,
+        wins: item.wins,
+        top4: item.top4,
+        score: item.score,
       },
     })
   }
@@ -293,13 +299,24 @@ const chartOptions = computed(() => {
   const fmtX = v => (cfg.xIsPercent ? Math.round(v) + '%' : Math.round(v))
   const fmtY = v => (cfg.yIsPercent ? Math.round(v) + '%' : Math.round(v))
 
+  function getQuadrantLabels(key) {
+    if (key === 'card-impact') {
+      return ['Elite', 'Hidden Gem', 'Fringe', 'Overplayed']
+    }
+    if (key === 'card-versatility') {
+      return ['Staples', 'Specialist', 'Obscure', 'One-Trick']
+    }
+    return ['Meta', 'Sleeper', 'Niche', 'Trap']
+  }
+
   const qLabels = []
-  if (!isCard && medX.value !== null && medY.value !== null) {
+  if (medX.value !== null && medY.value !== null) {
+    const [tr, tl, bl, br] = getQuadrantLabels(cfg.key)
     qLabels.push(
-      { x: (medX.value + xMax.value) / 2, y: (medY.value + yMax.value) / 2, text: 'Meta' },
-      { x: medX.value / 2, y: (medY.value + yMax.value) / 2, text: 'Sleeper' },
-      { x: medX.value / 2, y: medY.value / 2, text: 'Niche' },
-      { x: (medX.value + xMax.value) / 2, y: medY.value / 2, text: 'Trap' },
+      { x: (medX.value + xMax.value) / 2, y: (medY.value + yMax.value) / 2, text: tr },
+      { x: medX.value / 2, y: (medY.value + yMax.value) / 2, text: tl },
+      { x: medX.value / 2, y: medY.value / 2, text: bl },
+      { x: (medX.value + xMax.value) / 2, y: medY.value / 2, text: br },
     )
   }
 
@@ -354,10 +371,11 @@ const chartOptions = computed(() => {
         if (isCard) {
           return `<div class="${tw`max-w-40 truncate px-1.5 py-0.5 text-xxs leading-snug break-words sm:max-w-52 sm:px-2 sm:py-1 sm:text-xs`}">
             <b>${d.meta.name}</b><br/>
-            ID: ${d.meta.cardId}<br/>
-            Color: ${d.meta.color} &middot; ${d.meta.type}<br/>
+            ID: ${d.meta.cardId}.${d.meta.type}<br/>
+            Color: ${d.meta.color}<br/>
             Decks: ${d.meta.totalDecksIncluded}<br/>
             Winner Decks: ${d.meta.totalWinnerDecks}<br/>
+            Winner Rate: ${d.meta.totalDecksIncluded > 0 ? Math.round((d.meta.totalWinnerDecks / d.meta.totalDecksIncluded) * 100) : 0}%<br/>
             Archetypes: ${d.meta.archetypeCount}
           </div>`
         }
@@ -366,18 +384,22 @@ const chartOptions = computed(() => {
           Use: ${d.meta.usePct}<br/>
           Win/Dk: ${d.meta.winPerDk}<br/>
           Win/Ev: ${d.meta.winPerEv}<br/>
-          Decks: ${d.meta.decks}
+          Top4/Dk: ${d.meta.t4PerDk}<br/>
+          Score: ${d.meta.score}<br/>
+          Decks: ${d.meta.decks}<br/>
+          Wins: ${d.meta.wins}<br/>
+          Top4: ${d.meta.top4}
         </div>`
       },
     },
     annotations: {
       position: 'back',
       xaxis:
-        !isCard && medX.value !== null
+        medX.value !== null
           ? [{ x: medX.value, strokeDashArray: 4, borderColor: annotColor, borderWidth: 1 }]
           : [],
       yaxis:
-        !isCard && medY.value !== null
+        medY.value !== null
           ? [{ y: medY.value, strokeDashArray: 4, borderColor: annotColor, borderWidth: 1 }]
           : [],
       points: qLabels.map(q => ({
