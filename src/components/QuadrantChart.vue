@@ -22,7 +22,7 @@
     </p>
     <Suspense v-else>
       <VueApexCharts
-        :key="chartMode"
+        :key="`${chartMode}-${props.cardTypeChart ?? 'all'}`"
         type="bubble"
         :height="chartHeight"
         width="100%"
@@ -46,6 +46,7 @@ const VueApexCharts = defineAsyncComponent(() => import('vue3-apexcharts'))
 const props = defineProps({
   items: { type: Array, default: () => [] },
   cardItems: { type: Array, default: () => [] },
+  cardTypeChart: { type: String, default: null },
 })
 
 const TIER_ORDER = ['T1', 'T1.5', 'T2', 'T2.5', 'T3', '--']
@@ -166,7 +167,12 @@ const parsed = computed(() => {
     return []
   }
   if (cfg.group === 'card') {
-    return props.cardItems
+    let baseItems = props.cardItems
+    if (props.cardTypeChart) {
+      const chartTypeKey = props.cardTypeChart.toUpperCase()
+      baseItems = baseItems.filter(item => (item.type ?? '').toUpperCase() === chartTypeKey)
+    }
+    return baseItems
       .filter(item => {
         if (cfg.key === 'card-versatility' && item.archetypeCount <= 1) {
           return false

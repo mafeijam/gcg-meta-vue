@@ -226,7 +226,43 @@
       >
         Archetype Quadrants
       </h2>
-      <QuadrantChart v-if="quadrantData.length" :items="quadrantData" :card-items="cardItems" />
+      <div
+        class="mb-3 flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70"
+        :class="{ 'opacity-30': !showCardTypeFilter }"
+      >
+        <button
+          class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap disabled:cursor-not-allowed"
+          :class="
+            cardTypeChart === null
+              ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+              : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+          "
+          :disabled="!showCardTypeFilter"
+          @click="cardTypeChart = null"
+        >
+          All
+        </button>
+        <button
+          v-for="type in CARD_TYPE_OPTIONS"
+          :key="type"
+          class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap disabled:cursor-not-allowed"
+          :class="
+            cardTypeChart === type
+              ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+              : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+          "
+          :disabled="!showCardTypeFilter"
+          @click="cardTypeChart = type"
+        >
+          {{ CARD_TYPE_LABELS[type] }}
+        </button>
+      </div>
+      <QuadrantChart
+        v-if="quadrantData.length"
+        :items="quadrantData"
+        :card-items="filteredCardItems"
+        :card-type-chart="cardTypeChart"
+      />
       <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
     </div>
 
@@ -422,28 +458,28 @@
         <div class="ml-auto flex flex-col gap-2 sm:flex-row">
           <div class="flex justify-end overflow-x-auto">
             <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-            <button
-              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              :class="
-                cardTab === 'played'
-                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-              "
-              @click="cardTab = 'played'"
-            >
-              Most Played
-            </button>
-            <button
-              class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-              :class="
-                cardTab === 'archetype'
-                  ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                  : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-              "
-              @click="cardTab = 'archetype'"
-            >
-              Most Archetypes
-            </button>
+              <button
+                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                :class="
+                  cardTab === 'played'
+                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+                "
+                @click="cardTab = 'played'"
+              >
+                Most Played
+              </button>
+              <button
+                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
+                :class="
+                  cardTab === 'archetype'
+                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+                "
+                @click="cardTab = 'archetype'"
+              >
+                Most Archetypes
+              </button>
             </div>
           </div>
           <div class="flex justify-end overflow-x-auto">
@@ -629,7 +665,25 @@ const cardItems = computed(() =>
   (aggregationResult.value?.cards ?? []).filter(c => c.totalDecksIncluded >= 20),
 )
 
+const CARD_TYPE_OPTIONS = ['UNIT', 'PILOT', 'COMMAND', 'BASE']
+const CARD_TYPE_LABELS = {
+  UNIT: 'Unit',
+  PILOT: 'Pilot',
+  COMMAND: 'Command',
+  BASE: 'Base',
+}
+const showCardTypeFilter = computed(() => chartMode.value.startsWith('card-'))
+const filteredCardItems = computed(() => {
+  if (!cardTypeChart.value) {
+    return cardItems.value
+  }
+  const typeKey = cardTypeChart.value.toUpperCase()
+  return cardItems.value.filter(card => (card.type ?? '').toUpperCase() === typeKey)
+})
+
 const cardTab = useStorage('gcg-card-tab', 'played')
+const chartMode = useStorage('gcg-quadrant-mode', 'usage-winDk')
+const cardTypeChart = useStorage('gcg-card-type-chart', null)
 if (cardTab.value === 'winner') {
   cardTab.value = 'archetype'
 }
