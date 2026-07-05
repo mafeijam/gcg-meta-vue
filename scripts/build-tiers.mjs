@@ -659,12 +659,15 @@ function processSeries(series) {
         c.totalQty += card.totalQty
         c.archetypeCount += 1
       } else {
+        const info = lookup(card.cardId)
         cardMap[card.cardId] = {
           cardId: card.cardId,
           name: card.name,
           color: card.color,
           type: card.type,
           rarity: card.rarity,
+          cost: info.cost,
+          level: info.level,
           totalDecksIncluded: card.decksIncluded,
           totalWinnerDecks: card.winnerDeckCount,
           totalQty: card.totalQty,
