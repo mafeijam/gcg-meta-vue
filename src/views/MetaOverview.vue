@@ -68,80 +68,8 @@
 
     <!-- Level & Cost Distribution -->
     <div class="mb-6 grid gap-4 md:grid-cols-2">
-      <div
-        class="rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-      >
-        <h2
-          class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-        >
-          Level Distribution
-        </h2>
-        <div
-          v-if="levelDist.length"
-          class="flex items-end gap-2"
-          style="height: 160px"
-        >
-          <div
-            v-for="item in levelDist"
-            :key="item.level"
-            class="flex flex-1 flex-col items-center"
-          >
-            <span class="shrink-0 font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
-              {{ item.count }}
-            </span>
-            <div
-              class="w-full shrink-0 rounded-t transition-all"
-              :style="{ height: `${item.barHeight}px`, background: '#005caf' }"
-            />
-            <span class="mt-auto shrink-0 font-mono text-xs text-gray-600 dark:text-nalika-text-muted">
-              {{ item.level }}
-            </span>
-          </div>
-        </div>
-        <p
-          v-else
-          class="py-4 text-center text-sm text-gray-400 dark:text-gray-500"
-        >
-          No data
-        </p>
-      </div>
-      <div
-        class="rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-      >
-        <h2
-          class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
-        >
-          Cost Distribution
-        </h2>
-        <div
-          v-if="costDist.length"
-          class="flex items-end gap-2"
-          style="height: 160px"
-        >
-          <div
-            v-for="item in costDist"
-            :key="item.cost"
-            class="flex flex-1 flex-col items-center"
-          >
-            <span class="shrink-0 font-mono text-xs text-gray-500 dark:text-nalika-text-muted">
-              {{ item.count }}
-            </span>
-            <div
-              class="w-full shrink-0 rounded-t transition-all"
-              :style="{ height: `${item.barHeight}px`, background: '#0b346e' }"
-            />
-            <span class="mt-auto shrink-0 font-mono text-xs text-gray-600 dark:text-nalika-text-muted">
-              {{ item.cost }}
-            </span>
-          </div>
-        </div>
-        <p
-          v-else
-          class="py-4 text-center text-sm text-gray-400 dark:text-gray-500"
-        >
-          No data
-        </p>
-      </div>
+      <DistributionBars title="Level Distribution" :items="levelDist" color="#005caf" />
+      <DistributionBars title="Cost Distribution" :items="costDist" color="#0b346e" />
     </div>
 
     <!-- Color filter tabs -->
@@ -521,42 +449,33 @@ const previousTopColor = computed(() => {
 
 // ── Level & Cost distribution ──
 const levelDist = computed(() => {
-  if (!aggregationResult.value?.cards) {
-    return []
-  }
   const counts = {}
-  for (const card of aggregationResult.value.cards) {
+  const cards = aggregationResult.value?.cards ?? []
+  for (const card of cards) {
     const lv = parseInt(card.level)
     if (lv >= 1 && lv <= 9) {
       counts[lv] = (counts[lv] || 0) + 1
     }
   }
-  const items = Array.from({ length: 9 }, (_, i) => ({
-    level: i + 1,
+  return Array.from({ length: 9 }, (_, i) => ({
+    label: i + 1,
     count: counts[i + 1] || 0,
   }))
-  const maxCount = Math.max(...items.map(i => i.count), 1)
-  const BAR_HEIGHT = 130
-  return items.map(i => ({ ...i, percent: (i.count / maxCount) * 100, barHeight: (i.count / maxCount) * BAR_HEIGHT }))
 })
 
 const costDist = computed(() => {
-  if (!aggregationResult.value?.cards) {
-    return []
-  }
   const counts = {}
-  for (const card of aggregationResult.value.cards) {
+  const cards = aggregationResult.value?.cards ?? []
+  for (const card of cards) {
     const c = parseInt(card.cost)
-    if (c > 0) {
+    if (c >= 1 && c <= 9) {
       counts[c] = (counts[c] || 0) + 1
     }
   }
-  const items = Object.entries(counts)
-    .map(([cost, count]) => ({ cost: Number(cost), count }))
-    .sort((a, b) => a.cost - b.cost)
-  const maxCount = Math.max(...items.map(i => i.count), 1)
-  const BAR_HEIGHT = 130
-  return items.map(i => ({ ...i, percent: (i.count / maxCount) * 100, barHeight: (i.count / maxCount) * BAR_HEIGHT }))
+  return Array.from({ length: 9 }, (_, i) => ({
+    label: i + 1,
+    count: counts[i + 1] || 0,
+  }))
 })
 
 const seriesComparison = computed(() => {
