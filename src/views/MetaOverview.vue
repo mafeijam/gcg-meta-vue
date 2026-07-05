@@ -46,43 +46,9 @@
       >
         Archetype Quadrants
       </h2>
-      <div
-        class="mb-3 flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70"
-        :class="{ 'opacity-30': !showCardTypeFilter }"
-      >
-        <button
-          class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap disabled:cursor-not-allowed"
-          :class="
-            cardTypeChart === null
-              ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-              : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-          "
-          :disabled="!showCardTypeFilter"
-          @click="cardTypeChart = null"
-        >
-          All
-        </button>
-        <button
-          v-for="type in CARD_TYPE_OPTIONS"
-          :key="type"
-          class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap disabled:cursor-not-allowed"
-          :class="
-            cardTypeChart === type
-              ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-              : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-          "
-          :disabled="!showCardTypeFilter"
-          @click="cardTypeChart = type"
-        >
-          {{ CARD_TYPE_LABELS[type] }}
-        </button>
-      </div>
       <QuadrantChart
         v-if="quadrantData.length"
         :items="quadrantData"
-        :card-items="filteredCardItems"
-        :card-type-chart="cardTypeChart"
-        :series-key="selectedKey"
       />
       <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
     </div>
@@ -265,6 +231,51 @@
       </template>
     </MetaCardSection>
 
+    <!-- Card Quadrants -->
+    <div
+      class="mb-6 rounded border border-gray-500/10 bg-shironezumi/3 p-2 dark:border-nalika-border dark:bg-nalika-surface"
+    >
+      <h2
+        class="mb-3 text-sm font-bold tracking-wider text-gray-600 uppercase dark:text-nalika-text-muted"
+      >
+        Card Quadrants
+      </h2>
+      <div
+        class="mb-3 flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70"
+      >
+        <button
+          class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors"
+          :class="
+            cardTypeChart === null
+              ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+              : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+          "
+          @click="cardTypeChart = null"
+        >
+          All
+        </button>
+        <button
+          v-for="type in CARD_TYPE_OPTIONS"
+          :key="type"
+          class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors"
+          :class="
+            cardTypeChart === type
+              ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
+              : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
+          "
+          @click="cardTypeChart = type"
+        >
+          {{ type }}
+        </button>
+      </div>
+      <QuadrantChart
+        group="card"
+        :card-items="filteredCardItems"
+        :card-type-chart="cardTypeChart"
+        :series-key="selectedKey"
+      />
+    </div>
+
     <!-- Enlarged card overlay -->
     <Teleport to="body">
       <div
@@ -320,16 +331,8 @@ const cardItems = computed(() =>
 )
 
 const CARD_TYPE_OPTIONS = ['UNIT', 'PILOT', 'COMMAND', 'BASE']
-const CARD_TYPE_LABELS = {
-  UNIT: 'Unit',
-  PILOT: 'Pilot',
-  COMMAND: 'Command',
-  BASE: 'Base',
-}
 
-const chartMode = useStorage('gcg-quadrant-mode', 'usage-winDk')
 const cardTypeChart = useStorage('gcg-card-type-chart', null)
-const showCardTypeFilter = computed(() => chartMode.value.startsWith('card-'))
 
 const filteredCardItems = computed(() => {
   if (!cardTypeChart.value) {

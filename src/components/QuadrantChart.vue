@@ -4,7 +4,7 @@
       class="mb-2 flex max-w-full flex-nowrap gap-1 overflow-x-auto rounded-lg bg-gray-100 p-0.5 xl:w-fit dark:bg-gray-700/70"
     >
       <button
-        v-for="mode in MODES"
+        v-for="mode in modes"
         :key="mode.key"
         class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors"
         :class="
@@ -42,6 +42,7 @@ const props = defineProps({
   cardItems: { type: Array, default: () => [] },
   cardTypeChart: { type: String, default: null },
   seriesKey: { type: String, default: '' },
+  group: { type: String, default: 'archetype' },
 })
 
 const TIER_ORDER = ['T1', 'T1.5', 'T2', 'T2.5', 'T3', '--']
@@ -140,9 +141,17 @@ const MODES = [
   },
 ]
 
-const chartMode = useStorage('gcg-quadrant-mode', 'usage-winDk')
+const modes = computed(() => MODES.filter(m => m.group === props.group))
 
-const config = computed(() => MODES.find(m => m.key === chartMode.value))
+const defaultMode = computed(() => modes.value[0]?.key ?? 'usage-winDk')
+
+const storageKey = computed(() =>
+  props.group === 'card' ? 'gcg-card-chart-mode' : 'gcg-quadrant-mode',
+)
+
+const chartMode = useStorage(storageKey, defaultMode)
+
+const config = computed(() => modes.value.find(m => m.key === chartMode.value))
 
 const hasDataForMode = computed(() => {
   const cfg = config.value
