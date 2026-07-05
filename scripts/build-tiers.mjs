@@ -550,6 +550,7 @@ function buildArchetypeDetails(comboArchetypes, winnersByCombo, top4ByCombo, tot
         inclusionRate: +(cardData.decksIncluded / count).toFixed(4),
         winnerDeckCount: winnerCounts[cardId] || 0,
         avgQty: Math.round(cardData.totalQty / cardData.decksIncluded),
+        totalQty: cardData.totalQty,
         inWinner: false,
         techScore: calculateTechScore(
           winnerCounts[cardId] || 0,
@@ -655,6 +656,7 @@ function processSeries(series) {
       if (c) {
         c.totalDecksIncluded += card.decksIncluded
         c.totalWinnerDecks += card.winnerDeckCount
+        c.totalQty += card.totalQty
         c.archetypeCount += 1
       } else {
         cardMap[card.cardId] = {
@@ -665,6 +667,7 @@ function processSeries(series) {
           rarity: card.rarity,
           totalDecksIncluded: card.decksIncluded,
           totalWinnerDecks: card.winnerDeckCount,
+          totalQty: card.totalQty,
           archetypeCount: 1,
         }
       }
@@ -675,6 +678,9 @@ function processSeries(series) {
   }
 
   const cards = Object.values(cardMap)
+  for (const card of cards) {
+    card.avgQty = Math.round(card.totalQty / card.totalDecksIncluded)
+  }
   const sigCards = Object.entries(sigCardCounts)
     .map(([cardId, count]) => {
       const info = cardMap[cardId] || {}

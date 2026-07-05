@@ -18,6 +18,13 @@
       >
         {{ card.rarity.replace(/\+{1,2}$/, '') }}
       </span>
+      <span
+        v-if="card.avgQty"
+        class="ml-auto font-mono text-xs text-indigo-500 dark:text-indigo-400/70"
+        title="Avg copies per deck"
+      >
+        ×{{ card.avgQty }}
+      </span>
     </div>
     <div class="group relative mt-1.5 aspect-[3/2] overflow-hidden rounded">
       <img
