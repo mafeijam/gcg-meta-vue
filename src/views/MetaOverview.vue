@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-340 p-3 pb-8 md:p-8">
+  <div class="mx-auto max-w-340 p-3 max-sm:pb-6 md:p-8">
     <SeriesHeader
       title="Meta Overview"
       :visible="!!currentSeries"
@@ -46,10 +46,7 @@
       >
         Archetype Quadrants
       </h2>
-      <QuadrantChart
-        v-if="quadrantData.length"
-        :items="quadrantData"
-      />
+      <ArchetypeQuadrantChart v-if="quadrantData.length" :items="quadrantData" />
       <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
     </div>
 
@@ -268,8 +265,7 @@
           {{ type }}
         </button>
       </div>
-      <QuadrantChart
-        group="card"
+      <CardQuadrantChart
         :card-items="filteredCardItems"
         :card-type-chart="cardTypeChart"
         :series-key="selectedKey"
@@ -783,6 +779,7 @@ const recentlyUsedCards = computed(() => {
         rarity: c.rarity,
         totalDecksIncluded: used?.totalDecksIncluded || 0,
         totalWinnerDecks: used?.totalWinnerDecks || 0,
+        avgQty: used?.avgQty || 0,
       }
     })
     .filter(c => c.totalDecksIncluded > 0)
@@ -813,6 +810,7 @@ async function loadCardData(seriesKey) {
     aggregationResult.value = null
     return
   }
+  aggregationResult.value = null
   await loadCardMeta()
   loadingCards.value = true
   try {

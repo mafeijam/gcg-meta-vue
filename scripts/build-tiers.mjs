@@ -690,6 +690,7 @@ function processSeries(series) {
         color: info.color || 'inherit',
         rarity: info.rarity || '',
         archetypeCount: count,
+        avgQty: info.avgQty || 0,
       }
     })
     .sort((a, b) => b.archetypeCount - a.archetypeCount)
