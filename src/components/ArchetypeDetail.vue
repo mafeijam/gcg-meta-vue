@@ -28,12 +28,6 @@
       </span>
     </div>
 
-    <!-- Level & Cost Distribution -->
-    <div class="mb-4 grid gap-4 md:grid-cols-2">
-      <DistributionBars title="Level Distribution" :items="levelDist" color="#005caf" />
-      <DistributionBars title="Cost Distribution" :items="costDist" color="#0b346e" />
-    </div>
-
     <!-- Card grid: Units + Pilots/Commands/Bases -->
     <div class="grid gap-4 md:grid-cols-2">
       <!-- Left: Units -->
@@ -122,6 +116,12 @@
         <span class="mr-1 text-xxs">{{ feat.replace(/[〔〕]/g, '') }}:</span>
         <span class="font-mono text-gray-500 dark:text-gray-400">{{ count }}</span>
       </span>
+    </div>
+
+    <!-- Level & Cost Distribution -->
+    <div class="mt-4 grid gap-4 md:grid-cols-2">
+      <DistributionBars title="Level Distribution" :items="levelDist" color="#005caf" />
+      <DistributionBars title="Cost Distribution" :items="costDist" color="#0b346e" />
     </div>
 
     <!-- Other Cards (collapsible) -->
@@ -332,30 +332,36 @@ const otherDeckPreviews = computed(() => deckPreviews.value.filter(d => !d.isWin
 const levelDist = computed(() => {
   const cards = props.archetype.cards ?? []
   const counts = {}
+  const qtySums = {}
   for (const card of cards) {
     const lv = parseInt(card.level)
     if (lv >= 1 && lv <= 9) {
       counts[lv] = (counts[lv] || 0) + 1
+      qtySums[lv] = (qtySums[lv] || 0) + (card.avgQty || 0)
     }
   }
   return Array.from({ length: 9 }, (_, i) => ({
     label: i + 1,
     count: counts[i + 1] || 0,
+    sumAvgQty: Math.round(qtySums[i + 1] || 0),
   }))
 })
 
 const costDist = computed(() => {
   const cards = props.archetype.cards ?? []
   const counts = {}
+  const qtySums = {}
   for (const card of cards) {
     const c = parseInt(card.cost)
     if (c >= 1 && c <= 9) {
       counts[c] = (counts[c] || 0) + 1
+      qtySums[c] = (qtySums[c] || 0) + (card.avgQty || 0)
     }
   }
   return Array.from({ length: 9 }, (_, i) => ({
     label: i + 1,
     count: counts[i + 1] || 0,
+    sumAvgQty: Math.round(qtySums[i + 1] || 0),
   }))
 })
 </script>

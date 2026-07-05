@@ -9,7 +9,7 @@
     </h2>
     <div v-if="items.length">
       <div
-        class="flex items-end gap-4 border-b border-gray-300 pb-px dark:border-gray-600"
+        class="flex items-end gap-2 border-b border-gray-300 pb-px sm:gap-4 dark:border-gray-600"
         :style="{ height: height + 'px' }"
       >
         <div
@@ -23,31 +23,22 @@
           >
             <span
               v-if="bar.count"
-              class="absolute left-1/2 top-0 -translate-x-1/2 -translate-y-full font-mono text-xs text-gray-500 dark:text-nalika-text-muted"
+              class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-full font-mono text-xxs whitespace-nowrap text-gray-500 dark:text-nalika-text-muted"
             >
-              {{ bar.count }}
+              {{ bar.count }}{{ bar.sumAvgQty ? ` (${bar.sumAvgQty})` : '' }}
             </span>
           </div>
         </div>
       </div>
       <div class="flex gap-4 pt-0.5">
-        <div
-          v-for="bar in bars"
-          :key="bar.label"
-          class="flex-1 text-center"
-        >
+        <div v-for="bar in bars" :key="bar.label" class="flex-1 text-center">
           <span class="font-mono text-xs text-gray-600 dark:text-nalika-text-muted">
             {{ bar.label }}
           </span>
         </div>
       </div>
     </div>
-    <p
-      v-else
-      class="py-4 text-center text-sm text-gray-400 dark:text-gray-500"
-    >
-      No data
-    </p>
+    <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
   </div>
 </template>
 
