@@ -1,7 +1,12 @@
 <template>
   <div
-    class="relative rounded border border-gray-500/10 bg-shironezumi/7 p-2 dark:border-nalika-border dark:bg-nalika-surface"
-    :class="{ 'ring-2 ring-yellow-400 dark:ring-yellow-700': card.inWinner }"
+    class="relative rounded bg-shironezumi/7 p-2 dark:bg-nalika-surface"
+    :class="[
+      isNew
+        ? 'border border-green-500 dark:border-green-600'
+        : 'border border-gray-500/10 dark:border-nalika-border',
+      { 'outline-2 outline-offset-1 outline-yellow-400 dark:outline-yellow-700': card.inWinner },
+    ]"
   >
     <div
       v-if="card.inWinner"
@@ -90,43 +95,45 @@
       {{ card.name }}
     </div>
 
-    <div class="mt-2 flex items-center justify-between text-xs">
-      <span class="font-mono font-bold text-gray-600 dark:text-gray-400">
-        {{ (card.inclusionRate * 100).toFixed(1) }}%
-      </span>
-      <div class="flex items-center gap-1">
-        <span
-          class="font-mono text-gray-500 dark:text-nalika-text-muted/90"
-          :title="`Decks included: ${card.decksIncluded}`"
-        >
-          {{ card.decksIncluded }}
+    <template v-if="!isRemoved">
+      <div class="mt-2 flex items-center justify-between text-xs">
+        <span class="font-mono font-bold text-gray-600 dark:text-gray-400">
+          {{ (card.inclusionRate * 100).toFixed(1) }}%
         </span>
-        <span v-if="card.winnerDeckCount" class="text-gray-300 dark:text-gray-500">·</span>
-        <span
-          v-if="card.winnerDeckCount"
-          class="font-mono text-yellow-600 dark:text-yellow-600"
-          :title="`Wins: ${card.winnerDeckCount}`"
-        >
-          {{ card.winnerDeckCount }}
-        </span>
-        <span v-if="card.avgQty" class="text-gray-300 dark:text-gray-500">·</span>
-        <span
-          v-if="card.avgQty"
-          class="font-mono text-indigo-500 dark:text-indigo-400/70"
-          title="Avg copies per deck"
-        >
-          ×{{ card.avgQty }}
-        </span>
+        <div class="flex items-center gap-1">
+          <span
+            class="font-mono text-gray-500 dark:text-nalika-text-muted/90"
+            :title="`Decks included: ${card.decksIncluded}`"
+          >
+            {{ card.decksIncluded }}
+          </span>
+          <span v-if="card.winnerDeckCount" class="text-gray-300 dark:text-gray-500">·</span>
+          <span
+            v-if="card.winnerDeckCount"
+            class="font-mono text-yellow-600 dark:text-yellow-600"
+            :title="`Wins: ${card.winnerDeckCount}`"
+          >
+            {{ card.winnerDeckCount }}
+          </span>
+          <span v-if="card.avgQty" class="text-gray-300 dark:text-gray-500">·</span>
+          <span
+            v-if="card.avgQty"
+            class="font-mono text-indigo-500 dark:text-indigo-400/70"
+            title="Avg copies per deck"
+          >
+            ×{{ card.avgQty }}
+          </span>
+        </div>
       </div>
-    </div>
 
-    <div class="mt-1 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
-      <div
-        class="h-full rounded-full transition-all"
-        :class="barColorClass"
-        :style="{ width: `${Math.min(card.inclusionRate * 100, 100)}%` }"
-      />
-    </div>
+      <div class="mt-1 h-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
+        <div
+          class="h-full rounded-full transition-all"
+          :class="barColorClass"
+          :style="{ width: `${Math.min(card.inclusionRate * 100, 100)}%` }"
+        />
+      </div>
+    </template>
 
     <Teleport to="body">
       <div
@@ -156,6 +163,8 @@
 const props = defineProps({
   card: { type: Object, required: true },
   isSig: { type: Boolean, default: false },
+  isNew: { type: Boolean, default: false },
+  isRemoved: { type: Boolean, default: false },
 })
 
 const enlarged = ref(false)

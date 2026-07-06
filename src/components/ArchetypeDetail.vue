@@ -42,6 +42,7 @@
               :key="card.cardId"
               :card="card"
               :is-sig="sigCardIds.has(card.cardId)"
+              :is-new="isNewCard(card.cardId)"
             />
           </div>
           <p v-if="!coreUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
@@ -56,6 +57,7 @@
               :key="card.cardId"
               :card="card"
               :is-sig="sigCardIds.has(card.cardId)"
+              :is-new="isNewCard(card.cardId)"
             />
           </div>
           <p v-if="!otherUnits.length" class="text-xs text-gray-400 dark:text-gray-500">No cards</p>
@@ -74,6 +76,7 @@
               :key="card.cardId"
               :card="card"
               :is-sig="sigCardIds.has(card.cardId)"
+              :is-new="isNewCard(card.cardId)"
             />
           </div>
         </div>
@@ -87,6 +90,7 @@
               :key="card.cardId"
               :card="card"
               :is-sig="sigCardIds.has(card.cardId)"
+              :is-new="isNewCard(card.cardId)"
             />
           </div>
         </div>
@@ -100,6 +104,7 @@
               :key="card.cardId"
               :card="card"
               :is-sig="sigCardIds.has(card.cardId)"
+              :is-new="isNewCard(card.cardId)"
             />
           </div>
         </div>
@@ -143,6 +148,32 @@
               :key="card.cardId"
               :card="card"
               :is-sig="sigCardIds.has(card.cardId)"
+              :is-new="isNewCard(card.cardId)"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Removed Cards (collapsible) -->
+    <div v-if="removedCards.length" ref="removedSection" class="mt-4 scroll-mt-14">
+      <button
+        class="font-medium text-ruri underline-offset-5 hover:underline focus:outline-none"
+        @click="toggleRemoved"
+      >
+        Removed Cards ({{ removedCards.length }}) {{ showRemoved ? '−' : '+' }}
+      </button>
+      <div v-if="showRemoved" class="mt-2 space-y-4">
+        <div v-for="[type, cards] in removedGrouped" :key="type">
+          <h5 class="mb-2 text-lg font-semibold tracking-wider text-gray-600 dark:text-nalika-text">
+            {{ typeLabel[type] || type }}
+          </h5>
+          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
+            <ArchetypeCardItem
+              v-for="card in cards"
+              :key="card.cardId"
+              :card="card"
+              is-removed
             />
           </div>
         </div>
@@ -222,11 +253,16 @@
 <script setup>
 const props = defineProps({
   archetype: { type: Object, required: true },
+  prevCardIds: { type: Set, default: null },
+  removedCards: { type: Array, default: () => [] },
 })
 
-const { showOther, showDeckUrls } = useCollapseState()
+const isNewCard = cardId => props.prevCardIds?.size > 0 && !props.prevCardIds.has(cardId)
+
+const { showOther, showDeckUrls, showRemoved } = useCollapseState()
 const otherCardsSection = ref(null)
 const deckUrlsSection = ref(null)
+const removedSection = ref(null)
 
 function toggleOther() {
   showOther.value = !showOther.value
@@ -239,6 +275,13 @@ function toggleDeckUrls() {
   showDeckUrls.value = !showDeckUrls.value
   if (showDeckUrls.value) {
     nextTick(() => deckUrlsSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+  }
+}
+
+function toggleRemoved() {
+  showRemoved.value = !showRemoved.value
+  if (showRemoved.value) {
+    nextTick(() => removedSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
   }
 }
 
@@ -311,6 +354,17 @@ const filteredCards = computed(() => props.archetype.filteredCards || [])
 const filteredByType = computed(() => {
   const byType = {}
   for (const card of filteredCards.value) {
+    if (!byType[card.type]) {
+      byType[card.type] = []
+    }
+    byType[card.type].push(card)
+  }
+  return Object.entries(byType)
+})
+
+const removedGrouped = computed(() => {
+  const byType = {}
+  for (const card of props.removedCards) {
     if (!byType[card.type]) {
       byType[card.type] = []
     }

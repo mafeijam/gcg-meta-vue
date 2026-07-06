@@ -24,11 +24,11 @@
           <span
             class="text-xs font-medium"
             :class="
-              m.format(m.current) === m.format(m.previous) || m.diff > 0
-                ? 'text-green-600 dark:text-green-500'
-                : m.diff < 0
-                  ? 'text-red-600 dark:text-red-500'
-                  : 'text-gray-500 dark:text-gray-400'
+              m.format(m.current) === m.format(m.previous)
+                ? 'text-gray-500 dark:text-gray-400'
+                : m.diff > 0
+                  ? 'text-green-600 dark:text-green-500'
+                  : 'text-red-600 dark:text-red-500'
             "
           >
             <template v-if="m.format(m.current) === m.format(m.previous)">same</template>
@@ -53,7 +53,7 @@
           >
             was {{ cardStateComparison.topColor.previous || '—' }}
           </span>
-          <span v-else class="text-xs text-green-600 dark:text-green-500">same</span>
+          <span v-else class="text-xs text-gray-500 dark:text-gray-400">same</span>
         </div>
       </div>
     </div>

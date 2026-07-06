@@ -7,9 +7,17 @@
     >
       Archetype Timeline
     </h2>
-    <div v-if="timeline.length > 1" class="overflow-x-auto">
-      <table class="w-full text-xs">
-        <thead>
+    <div v-if="timeline.length > 1">
+      <table class="w-full table-fixed text-xs grid sm:table">
+        <colgroup class="hidden sm:table-column-group">
+          <col />
+          <col class="w-[60px]" />
+          <col class="w-[60px]" />
+          <col class="w-[60px]" />
+          <col class="w-[60px]" />
+          <col class="w-[60px]" />
+        </colgroup>
+        <thead class="hidden sm:table-header-group">
           <tr class="border-b border-gray-200 text-left dark:border-gray-700">
             <th class="pr-3 pb-2 font-semibold text-gray-500 dark:text-gray-400">Series</th>
             <th class="pr-3 pb-2 font-semibold text-gray-500 dark:text-gray-400">Tier</th>
@@ -25,23 +33,20 @@
             <th class="pb-2 text-right font-semibold text-gray-500 dark:text-gray-400">Use %</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody class="contents sm:table-row-group">
           <tr
             v-for="entry in timeline"
             :key="entry.seriesKey"
-            class="border-b border-gray-100 dark:border-gray-800"
+            class="grid grid-cols-4 gap-1 mb-2 rounded p-2 sm:table-row sm:gap-0 sm:mb-0 sm:p-0 sm:rounded-none"
             :class="[
               entry.isCurrent
                 ? 'bg-primary/5 dark:bg-primary/10'
-                : 'cursor-pointer hover:bg-gray-50 dark:hover:bg-white/[0.03]',
+                : 'cursor-pointer bg-gray-50/50 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.05] sm:bg-transparent sm:cursor-pointer sm:hover:bg-gray-50 sm:dark:hover:bg-white/[0.03]',
             ]"
             @click="goToEntry(entry)"
           >
-            <td class="py-2 pr-3 dark:text-nalika-text">
+            <td class="col-span-4 py-2 pr-3 dark:text-nalika-text sm:col-span-1">
               <span class="font-medium">{{ entry.label }}</span>
-              <span v-if="entry.isCurrent" class="ml-1.5 text-xxs text-primary dark:text-sora">
-                (current)
-              </span>
             </td>
             <td class="py-2 pr-3">
               <span
@@ -51,13 +56,13 @@
                 {{ entry.tier }}
               </span>
             </td>
-            <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text">
+            <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text sm:pr-3">
               {{ entry.cardCount }}
             </td>
-            <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text">
+            <td class="hidden py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text sm:table-cell">
               {{ entry.winnerDeckCount }}
             </td>
-            <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text">
+            <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text sm:pr-3">
               {{ entry.deckCount }}
             </td>
             <td class="py-2 text-right font-mono text-gray-700 dark:text-nalika-text">

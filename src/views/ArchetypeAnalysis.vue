@@ -41,7 +41,7 @@
           :current-series-key="seriesKey"
           @navigate="onTimelineNavigate"
         />
-        <ArchetypeDetail :key="`${seriesKey}-${archKey}`" :archetype="selectedArchetype" />
+        <ArchetypeDetail :key="`${seriesKey}-${archKey}`" :archetype="selectedArchetype" :prev-card-ids="prevCardIds" :removed-cards="removedCards" />
       </template>
       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Select a series and archetype</p>
     </template>
@@ -102,6 +102,51 @@ const archKey = ref(archInitial)
 let suppressArchReset = false
 const selectedArchetype = ref(null)
 const loading = ref(false)
+const prevCardIds = ref(null)
+const prevCards = ref(null)
+
+async function loadPrevArchetype(seriesVal, combo) {
+  prevCardIds.value = null
+  prevCards.value = null
+  const idx = manifest.findIndex(s => s.value === seriesVal)
+  if (idx >= manifest.length - 1) {
+    return
+  }
+  const prevEntry = manifest[idx + 1]
+  if (!prevEntry) {
+    return
+  }
+  const prevArch = prevEntry.archetypes.find(a => a.combo === combo)
+  if (!prevArch) {
+    return
+  }
+  const prevIdx = prevEntry.archetypes.indexOf(prevArch)
+  const path = `/data-processed/archetypes/${prevEntry.value}/${prevIdx}.json`
+  try {
+    const mod = await archModules[path]?.()
+    const data = mod?.default ?? null
+    if (!data) {
+      return
+    }
+    const all = [...(data.cards ?? []), ...(data.filteredCards ?? [])]
+    prevCardIds.value = new Set(all.map(c => c.cardId))
+    prevCards.value = all
+  } catch {
+    // previous series not available
+  }
+}
+
+const removedCards = computed(() => {
+  if (!prevCards.value || !selectedArchetype.value) {
+    return []
+  }
+  const currentCards = [
+    ...(selectedArchetype.value.cards ?? []),
+    ...(selectedArchetype.value.filteredCards ?? []),
+  ]
+  const currentIds = new Set(currentCards.map(c => c.cardId))
+  return prevCards.value.filter(c => !currentIds.has(c.cardId))
+})
 
 function onTimelineNavigate({ seriesKey: s, archIndex }) {
   suppressArchReset = true
@@ -122,6 +167,9 @@ async function loadArchetype(seriesVal, archIdx) {
     const mod = await archModules[path]?.()
     clearTimeout(loadingTimeout)
     selectedArchetype.value = mod?.default ?? null
+    if (selectedArchetype.value) {
+      await loadPrevArchetype(seriesVal, selectedArchetype.value.combo)
+    }
   } catch {
     clearTimeout(loadingTimeout)
     selectedArchetype.value = null
