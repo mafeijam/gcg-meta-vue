@@ -46,7 +46,7 @@
             <span
               class="w-14 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
             >
-              {{ mode === 'colors' ? item.decks : `${item.winRate.toFixed(1)}%` }}
+              {{ mode === 'colors' ? `${item.rate.toFixed(1)}%` : `${item.winRate.toFixed(1)}%` }}
             </span>
           </div>
         </div>

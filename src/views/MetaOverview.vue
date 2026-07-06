@@ -418,9 +418,11 @@ const allColorDist = computed(() => {
   }
   const items = Object.values(map).sort((a, b) => b.decks - a.decks)
   const maxDecks = items[0]?.decks || 1
+  const totalDecks = items.reduce((sum, item) => sum + item.decks, 0)
   return items.map(item => ({
     ...item,
     percent: (item.decks / maxDecks) * 100,
+    rate: totalDecks > 0 ? (item.decks / totalDecks) * 100 : 0,
     barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
   }))
 })

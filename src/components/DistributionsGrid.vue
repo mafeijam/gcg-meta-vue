@@ -73,7 +73,7 @@
           <span
             class="w-12 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
           >
-            {{ item.decks }}
+            {{ item.rate.toFixed(1) }}%
           </span>
         </div>
       </div>
