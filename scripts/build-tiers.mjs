@@ -6,6 +6,15 @@ function loadJSON(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
 }
 
+function addDays(dateStr, days) {
+  if (!dateStr) {
+    return dateStr
+  }
+  const d = new Date(dateStr)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
+
 // ── Card lookups ─────────────────────────────────────────────────────────────
 
 // Builds cardId→info map, name→color lookup, and vanilla grouping key.
@@ -95,7 +104,7 @@ function buildCardState(mainDetails, eventMaxDate) {
       !c.id.includes('_p') &&
       TYPE_PICK_ORDER.includes(c.type) &&
       c.releaseDate &&
-      c.releaseDate <= eventMaxDate,
+      addDays(c.releaseDate, 7) <= eventMaxDate,
   ).length
 
   return {
@@ -541,6 +550,7 @@ function buildArchetypeDetails(comboArchetypes, winnersByCombo, top4ByCombo, tot
         inclusionRate: +(cardData.decksIncluded / count).toFixed(4),
         winnerDeckCount: winnerCounts[cardId] || 0,
         avgQty: Math.round(cardData.totalQty / cardData.decksIncluded),
+        totalQty: cardData.totalQty,
         inWinner: false,
         techScore: calculateTechScore(
           winnerCounts[cardId] || 0,
@@ -636,6 +646,67 @@ function processSeries(series) {
     const file = `${seriesDir}/${idx}.json`
     writeFileSync(file, JSON.stringify(arch, null, 2))
   }
+
+  // Pre-aggregated card data for MetaOverview (eliminates 73 runtime imports)
+  const cardMap = {}
+  const sigCardCounts = {}
+  for (const arch of mainDetails) {
+    for (const card of arch.cards) {
+      const c = cardMap[card.cardId]
+      if (c) {
+        c.totalDecksIncluded += card.decksIncluded
+        c.totalWinnerDecks += card.winnerDeckCount
+        c.totalQty += card.totalQty
+        c.archetypeCount += 1
+      } else {
+        const info = lookup(card.cardId)
+        cardMap[card.cardId] = {
+          cardId: card.cardId,
+          name: card.name,
+          color: card.color,
+          type: card.type,
+          rarity: card.rarity,
+          cost: info.cost,
+          level: info.level,
+          totalDecksIncluded: card.decksIncluded,
+          totalWinnerDecks: card.winnerDeckCount,
+          totalQty: card.totalQty,
+          archetypeCount: 1,
+        }
+      }
+    }
+    for (const sigId of arch.sigCardIds ?? []) {
+      sigCardCounts[sigId] = (sigCardCounts[sigId] || 0) + 1
+    }
+  }
+
+  const cards = Object.values(cardMap)
+  for (const card of cards) {
+    card.avgQty = Math.round(card.totalQty / card.totalDecksIncluded)
+  }
+  const sigCards = Object.entries(sigCardCounts)
+    .map(([cardId, count]) => {
+      const info = cardMap[cardId] || {}
+      return {
+        cardId,
+        name: info.name || '?',
+        color: info.color || 'inherit',
+        rarity: info.rarity || '',
+        archetypeCount: count,
+        avgQty: info.avgQty || 0,
+      }
+    })
+    .sort((a, b) => b.archetypeCount - a.archetypeCount)
+
+  const aggregatedCards = {
+    cards,
+    topPlayed: [...cards].sort((a, b) => b.totalDecksIncluded - a.totalDecksIncluded).slice(0, 10),
+    topWinner: [...cards].sort((a, b) => b.totalWinnerDecks - a.totalWinnerDecks).slice(0, 10),
+    topSigCards: sigCards.slice(0, 10),
+    sigCards,
+  }
+
+  writeFileSync(`${seriesDir}/_cards.json`, JSON.stringify(aggregatedCards, null, 2))
 
   // Compute tier scores and thresholds
   const seriesProcessed = {

@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto max-w-340 p-3 pb-8 md:p-8">
+  <div class="mx-auto max-w-340 p-3 max-sm:pb-6 md:p-8">
     <SeriesHeader
       title="Archetype Analysis"
       :visible="!!currentSeriesData"
@@ -43,8 +43,6 @@
 <script setup>
 import manifest from '$data/archetypes/index.json'
 import tierData from '$data/tiers.json'
-import archModules from '@/utils/archModules'
-
 function comboColors(combo) {
   const baseCombo = (combo ?? '').split(' (')[0]
   return baseCombo

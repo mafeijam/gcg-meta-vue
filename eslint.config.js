@@ -22,6 +22,7 @@ export default [
     rules: {
       'no-unexpected-multiline': 'error',
       curly: ['error', 'all'],
+      semi: ['error', 'never', { beforeStatementContinuationChars: 'never' }],
       'vue/component-name-in-template-casing': [
         'error',
         'PascalCase',
