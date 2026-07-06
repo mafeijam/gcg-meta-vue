@@ -20,37 +20,43 @@
       />
     </div>
 
-    <div class="space-y-3 md:hidden">
-      <MobileTierCard
-        v-for="row in tierRows"
-        :key="row.archetype"
-        :row="row"
-        @detail="openDetail"
-      />
-      <button
-        v-if="zeroWinRows.length"
-        class="w-full cursor-pointer py-2 text-center text-xs font-medium text-ruri"
-        @click="toggleZeroWins"
-      >
-        0 Wins（{{ zeroWinRows.length }}）{{ showZeroWins ? '−' : '+' }}
-      </button>
-      <template v-if="showZeroWins">
+    <div v-if="!tierDataLoaded" class="py-12 text-center text-sm text-gray-400 dark:text-gray-500">
+      Loading…
+    </div>
+
+    <template v-if="tierDataLoaded">
+      <div class="space-y-3 md:hidden">
         <MobileTierCard
-          v-for="row in zeroWinRows"
+          v-for="row in tierRows"
           :key="row.archetype"
           :row="row"
           @detail="openDetail"
         />
-      </template>
-    </div>
+        <button
+          v-if="zeroWinRows.length"
+          class="w-full cursor-pointer py-2 text-center text-xs font-medium text-ruri"
+          @click="toggleZeroWins"
+        >
+          0 Wins（{{ zeroWinRows.length }}）{{ showZeroWins ? '−' : '+' }}
+        </button>
+        <template v-if="showZeroWins">
+          <MobileTierCard
+            v-for="row in zeroWinRows"
+            :key="row.archetype"
+            :row="row"
+            @detail="openDetail"
+          />
+        </template>
+      </div>
 
-    <TierTable
-      :rows="tierRows"
-      :zero-win-rows="zeroWinRows"
-      :show-zero-wins="showZeroWins"
-      @detail="openDetail"
-      @toggle-zero-wins="toggleZeroWins"
-    />
+      <TierTable
+        :rows="tierRows"
+        :zero-win-rows="zeroWinRows"
+        :show-zero-wins="showZeroWins"
+        @detail="openDetail"
+        @toggle-zero-wins="toggleZeroWins"
+      />
+    </template>
 
     <ArchetypeModal
       v-if="detailArch"
@@ -62,29 +68,45 @@
 </template>
 
 <script setup>
-import tierData from '$data/tiers.json'
 import manifest from '$data/archetypes/index.json'
+
 function normalizeName(name) {
   return name.replace(/[（）]/g, c => (c === '（' ? '(' : ')')).replace(/\s*\(/g, '(')
 }
 
 const router = useRouter()
 const route = useRoute()
+const { tierData, tierDataLoaded, loadTierData } = useTierData()
 
-const seriesOptions = tierData.map(s => ({
-  value: s.value,
-  label: s.label,
-}))
+const seriesOptions = computed(() =>
+  tierData.value.map(s => ({
+    value: s.value,
+    label: s.label,
+  })),
+)
 
-const validSeries = tierData.map(s => s.value)
-const initial = validSeries.includes(route.query.series) ? route.query.series : tierData[0]?.value
-const selectedKey = ref(initial ?? '')
+const validSeries = computed(() => tierData.value.map(s => s.value))
+const initial = computed(() => {
+  if (!tierData.value.length) {
+    return ''
+  }
+  return validSeries.value.includes(route.query.series)
+    ? route.query.series
+    : tierData.value[0]?.value
+})
+const selectedKey = ref(initial.value ?? '')
 
 watch(selectedKey, val => {
   router.replace({ query: { series: val } })
 })
 
-const currentSeries = computed(() => tierData.find(s => s.value === selectedKey.value))
+watch(tierDataLoaded, val => {
+  if (val && !selectedKey.value && tierData.value.length) {
+    selectedKey.value = tierData.value[0].value
+  }
+})
+
+const currentSeries = computed(() => tierData.value.find(s => s.value === selectedKey.value))
 
 const { hideFilter } = useScrollHide()
 
@@ -126,4 +148,6 @@ async function openDetail(row) {
   detailArch.value = mod?.default ?? null
   detailTier.value = row.tier ?? null
 }
+
+onMounted(() => loadTierData())
 </script>

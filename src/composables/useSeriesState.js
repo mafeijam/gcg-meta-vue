@@ -1,23 +1,31 @@
-import tierData from '$data/tiers.json'
-
 export function useSeriesState() {
   const router = useRouter()
   const route = useRoute()
+  const { tierData } = useTierData()
 
-  const seriesOptions = tierData.map(s => ({
-    value: s.value,
-    label: s.label,
-  }))
+  const seriesOptions = computed(() =>
+    tierData.value.map(s => ({
+      value: s.value,
+      label: s.label,
+    })),
+  )
 
-  const validSeries = tierData.map(s => s.value)
-  const initial = validSeries.includes(route.query.series) ? route.query.series : tierData[0]?.value
-  const selectedKey = ref(initial ?? '')
+  const validSeries = computed(() => tierData.value.map(s => s.value))
+  const initial = computed(() => {
+    if (!tierData.value.length) {
+      return ''
+    }
+    return validSeries.value.includes(route.query.series)
+      ? route.query.series
+      : tierData.value[0]?.value
+  })
+  const selectedKey = ref(initial.value ?? '')
 
   watch(selectedKey, val => {
     router.replace({ query: { series: val } })
   })
 
-  const currentSeries = computed(() => tierData.find(s => s.value === selectedKey.value))
+  const currentSeries = computed(() => tierData.value.find(s => s.value === selectedKey.value))
   const totalSeriesDecks = computed(() => currentSeries.value?.totalDecks ?? 0)
   const totalSeriesWinnerDecks = computed(() => currentSeries.value?.winDecks ?? 0)
 
@@ -29,7 +37,7 @@ export function useSeriesState() {
     if (!current?.eventMinDate) {
       return null
     }
-    const candidates = tierData.filter(
+    const candidates = tierData.value.filter(
       s => s.value !== current.value && s.eventMaxDate && s.eventMaxDate < current.eventMinDate,
     )
     candidates.sort((a, b) => b.eventMaxDate.localeCompare(a.eventMaxDate))

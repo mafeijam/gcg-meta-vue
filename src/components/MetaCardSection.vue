@@ -21,6 +21,7 @@
       <MetaCardItem
         v-for="card in cards"
         :key="card.cardId"
+        v-memo="[card]"
         :card="card"
         @toggle-enlarge="$emit('toggle-enlarge', $event)"
       >

@@ -50,14 +50,18 @@
           v-for="item in group.items"
           :key="item.name"
           class="rounded-full border px-2 py-0.5 text-xs font-medium"
-          :class="item.isNew
-            ? 'border-green-400 bg-green-50 text-green-700 ring-1 ring-green-400 dark:border-green-500 dark:bg-green-900/20 dark:text-green-300'
-            : 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300'
+          :class="
+            item.isNew
+              ? 'border-green-400 bg-green-50 text-green-700 ring-1 ring-green-400 dark:border-green-500 dark:bg-green-900/20 dark:text-green-300'
+              : 'border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300'
           "
         >
           <span class="mr-1 text-xxs">{{ item.name }}:</span>
           <span class="font-mono font-bold">{{ item.count }}</span>
-          <span v-if="item.isNew" class="ml-1 text-xxs font-semibold text-green-600 dark:text-green-400">
+          <span
+            v-if="item.isNew"
+            class="ml-1 text-xxs font-semibold text-green-600 dark:text-green-400"
+          >
             NEW
           </span>
         </span>

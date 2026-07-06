@@ -306,6 +306,11 @@
 <script setup>
 import { useStorage } from '@vueuse/core'
 
+const ArchetypeQuadrantChart = defineAsyncComponent(
+  () => import('@/components/ArchetypeQuadrantChart.vue'),
+)
+const CardQuadrantChart = defineAsyncComponent(() => import('@/components/CardQuadrantChart.vue'))
+
 const {
   seriesOptions,
   selectedKey,
@@ -400,24 +405,6 @@ const tierDist = computed(() => {
 })
 
 // ── Color distribution ──
-const colorDist = computed(() => {
-  const map = {}
-  for (const row of allRows.value) {
-    const key = row.colors
-    if (!map[key]) {
-      map[key] = { colors: key, colorDots: row.colorDots, decks: 0 }
-    }
-    map[key].decks += row.decks
-  }
-  const items = Object.values(map).sort((a, b) => b.decks - a.decks)
-  const maxDecks = items[0]?.decks || 1
-  return items.slice(0, 6).map(item => ({
-    ...item,
-    percent: (item.decks / maxDecks) * 100,
-    barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
-  }))
-})
-
 const allColorDist = computed(() => {
   const map = {}
   for (const row of allRows.value) {
@@ -435,6 +422,8 @@ const allColorDist = computed(() => {
     barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
   }))
 })
+
+const colorDist = computed(() => allColorDist.value.slice(0, 6))
 
 // ── Series comparison ──
 const previousSeriesRows = computed(() => previousSeries.value?.rows ?? [])
@@ -551,31 +540,6 @@ const cardStateComparison = computed(() => {
 })
 
 // ── Win rate by color combo ──
-const winRateDist = computed(() => {
-  const map = {}
-  for (const row of allRows.value) {
-    const key = row.colors
-    if (!map[key]) {
-      map[key] = { colors: key, colorDots: row.colorDots, decks: 0, wins: 0 }
-    }
-    map[key].decks += row.decks
-    map[key].wins += row.wins
-  }
-  const items = Object.values(map)
-    .map(item => ({
-      ...item,
-      winRate: (item.wins / (currentSeries.value?.events || 1)) * 100,
-    }))
-    .sort((a, b) => b.winRate - a.winRate)
-    .slice(0, 6)
-  const maxWinRate = Math.max(...items.map(i => i.winRate), 1)
-  return items.map(item => ({
-    ...item,
-    barPercent: (item.winRate / maxWinRate) * 100,
-    barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
-  }))
-})
-
 const allWinRateDist = computed(() => {
   const map = {}
   for (const row of allRows.value) {
@@ -599,6 +563,8 @@ const allWinRateDist = computed(() => {
     barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
   }))
 })
+
+const winRateDist = computed(() => allWinRateDist.value.slice(0, 6))
 
 // ── Card aggregation computed ──
 const topCards = computed(() => {

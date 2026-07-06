@@ -35,6 +35,7 @@
         <tr
           v-for="row in rows"
           :key="row.archetype"
+          v-memo="[row]"
           class="group cursor-pointer text-aisumicha odd:bg-gray-100/15 even:bg-gray-100/45 hover:bg-gray-200/50 dark:text-nalika-text-muted dark:odd:bg-gray-100/10 dark:even:bg-white/3 dark:hover:bg-white/15"
           @click="$emit('detail', row)"
         >
@@ -113,6 +114,7 @@
           <tr
             v-for="row in zeroWinRows"
             :key="row.archetype"
+            v-memo="[row]"
             class="group cursor-pointer text-aisumicha odd:bg-gray-100/15 even:bg-gray-100/45 hover:bg-gray-200/50 dark:text-nalika-text-muted dark:odd:bg-gray-100/10 dark:even:bg-white/3 dark:hover:bg-white/15"
             @click="$emit('detail', row)"
           >

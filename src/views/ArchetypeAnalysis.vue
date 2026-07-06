@@ -28,21 +28,26 @@
       </div>
     </div>
 
-    <div v-if="loading" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
+    <div v-if="seriesDataLoading" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
       Loading…
     </div>
-    <ArchetypeDetail
-      v-else-if="selectedArchetype"
-      :key="`${seriesKey}-${archKey}`"
-      :archetype="selectedArchetype"
-    />
-    <p v-else class="text-sm text-gray-400 dark:text-gray-500">Select a series and archetype</p>
+    <template v-else>
+      <div v-if="loading" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
+        Loading…
+      </div>
+      <ArchetypeDetail
+        v-else-if="selectedArchetype"
+        :key="`${seriesKey}-${archKey}`"
+        :archetype="selectedArchetype"
+      />
+      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Select a series and archetype</p>
+    </template>
   </div>
 </template>
 
 <script setup>
 import manifest from '$data/archetypes/index.json'
-import tierData from '$data/tiers.json'
+
 function comboColors(combo) {
   const baseCombo = (combo ?? '').split(' (')[0]
   return baseCombo
@@ -68,7 +73,10 @@ const seriesKey = ref(seriesInitial)
 
 const seriesManifest = computed(() => manifest.find(s => s.value === seriesKey.value))
 
-const currentSeriesData = computed(() => tierData.find(s => s.value === seriesKey.value))
+const { tierData, tierDataLoaded, loadTierData } = useTierData()
+const seriesDataLoading = computed(() => !tierDataLoaded.value)
+
+const currentSeriesData = computed(() => tierData.value.find(s => s.value === seriesKey.value))
 
 const { hideFilter } = useScrollHide(180)
 
@@ -122,5 +130,8 @@ watch([seriesKey, archKey], async ([s, a]) => {
   await loadArchetype(s, a)
 })
 
-onMounted(() => loadArchetype(seriesKey.value, archKey.value))
+onMounted(async () => {
+  await loadTierData()
+  await loadArchetype(seriesKey.value, archKey.value)
+})
 </script>
