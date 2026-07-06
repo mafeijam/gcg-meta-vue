@@ -30,6 +30,7 @@
           v-for="row in tierRows"
           :key="row.archetype"
           :row="row"
+          :detail-loading="detailLoading"
           @detail="openDetail"
         />
         <button
@@ -44,6 +45,7 @@
             v-for="row in zeroWinRows"
             :key="row.archetype"
             :row="row"
+            :detail-loading="detailLoading"
             @detail="openDetail"
           />
         </template>
@@ -53,6 +55,7 @@
         :rows="tierRows"
         :zero-win-rows="zeroWinRows"
         :show-zero-wins="showZeroWins"
+        :detail-loading="detailLoading"
         @detail="openDetail"
         @toggle-zero-wins="toggleZeroWins"
       />
@@ -132,6 +135,9 @@ function closeDetail() {
   detailTier.value = null
 }
 
+const detailLoading = ref(false)
+let loadingTimeout = null
+
 async function openDetail(row) {
   const entry = manifest.find(s => s.value === selectedKey.value)
   if (!entry) {
@@ -144,10 +150,21 @@ async function openDetail(row) {
     return
   }
   const path = `/data-processed/archetypes/${selectedKey.value}/${idx}.json`
-  const mod = await archModules[path]?.()
-  detailArch.value = mod?.default ?? null
-  detailTier.value = row.tier ?? null
+  clearTimeout(loadingTimeout)
+  loadingTimeout = setTimeout(() => { detailLoading.value = true }, 200)
+  try {
+    const mod = await archModules[path]?.()
+    detailArch.value = mod?.default ?? null
+    detailTier.value = row.tier ?? null
+  } catch {
+    // import failed — reset silently
+  } finally {
+    clearTimeout(loadingTimeout)
+    detailLoading.value = false
+  }
 }
+
+onUnmounted(() => clearTimeout(loadingTimeout))
 
 onMounted(() => loadTierData())
 </script>

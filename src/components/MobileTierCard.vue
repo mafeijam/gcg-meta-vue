@@ -19,9 +19,10 @@
       </div>
       <button
         class="shrink-0 rounded px-2 py-1 text-xs font-medium text-sora hover:bg-sora/10 focus:outline-none dark:hover:bg-sora/20"
+        :class="{ 'animate-pulse': detailLoading }"
         @click="$emit('detail', row)"
       >
-        Detail ▶
+        {{ detailLoading ? 'Loading…' : 'Detail ▶' }}
       </button>
     </div>
 
@@ -118,6 +119,7 @@
 <script setup>
 defineProps({
   row: { type: Object, required: true },
+  detailLoading: { type: Boolean, default: false },
 })
 defineEmits(['detail'])
 </script>
