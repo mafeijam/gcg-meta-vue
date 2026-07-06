@@ -328,6 +328,8 @@ const {
   quadrantData,
 } = useSeriesState()
 
+const { loadTierData } = useTierData()
+
 // ── Card aggregation (async) ──
 const aggregationResult = ref(null)
 const loadingCards = ref(false)
@@ -819,13 +821,17 @@ async function loadCardData(seriesKey) {
     aggregationResult.value = null
     return
   }
-  aggregationResult.value = null
   await loadCardMeta()
-  loadingCards.value = true
+  const loadingTimeout = setTimeout(() => {
+    loadingCards.value = true
+    aggregationResult.value = null
+  }, 200)
   try {
     const result = await aggregateCards(seriesKey)
+    clearTimeout(loadingTimeout)
     aggregationResult.value = result
   } catch {
+    clearTimeout(loadingTimeout)
     aggregationResult.value = null
   } finally {
     loadingCards.value = false
@@ -836,5 +842,8 @@ watch(selectedKey, async val => {
   await loadCardData(val)
 })
 
-onMounted(() => loadCardData(selectedKey.value))
+onMounted(async () => {
+  await loadTierData()
+  await loadCardData(selectedKey.value)
+})
 </script>

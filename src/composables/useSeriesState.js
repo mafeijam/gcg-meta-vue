@@ -1,7 +1,7 @@
 export function useSeriesState() {
   const router = useRouter()
   const route = useRoute()
-  const { tierData } = useTierData()
+  const { tierData, tierDataLoaded } = useTierData()
 
   const seriesOptions = computed(() =>
     tierData.value.map(s => ({
@@ -23,6 +23,12 @@ export function useSeriesState() {
 
   watch(selectedKey, val => {
     router.replace({ query: { series: val } })
+  })
+
+  watch(tierDataLoaded, val => {
+    if (val && !selectedKey.value && tierData.value.length) {
+      selectedKey.value = tierData.value[0].value
+    }
   })
 
   const currentSeries = computed(() => tierData.value.find(s => s.value === selectedKey.value))

@@ -22,7 +22,7 @@
     </p>
     <VueApexCharts
       v-else
-      :key="`${props.seriesKey}-${chartMode}-${props.cardTypeChart ?? 'all'}`"
+      :key="`${props.seriesKey}-${chartMode}-${props.cardTypeChart ?? 'all'}-${renderKey}`"
       type="bubble"
       :height="chartHeight"
       width="100%"
@@ -85,6 +85,8 @@ const bubbleRadius = computed(() =>
   winWidth.value < 640 ? { min: 4, max: 12 } : { min: 6, max: 24 },
 )
 
+const renderKey = ref(0)
+
 const parsed = computed(() => {
   const cfg = config.value
   if (!cfg) {
@@ -122,6 +124,12 @@ const parsed = computed(() => {
       return { ...enriched, _x: x, _y: y }
     })
     .filter(Boolean)
+})
+
+watch(parsed, (val) => {
+  if (val.length > 0) {
+    renderKey.value++
+  }
 })
 
 const medX = computed(() => median(parsed.value.map(d => d._x)))
@@ -181,8 +189,8 @@ const chartOptions = computed(() => {
   const labelColor = dark ? '#6b7280' : '#bbb'
   const fontFamily = "'Roboto Mono', 'Noto Sans TC', monospace"
 
-  const fmtX = v => (cfg.xIsPercent ? Math.round(v) + '%' : Math.round(v))
-  const fmtY = v => (cfg.yIsPercent ? Math.round(v) + '%' : Math.round(v))
+  const fmtX = v => Number(v).toFixed(0)
+  const fmtY = v => Number(v).toFixed(0)
 
   function getQuadrantLabels(key) {
     if (key === 'card-impact') {
@@ -225,6 +233,7 @@ const chartOptions = computed(() => {
       min: 0,
       max: xMax.value,
       tickAmount: 5,
+      forceNiceScale: true,
       title: {
         text: cfg.xLabel,
         style: { fontSize: '12px', color: textColor, fontFamily, cssClass: 'tracking-wider' },
@@ -238,6 +247,7 @@ const chartOptions = computed(() => {
       min: 0,
       max: yMax.value,
       tickAmount: 5,
+      forceNiceScale: true,
       title: {
         text: cfg.yLabel,
         style: { fontSize: '12px', color: textColor, fontFamily, cssClass: 'tracking-wider' },

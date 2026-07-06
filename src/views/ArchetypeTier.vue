@@ -151,7 +151,9 @@ async function openDetail(row) {
   }
   const path = `/data-processed/archetypes/${selectedKey.value}/${idx}.json`
   clearTimeout(loadingTimeout)
-  loadingTimeout = setTimeout(() => { detailLoading.value = true }, 200)
+  loadingTimeout = setTimeout(() => {
+    detailLoading.value = true
+  }, 200)
   try {
     const mod = await archModules[path]?.()
     detailArch.value = mod?.default ?? null

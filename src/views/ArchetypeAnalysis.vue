@@ -35,11 +35,14 @@
       <div v-if="loading" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
         Loading…
       </div>
-      <ArchetypeDetail
-        v-else-if="selectedArchetype"
-        :key="`${seriesKey}-${archKey}`"
-        :archetype="selectedArchetype"
-      />
+      <template v-if="selectedArchetype">
+        <ArchetypeTimeline
+          :combo="selectedArchetype.combo"
+          :current-series-key="seriesKey"
+          @navigate="onTimelineNavigate"
+        />
+        <ArchetypeDetail :key="`${seriesKey}-${archKey}`" :archetype="selectedArchetype" />
+      </template>
       <p v-else class="text-sm text-gray-400 dark:text-gray-500">Select a series and archetype</p>
     </template>
   </div>
@@ -96,20 +99,31 @@ const validArchKeys = computed(() => archOptions.value.map(o => o.value))
 const archInitial = validArchKeys.value.includes(route.query.arch) ? route.query.arch : '0'
 const archKey = ref(archInitial)
 
+let suppressArchReset = false
 const selectedArchetype = ref(null)
 const loading = ref(false)
+
+function onTimelineNavigate({ seriesKey: s, archIndex }) {
+  suppressArchReset = true
+  seriesKey.value = s
+  archKey.value = archIndex
+}
 
 async function loadArchetype(seriesVal, archIdx) {
   if (!seriesVal || archIdx === '' || archIdx === undefined) {
     selectedArchetype.value = null
     return
   }
-  loading.value = true
+  const loadingTimeout = setTimeout(() => {
+    loading.value = true
+  }, 200)
   try {
     const path = `/data-processed/archetypes/${seriesVal}/${archIdx}.json`
     const mod = await archModules[path]?.()
+    clearTimeout(loadingTimeout)
     selectedArchetype.value = mod?.default ?? null
   } catch {
+    clearTimeout(loadingTimeout)
     selectedArchetype.value = null
   } finally {
     loading.value = false
@@ -121,6 +135,10 @@ watch(archKey, val => {
 })
 
 watch(seriesKey, val => {
+  if (suppressArchReset) {
+    suppressArchReset = false
+    return
+  }
   const newArch = archOptions.value.length ? '0' : ''
   archKey.value = newArch
   router.replace({ query: { series: val, arch: newArch } })
