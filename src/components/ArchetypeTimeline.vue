@@ -288,7 +288,7 @@ function diffClass(diff) {
 
 function diffText(diff, isPercent = false) {
   if (diff === 0) {
-    return 'same'
+    return '-'
   }
   const arrow = diff > 0 ? '▲' : '▼'
   const sign = diff > 0 ? '+' : ''

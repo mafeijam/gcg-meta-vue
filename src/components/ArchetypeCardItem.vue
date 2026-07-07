@@ -78,7 +78,7 @@
     </div>
 
     <div
-      class="group relative mt-1.5 aspect-[3/2] overflow-hidden rounded"
+      class="group relative mt-1.5 aspect-[20/11] overflow-hidden rounded"
       @click="enlarged = true"
     >
       <img
