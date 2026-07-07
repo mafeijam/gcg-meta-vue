@@ -25,7 +25,7 @@
     </div>
 
     <template v-if="tierDataLoaded">
-      <SigPieChart :rows="allRows" class="mb-6 md:mb-2" />
+      <SigPieChart :rows="allRows" :series-decks="currentSeries?.totalDecks ?? 0" class="mb-6 md:mb-2" />
       <div class="space-y-3 md:hidden">
         <MobileTierCard
           v-for="row in tierRows"

@@ -30,9 +30,9 @@
               />
             </div>
             <span
-              class="w-6 shrink-0 text-center text-xs font-medium text-aisumicha dark:text-nalika-text"
+              class="w-7 shrink-0 text-center text-xs font-medium text-aisumicha dark:text-nalika-text"
             >
-              {{ item.colorDots.map(d => d.name[0]).join('') }}
+              {{ item.isOther ? item.abbr : item.colorDots.map(d => d.name[0]).join('') }}
             </span>
             <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
               <div

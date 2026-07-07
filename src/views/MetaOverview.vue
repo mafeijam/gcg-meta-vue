@@ -335,6 +335,19 @@ const allColorDist = computed(() => {
     map[key].decks += row.decks
   }
   const items = Object.values(map).sort((a, b) => b.decks - a.decks)
+
+  // Add "Other" for unassigned decks (no signature LR card, or filtered out)
+  const otherDecks = totalSeriesDecks.value - items.reduce((s, i) => s + i.decks, 0)
+  if (otherDecks > 0) {
+    items.push({
+      colors: 'Other',
+      abbr: 'OTH',
+      colorDots: [{ name: 'Other', hex: '#6b7280' }, { name: 'Other', hex: '#6b7280' }],
+      decks: otherDecks,
+      isOther: true,
+    })
+  }
+
   const maxDecks = items[0]?.decks || 1
   const totalDecks = items.reduce((sum, item) => sum + item.decks, 0)
   return items.map(item => ({
@@ -345,7 +358,7 @@ const allColorDist = computed(() => {
   }))
 })
 
-const colorDist = computed(() => allColorDist.value.slice(0, 6))
+const colorDist = computed(() => allColorDist.value.filter(i => !i.isOther).slice(0, 6))
 
 // ── Series comparison ──
 const previousSeriesRows = computed(() => previousSeries.value?.rows ?? [])
@@ -478,6 +491,22 @@ const allWinRateDist = computed(() => {
       winRate: (item.wins / (currentSeries.value?.events || 1)) * 100,
     }))
     .sort((a, b) => b.winRate - a.winRate)
+
+  // Add "Other" for unassigned winners
+  const sumWins = items.reduce((s, i) => s + i.wins, 0)
+  const otherWins = totalSeriesWinnerDecks.value - sumWins
+  if (otherWins > 0) {
+    items.push({
+      colors: 'Other',
+      abbr: 'OTH',
+      colorDots: [{ name: 'Other', hex: '#6b7280' }, { name: 'Other', hex: '#6b7280' }],
+      decks: 0,
+      wins: otherWins,
+      winRate: (otherWins / (currentSeries.value?.events || 1)) * 100,
+      isOther: true,
+    })
+  }
+
   const maxWinRate = Math.max(...items.map(i => i.winRate), 1)
   return items.map(item => ({
     ...item,
