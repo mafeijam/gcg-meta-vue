@@ -23,8 +23,8 @@
           :href="s.imgUrl"
           :x="s.imgX"
           :y="s.imgY"
-          :width="SIZE"
-          :height="SIZE"
+          :width="SIZE * s.imgScale"
+          :height="SIZE * s.imgScale"
           :clip-path="`url(#${uid}-clip-${i})`"
           preserveAspectRatio="xMidYMid slice"
         />
@@ -74,6 +74,7 @@ const CX = 120
 const CY = 120
 const OUTER_R = 100
 const SIZE = 240
+const IMG_SCALE = 0.8
 const uid = `pie-${Math.random().toString(36).slice(2, 8)}`
 const hovered = ref(null)
 
@@ -140,18 +141,30 @@ const chartSlices = computed(() => {
       const midAngle = (currentAngle + endAngle) / 2
       const imageCenterDistance = OUTER_R * 0.35
       const cropShift =
-        15 + // baseline — all slices shift at least 15px outward
+        10 + // baseline — all slices shift at least 15px outward
         20 * (0.5 - 0.5 * Math.cos(midAngle)) + // horizontal: left=+25, center=+12.5, right=0
         15 * Math.sin(midAngle) * Math.max(0, Math.cos(midAngle)) // bottom-right only: up to +15
       // Totals: Left=40, Top=15, Right=15, Bottom=27
       // Bottom-right=44, Bottom-left=36, Top-left=28, Top-right=10
       const extraX =
-        -150 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift left
-        -90 * Math.max(0, -Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-left: shift left
-      imgX = CX + (imageCenterDistance + cropShift) * Math.cos(midAngle) - SIZE / 2.25 + extraX
-      const extraY = -50 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-right: shift up
-      imgY = CY + (imageCenterDistance + cropShift) * Math.sin(midAngle) - SIZE / 2.5 + extraY
-      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=600&fit=crop&ar=3:2&crop=faces&fp-x=0.5&fp-y=0.015`
+        -100 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift left
+        -80 * Math.max(0, -Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-left: shift left
+      imgX =
+        CX +
+        (imageCenterDistance + cropShift) * Math.cos(midAngle) -
+        SIZE / 2 +
+        extraX +
+        (SIZE * (1 - IMG_SCALE)) / 2
+      const extraY =
+        -50 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift up
+        25 * Math.max(0, -Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-left: shift down
+      imgY =
+        CY +
+        (imageCenterDistance + cropShift) * Math.sin(midAngle) -
+        SIZE / 2 +
+        extraY +
+        (SIZE * (1 - IMG_SCALE)) / 2
+      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=600&fit=crop&ar=3:2&crop=faces&fp-x=0.5&fp-y=0.05`
     }
     const slice = {
       path,
@@ -165,6 +178,7 @@ const chartSlices = computed(() => {
       startAngle: currentAngle,
       endAngle,
       showImage: !!imgUrl && sweep > MIN_SWEEP,
+      imgScale: IMG_SCALE,
     }
     currentAngle = endAngle
     return slice
