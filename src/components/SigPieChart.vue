@@ -138,14 +138,10 @@ const chartSlices = computed(() => {
     const sigCardId = isOther ? 'EXRP-002' : (g.topRow?.sigCardIds?.[0] ?? null)
     if (sigCardId) {
       const midAngle = (currentAngle + endAngle) / 2
-      const halfSweep = sweep / 2
-      const centroidDistance =
-        halfSweep > 0 ? ((2 / 3) * OUTER_R * Math.sin(halfSweep)) / halfSweep : 0
-      const centroidX = CX + centroidDistance * Math.cos(midAngle)
-      const centroidY = CY + centroidDistance * Math.sin(midAngle)
-      imgX = centroidX - SIZE / 2
-      imgY = centroidY - SIZE / 2
-      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=800&fit=crop&ar=3:2&crop=focalpoint&fp-x=0.5&fp-y=0.05`
+      const imageCenterDistance = OUTER_R * 0.35
+      imgX = CX + imageCenterDistance * Math.cos(midAngle) - SIZE / 2.25
+      imgY = CY + imageCenterDistance * Math.sin(midAngle) - SIZE / 2.5
+      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=600&fit=crop&ar=3:2&crop=faces&fp-x=0.5&fp-y=0.015`
     }
     const slice = {
       path,

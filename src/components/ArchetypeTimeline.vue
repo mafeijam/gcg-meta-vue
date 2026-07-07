@@ -45,10 +45,10 @@
             ]"
             @click="goToEntry(entry)"
           >
-            <td class="col-span-4 py-2 pr-3 sm:col-span-1 dark:text-nalika-text">
+            <td class="col-span-4 pr-3 sm:col-span-1 md:py-2 dark:text-nalika-text">
               <span class="font-medium">{{ entry.label }}</span>
             </td>
-            <td class="py-2 pr-3">
+            <td class="pt-1.5 pr-3 md:py-2">
               <span
                 class="inline-block w-10 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
                 :class="tierPillClass(entry.tier)"
@@ -56,18 +56,22 @@
                 {{ entry.tier }}
               </span>
             </td>
-            <td class="py-2 pr-3 text-right font-mono text-gray-700 sm:pr-3 dark:text-nalika-text">
+            <td
+              class="pt-1.5 pr-3 text-right font-mono text-gray-700 sm:pr-3 md:py-2 dark:text-nalika-text"
+            >
               {{ entry.cardCount }}
             </td>
             <td
-              class="hidden py-2 pr-3 text-right font-mono text-gray-700 sm:table-cell dark:text-nalika-text"
+              class="hidden pt-1.5 pr-3 text-right font-mono text-gray-700 sm:table-cell md:py-2 dark:text-nalika-text"
             >
               {{ entry.winnerDeckCount }}
             </td>
-            <td class="py-2 pr-3 text-right font-mono text-gray-700 sm:pr-3 dark:text-nalika-text">
+            <td
+              class="pt-1.5 pr-3 text-right font-mono text-gray-700 sm:pr-3 md:py-2 dark:text-nalika-text"
+            >
               {{ entry.deckCount }}
             </td>
-            <td class="py-2 text-right font-mono text-gray-700 dark:text-nalika-text">
+            <td class="pt-1.5 text-right font-mono text-gray-700 md:py-2 dark:text-nalika-text">
               {{ entry.percent }}%
             </td>
           </tr>
