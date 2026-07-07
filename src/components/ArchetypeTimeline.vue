@@ -10,31 +10,41 @@
     <div v-if="timeline.length > 1">
       <div class="hidden sm:block">
         <table class="w-full table-fixed text-xs">
-          <colgroup class="table-column-group">
+          <colgroup>
             <col />
             <col class="w-[60px]" />
-            <col class="w-[80px]" />
-            <col class="w-[80px]" />
-            <col class="w-[100px]" />
-            <col class="w-[80px]" />
-            <col class="w-[80px]" />
+            <col class="w-[50px]" />
+            <col class="w-[56px]" />
+            <col class="w-[50px]" />
+            <col class="w-[56px]" />
+            <col class="w-[58px]" />
+            <col class="w-[60px]" />
+            <col class="w-[50px]" />
+            <col class="w-[56px]" />
+            <col class="w-[58px]" />
+            <col class="w-[56px]" />
           </colgroup>
-          <thead class="table-header-group">
+          <thead>
             <tr class="border-b border-gray-200 text-left dark:border-gray-700">
               <th class="pr-3 pb-2 font-semibold text-gray-500 dark:text-gray-400">Series</th>
               <th class="pr-3 pb-2 font-semibold text-gray-500 dark:text-gray-400">Tier</th>
+              <th class="pb-2" />
               <th class="pr-3 pb-2 text-right font-semibold text-gray-500 dark:text-gray-400">
                 Cards
               </th>
+              <th class="pb-2" />
               <th class="pr-3 pb-2 text-right font-semibold text-gray-500 dark:text-gray-400">
                 Wins
               </th>
+              <th class="pb-2" />
               <th class="pr-3 pb-2 text-right font-semibold text-gray-500 dark:text-gray-400">
                 WR %
               </th>
+              <th class="pb-2" />
               <th class="pr-3 pb-2 text-right font-semibold text-gray-500 dark:text-gray-400">
                 Decks
               </th>
+              <th class="pb-2" />
               <th class="pb-2 text-right font-semibold text-gray-500 dark:text-gray-400">Use %</th>
             </tr>
           </thead>
@@ -60,65 +70,75 @@
                   {{ entry.tier }}
                 </span>
               </td>
-              <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text">
-                <div class="flex items-center justify-end gap-1">
-                  <span
-                    v-if="entry.hasPrevious"
-                    class="mr-auto ml-2 text-xxs font-medium"
-                    :class="diffClass(entry.cardDiff)"
-                  >
-                    {{ diffText(entry.cardDiff) }}
-                  </span>
-                  <span>{{ entry.cardCount }}</span>
-                </div>
+              <td class="py-2 text-right">
+                <span
+                  v-if="entry.hasPrevious"
+                  class="text-xxs font-medium"
+                  :class="diffClass(entry.cardDiff)"
+                >
+                  {{ diffText(entry.cardDiff) }}
+                </span>
               </td>
-              <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text">
-                <div class="flex items-center justify-end gap-1">
-                  <span
-                    v-if="entry.hasPrevious"
-                    class="mr-auto ml-2 text-xxs font-medium"
-                    :class="diffClass(entry.winDiff)"
-                  >
-                    {{ diffText(entry.winDiff) }}
-                  </span>
-                  <span>{{ entry.winnerDeckCount }}</span>
-                </div>
+              <td
+                class="py-2 pr-3 text-right font-mono text-gray-700 tabular-nums dark:text-nalika-text"
+              >
+                {{ entry.cardCount }}
               </td>
-              <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text">
-                <div class="flex items-center justify-end gap-1">
-                  <span
-                    v-if="entry.hasPrevious"
-                    class="mr-auto ml-2 text-xxs font-medium"
-                    :class="diffClass(entry.winRateDiff)"
-                  >
-                    {{ diffText(entry.winRateDiff, true) }}
-                  </span>
-                  <span>{{ entry.winRate }}%</span>
-                </div>
+              <td class="py-2 text-right">
+                <span
+                  v-if="entry.hasPrevious"
+                  class="text-xxs font-medium"
+                  :class="diffClass(entry.winDiff)"
+                >
+                  {{ diffText(entry.winDiff) }}
+                </span>
               </td>
-              <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text">
-                <div class="flex items-center justify-end gap-1">
-                  <span
-                    v-if="entry.hasPrevious"
-                    class="mr-auto ml-2 text-xxs font-medium"
-                    :class="diffClass(entry.deckDiff)"
-                  >
-                    {{ diffText(entry.deckDiff) }}
-                  </span>
-                  <span>{{ entry.deckCount }}</span>
-                </div>
+              <td
+                class="py-2 pr-3 text-right font-mono text-gray-700 tabular-nums dark:text-nalika-text"
+              >
+                {{ entry.winnerDeckCount }}
               </td>
-              <td class="py-2 text-right font-mono text-gray-700 dark:text-nalika-text">
-                <div class="flex items-center justify-end gap-1">
-                  <span
-                    v-if="entry.hasPrevious"
-                    class="mr-auto ml-2 text-xxs font-medium"
-                    :class="diffClass(entry.percentDiff)"
-                  >
-                    {{ diffText(entry.percentDiff, true) }}
-                  </span>
-                  <span>{{ entry.percent }}%</span>
-                </div>
+              <td class="py-2 text-right">
+                <span
+                  v-if="entry.hasPrevious"
+                  class="text-xxs font-medium"
+                  :class="diffClass(entry.winRateDiff)"
+                >
+                  {{ diffText(entry.winRateDiff, true) }}
+                </span>
+              </td>
+              <td
+                class="py-2 pr-3 text-right font-mono text-gray-700 tabular-nums dark:text-nalika-text"
+              >
+                {{ entry.winRate }}%
+              </td>
+              <td class="py-2 text-right">
+                <span
+                  v-if="entry.hasPrevious"
+                  class="text-xxs font-medium"
+                  :class="diffClass(entry.deckDiff)"
+                >
+                  {{ diffText(entry.deckDiff) }}
+                </span>
+              </td>
+              <td
+                class="py-2 pr-3 text-right font-mono text-gray-700 tabular-nums dark:text-nalika-text"
+              >
+                {{ entry.deckCount }}
+              </td>
+              <td class="py-2 text-right">
+                <span
+                  v-if="entry.hasPrevious"
+                  class="text-xxs font-medium"
+                  :class="diffClass(entry.percentDiff)"
+                >
+                  {{ diffText(entry.percentDiff, true) }}
+                </span>
+              </td>
+              <td
+                class="py-2 text-right font-mono text-gray-700 tabular-nums dark:text-nalika-text"
+              >
+                {{ entry.percent }}%
               </td>
             </tr>
           </tbody>
@@ -136,7 +156,7 @@
           ]"
           @click="goToEntry(entry)"
         >
-          <div class="mb-2 flex items-center justify-between">
+          <div class="mb-2 flex items-start justify-between">
             <span class="text-sm font-medium dark:text-nalika-text">{{ entry.label }}</span>
             <span
               class="inline-block w-10 rounded px-1.5 py-0.5 text-center text-xxs font-bold"
@@ -145,70 +165,84 @@
               {{ entry.tier }}
             </span>
           </div>
-          <div class="space-y-1 text-xs">
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Cards</span>
-              <span class="font-mono text-gray-700 dark:text-nalika-text">
+          <div class="grid grid-cols-5 gap-2">
+            <div class="flex flex-col">
+              <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">
+                Cards
+              </div>
+              <div
+                class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
+              >
                 {{ entry.cardCount }}
-                <span
-                  v-if="entry.hasPrevious"
-                  class="ml-1 inline-block w-14 text-right text-xxs font-medium"
-                  :class="diffClass(entry.cardDiff)"
-                >
-                  {{ diffText(entry.cardDiff) }}
-                </span>
+              </div>
+              <span
+                v-if="entry.hasPrevious"
+                class="text-xxs font-medium"
+                :class="diffClass(entry.cardDiff)"
+              >
+                {{ diffText(entry.cardDiff) }}
               </span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Wins</span>
-              <span class="font-mono text-gray-700 dark:text-nalika-text">
+            <div class="flex flex-col">
+              <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">Wins</div>
+              <div
+                class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
+              >
                 {{ entry.winnerDeckCount }}
-                <span
-                  v-if="entry.hasPrevious"
-                  class="ml-1 inline-block w-14 text-right text-xxs font-medium"
-                  :class="diffClass(entry.winDiff)"
-                >
-                  {{ diffText(entry.winDiff) }}
-                </span>
+              </div>
+              <span
+                v-if="entry.hasPrevious"
+                class="text-xxs font-medium"
+                :class="diffClass(entry.winDiff)"
+              >
+                {{ diffText(entry.winDiff) }}
               </span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">WR %</span>
-              <span class="font-mono text-gray-700 dark:text-nalika-text">
+            <div class="flex flex-col">
+              <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">WR</div>
+              <div
+                class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
+              >
                 {{ entry.winRate }}%
-                <span
-                  v-if="entry.hasPrevious"
-                  class="ml-1 inline-block w-14 text-right text-xxs font-medium"
-                  :class="diffClass(entry.winRateDiff)"
-                >
-                  {{ diffText(entry.winRateDiff, true) }}
-                </span>
+              </div>
+              <span
+                v-if="entry.hasPrevious"
+                class="text-xxs font-medium"
+                :class="diffClass(entry.winRateDiff)"
+              >
+                {{ diffText(entry.winRateDiff, true) }}
               </span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Decks</span>
-              <span class="font-mono text-gray-700 dark:text-nalika-text">
+            <div class="flex flex-col">
+              <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">
+                Decks
+              </div>
+              <div
+                class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
+              >
                 {{ entry.deckCount }}
-                <span
-                  v-if="entry.hasPrevious"
-                  class="ml-1 inline-block w-14 text-right text-xxs font-medium"
-                  :class="diffClass(entry.deckDiff)"
-                >
-                  {{ diffText(entry.deckDiff) }}
-                </span>
+              </div>
+              <span
+                v-if="entry.hasPrevious"
+                class="text-xxs font-medium"
+                :class="diffClass(entry.deckDiff)"
+              >
+                {{ diffText(entry.deckDiff) }}
               </span>
             </div>
-            <div class="flex justify-between">
-              <span class="text-gray-500 dark:text-gray-400">Use %</span>
-              <span class="font-mono text-gray-700 dark:text-nalika-text">
+            <div class="flex flex-col">
+              <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">Use</div>
+              <div
+                class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
+              >
                 {{ entry.percent }}%
-                <span
-                  v-if="entry.hasPrevious"
-                  class="ml-1 inline-block w-14 text-right text-xxs font-medium"
-                  :class="diffClass(entry.percentDiff)"
-                >
-                  {{ diffText(entry.percentDiff, true) }}
-                </span>
+              </div>
+              <span
+                v-if="entry.hasPrevious"
+                class="text-xxs font-medium"
+                :class="diffClass(entry.percentDiff)"
+              >
+                {{ diffText(entry.percentDiff, true) }}
               </span>
             </div>
           </div>
