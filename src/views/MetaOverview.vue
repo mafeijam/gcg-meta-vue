@@ -75,33 +75,7 @@
     <!-- Color filter tabs -->
     <div class="mb-6">
       <div class="overflow-x-auto">
-        <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-          <button
-            class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-            :class="
-              !colorFilter
-                ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-            "
-            @click="colorFilter = null"
-          >
-            All
-          </button>
-          <button
-            v-for="c in Object.keys(COLOR_HEX)"
-            :key="c"
-            class="flex items-center gap-1.5 rounded-md px-3 py-1 text-xs font-medium transition-colors"
-            :class="
-              colorFilter === c
-                ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-            "
-            @click="colorFilter = c"
-          >
-            <span class="inline-block h-2 w-2 rounded-full" :style="{ background: COLOR_HEX[c] }" />
-            {{ c }}
-          </button>
-        </div>
+        <MetaTabGroup v-model="colorFilter" :options="colorTabOptions" />
       </div>
     </div>
 
@@ -127,58 +101,10 @@
       <template #tabs>
         <div class="ml-auto flex flex-col gap-2 sm:flex-row">
           <div class="flex justify-end overflow-x-auto">
-            <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-              <button
-                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-                :class="
-                  cardTab === 'played'
-                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-                "
-                @click="cardTab = 'played'"
-              >
-                Most Played
-              </button>
-              <button
-                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-                :class="
-                  cardTab === 'archetype'
-                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-                "
-                @click="cardTab = 'archetype'"
-              >
-                Most Archetypes
-              </button>
-            </div>
+            <MetaTabGroup v-model="cardTab" :options="cardMetricOptions" />
           </div>
           <div class="flex justify-end overflow-x-auto">
-            <div class="flex w-fit gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70">
-              <button
-                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-                :class="
-                  typeTab === null
-                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-                "
-                @click="typeTab = null"
-              >
-                All
-              </button>
-              <button
-                v-for="t in typeOrder"
-                :key="t"
-                class="rounded-md px-3 py-1 text-xs font-medium transition-colors"
-                :class="
-                  typeTab === t
-                    ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-                    : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-                "
-                @click="typeTab = t"
-              >
-                {{ t }}
-              </button>
-            </div>
+            <MetaTabGroup v-model="typeTab" :options="cardTypeOptions" />
           </div>
         </div>
       </template>
@@ -243,33 +169,8 @@
       >
         Card Quadrants
       </h2>
-      <div
-        class="mb-3 flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70"
-      >
-        <button
-          class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors"
-          :class="
-            cardTypeChart === null
-              ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-              : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-          "
-          @click="cardTypeChart = null"
-        >
-          All
-        </button>
-        <button
-          v-for="type in CARD_TYPE_OPTIONS"
-          :key="type"
-          class="rounded-md px-3 py-1 text-xs font-medium whitespace-nowrap transition-colors"
-          :class="
-            cardTypeChart === type
-              ? 'bg-white text-sumi shadow-xs dark:bg-nalika-surface dark:text-nalika-text'
-              : 'text-gray-500 hover:text-sumi dark:text-nalika-text-muted dark:hover:text-nalika-text'
-          "
-          @click="cardTypeChart = type"
-        >
-          {{ type }}
-        </button>
+      <div class="mb-3 overflow-x-auto">
+        <MetaTabGroup v-model="cardTypeChart" :options="cardTypeOptions" />
       </div>
       <CardQuadrantChart
         :card-items="filteredCardItems"
@@ -305,6 +206,8 @@
 
 <script setup>
 import { useStorage } from '@vueuse/core'
+import MetaTabGroup from '@/components/MetaTabGroup.vue'
+import { COLOR_HEX } from '@/utils/colors.js'
 
 const ArchetypeQuadrantChart = defineAsyncComponent(
   () => import('@/components/ArchetypeQuadrantChart.vue'),
@@ -362,6 +265,21 @@ const typeTab = useStorage('gcg-type-tab', null)
 const colorFilter = useStorage('gcg-color-filter', null)
 const enlargedCard = ref(null)
 const viewAllModal = ref(null)
+
+const colorTabOptions = [
+  { value: null, label: 'All' },
+  ...Object.entries(COLOR_HEX).map(([label, color]) => ({ value: label, label, dotColor: color })),
+]
+
+const cardMetricOptions = [
+  { value: 'played', label: 'Most Played' },
+  { value: 'archetype', label: 'Most Archetypes' },
+]
+
+const cardTypeOptions = [
+  { value: null, label: 'All' },
+  ...CARD_TYPE_OPTIONS.map(t => ({ value: t, label: t })),
+]
 
 function toggleEnlarge(cardId) {
   enlargedCard.value = enlargedCard.value === cardId ? null : cardId

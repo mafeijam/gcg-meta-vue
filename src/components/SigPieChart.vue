@@ -1,6 +1,9 @@
 <template>
-  <div v-if="chartSlices.length" class="flex flex-col items-center gap-4 md:flex-row">
-    <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" class="h-56 w-56 shrink-0 md:h-96 md:w-96">
+  <div
+    v-if="chartSlices.length"
+    class="flex flex-col items-center justify-center gap-4 md:flex-row"
+  >
+    <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" class="h-64 w-64 shrink-0 md:h-[28rem] md:w-[28rem]">
       <defs>
         <clipPath v-for="(s, i) in chartSlices" :id="`${uid}-clip-${i}`" :key="`clip-${i}`">
           <path :d="s.path" />
@@ -28,7 +31,7 @@
         <path :d="s.path" fill="none" stroke="#000" stroke-width="2" />
       </g>
       <g v-for="(dot, i) in colorDots" :key="`dot-${i}`">
-        <circle :cx="dot.x" :cy="dot.y" :r="5" :fill="dot.hex" stroke="#000" stroke-width="1.5" />
+        <circle :cx="dot.x" :cy="dot.y" :r="4" :fill="dot.hex" stroke="#000" stroke-width="1" />
       </g>
     </svg>
     <div class="max-w-60 min-w-0 space-y-1 md:max-w-xs">
@@ -106,8 +109,8 @@ const grouped = computed(() => {
     }
   }
   const sorted = Object.values(groups).sort((a, b) => b.decks - a.decks)
-  const top = sorted.slice(0, 6)
-  const restDecks = sorted.slice(6).reduce((s, g) => s + g.decks, 0)
+  const top = sorted.slice(0, 5)
+  const restDecks = sorted.slice(5).reduce((s, g) => s + g.decks, 0)
   if (restDecks > 0) {
     top.push({ colors: 'Other', decks: restDecks, topRow: null })
   }
@@ -132,7 +135,7 @@ const chartSlices = computed(() => {
     let imgUrl = null
     let imgX = null
     let imgY = null
-    const sigCardId = isOther ? 'EXR-003' : (g.topRow?.sigCardIds?.[0] ?? null)
+    const sigCardId = isOther ? 'EXRP-002' : (g.topRow?.sigCardIds?.[0] ?? null)
     if (sigCardId) {
       const midAngle = (currentAngle + endAngle) / 2
       const halfSweep = sweep / 2
@@ -142,7 +145,7 @@ const chartSlices = computed(() => {
       const centroidY = CY + centroidDistance * Math.sin(midAngle)
       imgX = centroidX - SIZE / 2
       imgY = centroidY - SIZE / 2
-      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=800&fit=crop&ar=3:2&crop=focalpoint&fp-x=0.5&fp-y=0.15`
+      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=800&fit=crop&ar=3:2&crop=focalpoint&fp-x=0.5&fp-y=0.05`
     }
     const slice = {
       path,
@@ -164,12 +167,9 @@ const chartSlices = computed(() => {
 
 const colorDots = computed(() => {
   const dots = []
-  const DOT_R = 6
-  const SEPARATOR_OFFSET = 10
-  const ANGULAR_SPACING = 0.15
-  const ARC_RADIUS = OUTER_R - 8
-  const CENTER_CHORD = 2 * ARC_RADIUS * Math.sin(ANGULAR_SPACING / 2)
-  const MAX_CENTER_R = OUTER_R - DOT_R - 4
+  const SPACING = 0.12
+  const RADIUS = OUTER_R - 8
+  const LEFT_GAP = 0.1
 
   for (const s of chartSlices.value) {
     if (s.label === 'Other') {
@@ -177,20 +177,14 @@ const colorDots = computed(() => {
     }
     const colors = s.label.split('+')
     const count = colors.length
-    const span = (count - 1) * CENTER_CHORD
-    const centerR = Math.min(ARC_RADIUS, MAX_CENTER_R - span / 2)
-    const startR = centerR - span / 2
-    const theta = s.startAngle
-    const sin = Math.sin(theta)
-    const cos = Math.cos(theta)
+    const firstAngle = s.startAngle + LEFT_GAP
     for (let i = 0; i < count; i++) {
-      const r = startR + i * CENTER_CHORD
-      const x = CX + r * cos - SEPARATOR_OFFSET * sin
-      const y = CY + r * sin + SEPARATOR_OFFSET * cos
+      const angle = firstAngle + i * SPACING
+      const pos = polarToCartesian(RADIUS, angle)
       const colorName = colors[i]
       dots.push({
-        x,
-        y,
+        x: pos.x,
+        y: pos.y,
         hex: COLOR_HEX[colorName] || '#9ca3af',
       })
     }
