@@ -169,12 +169,7 @@
             {{ typeLabel[type] || type }}
           </h5>
           <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
-            <ArchetypeCardItem
-              v-for="card in cards"
-              :key="card.cardId"
-              :card="card"
-              is-removed
-            />
+            <ArchetypeCardItem v-for="card in cards" :key="card.cardId" :card="card" is-removed />
           </div>
         </div>
       </div>

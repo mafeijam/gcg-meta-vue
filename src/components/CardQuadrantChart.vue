@@ -126,7 +126,7 @@ const parsed = computed(() => {
     .filter(Boolean)
 })
 
-watch(parsed, (val) => {
+watch(parsed, val => {
   if (val.length > 0) {
     renderKey.value++
   }

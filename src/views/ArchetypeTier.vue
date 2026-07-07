@@ -25,6 +25,7 @@
     </div>
 
     <template v-if="tierDataLoaded">
+      <SigPieChart :rows="allRows" class="mb-4" />
       <div class="space-y-3 md:hidden">
         <MobileTierCard
           v-for="row in tierRows"
@@ -71,6 +72,7 @@
 </template>
 
 <script setup>
+import SigPieChart from '../components/SigPieChart.vue'
 import manifest from '$data/archetypes/index.json'
 
 function normalizeName(name) {

@@ -8,7 +8,7 @@
       Archetype Timeline
     </h2>
     <div v-if="timeline.length > 1">
-      <table class="w-full table-fixed text-xs grid sm:table">
+      <table class="grid w-full table-fixed text-xs sm:table">
         <colgroup class="hidden sm:table-column-group">
           <col />
           <col class="w-[60px]" />
@@ -37,15 +37,15 @@
           <tr
             v-for="entry in timeline"
             :key="entry.seriesKey"
-            class="grid grid-cols-4 gap-1 mb-2 rounded p-2 sm:table-row sm:gap-0 sm:mb-0 sm:p-0 sm:rounded-none"
+            class="mb-2 grid grid-cols-4 gap-1 rounded p-2 sm:mb-0 sm:table-row sm:gap-0 sm:rounded-none sm:p-0"
             :class="[
               entry.isCurrent
                 ? 'bg-primary/5 dark:bg-primary/10'
-                : 'cursor-pointer bg-gray-50/50 dark:bg-white/[0.03] hover:bg-gray-100 dark:hover:bg-white/[0.05] sm:bg-transparent sm:cursor-pointer sm:hover:bg-gray-50 sm:dark:hover:bg-white/[0.03]',
+                : 'cursor-pointer bg-gray-50/50 hover:bg-gray-100 sm:cursor-pointer sm:bg-transparent sm:hover:bg-gray-50 dark:bg-white/[0.03] dark:hover:bg-white/[0.05] sm:dark:hover:bg-white/[0.03]',
             ]"
             @click="goToEntry(entry)"
           >
-            <td class="col-span-4 py-2 pr-3 dark:text-nalika-text sm:col-span-1">
+            <td class="col-span-4 py-2 pr-3 sm:col-span-1 dark:text-nalika-text">
               <span class="font-medium">{{ entry.label }}</span>
             </td>
             <td class="py-2 pr-3">
@@ -56,13 +56,15 @@
                 {{ entry.tier }}
               </span>
             </td>
-            <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text sm:pr-3">
+            <td class="py-2 pr-3 text-right font-mono text-gray-700 sm:pr-3 dark:text-nalika-text">
               {{ entry.cardCount }}
             </td>
-            <td class="hidden py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text sm:table-cell">
+            <td
+              class="hidden py-2 pr-3 text-right font-mono text-gray-700 sm:table-cell dark:text-nalika-text"
+            >
               {{ entry.winnerDeckCount }}
             </td>
-            <td class="py-2 pr-3 text-right font-mono text-gray-700 dark:text-nalika-text sm:pr-3">
+            <td class="py-2 pr-3 text-right font-mono text-gray-700 sm:pr-3 dark:text-nalika-text">
               {{ entry.deckCount }}
             </td>
             <td class="py-2 text-right font-mono text-gray-700 dark:text-nalika-text">

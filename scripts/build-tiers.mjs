@@ -419,6 +419,7 @@ function formatTierRows(series) {
         colors: baseCombo,
         colorDots: colorDots(baseCombo),
         sigCards: a.sigCards,
+        sigCardIds: a.sigCardIds,
         decks: a.deckCount,
         wins: a.winnerDeckCount,
         top4: a.top4 ?? 0,
