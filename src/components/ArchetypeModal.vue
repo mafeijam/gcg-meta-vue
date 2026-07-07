@@ -19,7 +19,7 @@
         </button>
       </div>
       <div ref="modalRef" class="flex-1 overflow-y-auto p-4 max-sm:pb-8 md:p-6">
-        <div class="mx-auto mb-4 max-w-380">
+        <div class="mx-auto mb-4 max-w-340">
           <div class="flex items-baseline gap-1">
             <div
               v-for="dot in colorDots"
@@ -44,7 +44,7 @@
             {{ archetype.deckCount }} decks ({{ archetype.percent }}%)
           </div>
         </div>
-        <ArchetypeDetail :archetype="archetype" class="mx-auto max-w-380" />
+        <ArchetypeDetail :archetype="archetype" class="mx-auto max-w-340" />
       </div>
     </div>
   </Teleport>

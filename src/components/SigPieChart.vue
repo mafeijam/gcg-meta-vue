@@ -1,9 +1,9 @@
 <template>
   <div
     v-if="chartSlices.length"
-    class="flex flex-col items-center justify-center gap-4 md:flex-row"
+    class="flex flex-col items-center justify-center gap-3 md:flex-row md:gap-4"
   >
-    <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" class="h-64 w-64 shrink-0 md:h-[28rem] md:w-[28rem]">
+    <svg :viewBox="`0 0 ${SIZE} ${SIZE}`" class="h-80 w-80 shrink-0 md:h-[28rem] md:w-[28rem]">
       <defs>
         <clipPath v-for="(s, i) in chartSlices" :id="`${uid}-clip-${i}`" :key="`clip-${i}`">
           <path :d="s.path" />
@@ -34,7 +34,7 @@
         <circle :cx="dot.x" :cy="dot.y" :r="4" :fill="dot.hex" stroke="#000" stroke-width="1" />
       </g>
     </svg>
-    <div class="max-w-60 min-w-0 space-y-1 md:max-w-xs">
+    <div class="w-full max-w-80 min-w-0 space-y-1 md:max-w-xs">
       <div
         v-for="(s, i) in chartSlices"
         :key="i"
