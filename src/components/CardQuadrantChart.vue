@@ -1,7 +1,7 @@
 <template>
   <div class="w-full">
     <div
-      class="mb-2 flex max-w-full flex-nowrap gap-1 overflow-x-auto rounded-lg bg-gray-100 p-0.5 xl:w-fit dark:bg-gray-700/70"
+      class="mb-2 flex w-fit max-w-full flex-nowrap gap-1 overflow-x-auto rounded-lg bg-gray-100 p-0.5 dark:bg-gray-700/70"
     >
       <button
         v-for="mode in MODES"

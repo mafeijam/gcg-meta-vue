@@ -75,6 +75,13 @@
           >
             {{ item.rate.toFixed(1) }}%
           </span>
+          <span
+            v-if="item.rateDiff !== undefined && item.rateDiff !== 0"
+            class="w-3 shrink-0 text-xs font-bold"
+            :class="item.rateDiff > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500/90'"
+          >
+            {{ item.rateDiff > 0 ? '▲' : '▼' }}
+          </span>
         </div>
       </div>
       <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">No data</p>
@@ -122,6 +129,13 @@
             class="w-12 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
           >
             {{ item.winRate.toFixed(1) }}%
+          </span>
+          <span
+            v-if="item.winRateDiff !== undefined && item.winRateDiff !== 0"
+            class="w-3 shrink-0 text-xs font-bold"
+            :class="item.winRateDiff > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500/90'"
+          >
+            {{ item.winRateDiff > 0 ? '▲' : '▼' }}
           </span>
         </div>
       </div>
