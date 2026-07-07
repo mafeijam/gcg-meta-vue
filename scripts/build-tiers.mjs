@@ -744,7 +744,7 @@ function processSeries(series) {
     archetypes: mainDetails.map(a => ({
       combo: a.combo,
       sigCards: a.sigCards,
-      cardCount: a.cardCount,
+      cardCount: a.cards.length,
       deckCount: a.deckCount,
       percent: a.percent,
       winnerDeckCount: a.winnerDeckCount,

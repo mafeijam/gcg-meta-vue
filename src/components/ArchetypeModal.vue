@@ -40,7 +40,7 @@
             >
               {{ tier }}
             </span>
-            {{ archetype.cardCount }} cards · {{ archetype.winnerDeckCount }} wins ·
+            {{ archetype.cards.length }} cards · {{ archetype.winnerDeckCount }} wins ·
             {{ archetype.deckCount }} decks ({{ archetype.percent }}%)
           </div>
         </div>
