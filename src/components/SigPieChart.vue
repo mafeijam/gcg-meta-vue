@@ -104,7 +104,7 @@ const grouped = computed(() => {
     }
     const g = groups[key]
     g.decks += row.decks
-    if (row.decks > (g.topRow?.decks ?? 0)) {
+    if (row.score > (g.topRow?.score ?? 0)) {
       g.topRow = row
     }
   }
@@ -139,8 +139,18 @@ const chartSlices = computed(() => {
     if (sigCardId) {
       const midAngle = (currentAngle + endAngle) / 2
       const imageCenterDistance = OUTER_R * 0.35
-      imgX = CX + imageCenterDistance * Math.cos(midAngle) - SIZE / 2.25
-      imgY = CY + imageCenterDistance * Math.sin(midAngle) - SIZE / 2.5
+      const cropShift =
+        15 + // baseline — all slices shift at least 15px outward
+        20 * (0.5 - 0.5 * Math.cos(midAngle)) + // horizontal: left=+25, center=+12.5, right=0
+        15 * Math.sin(midAngle) * Math.max(0, Math.cos(midAngle)) // bottom-right only: up to +15
+      // Totals: Left=40, Top=15, Right=15, Bottom=27
+      // Bottom-right=44, Bottom-left=36, Top-left=28, Top-right=10
+      const extraX =
+        -150 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift left
+        -90 * Math.max(0, -Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-left: shift left
+      imgX = CX + (imageCenterDistance + cropShift) * Math.cos(midAngle) - SIZE / 2.25 + extraX
+      const extraY = -50 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-right: shift up
+      imgY = CY + (imageCenterDistance + cropShift) * Math.sin(midAngle) - SIZE / 2.5 + extraY
       imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=600&fit=crop&ar=3:2&crop=faces&fp-x=0.5&fp-y=0.015`
     }
     const slice = {
