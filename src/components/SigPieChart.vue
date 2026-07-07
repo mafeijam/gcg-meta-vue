@@ -125,7 +125,8 @@ const chartSlices = computed(() => {
   }
   const MIN_SWEEP = 0.05
   let currentAngle = -Math.PI / 2
-  return grouped.value.map(g => {
+  const usedSigIds = new Set()
+  const slices = grouped.value.map(g => {
     const sweep = (g.decks / total) * 2 * Math.PI
     const endAngle = currentAngle + sweep
     const path = slicePath(currentAngle, endAngle)
@@ -136,7 +137,11 @@ const chartSlices = computed(() => {
     let imgUrl = null
     let imgX = null
     let imgY = null
-    const sigCardId = isOther ? 'EXRP-002' : (g.topRow?.sigCardIds?.[0] ?? null)
+    const sigIds = isOther ? ['EXRP-002'] : (g.topRow?.sigCardIds ?? [])
+    const sigCardId = sigIds.find(id => !usedSigIds.has(id)) ?? sigIds[0] ?? null
+    if (sigCardId) {
+      usedSigIds.add(sigCardId)
+    }
     if (sigCardId) {
       const midAngle = (currentAngle + endAngle) / 2
       const imageCenterDistance = OUTER_R * 0.35
@@ -147,7 +152,7 @@ const chartSlices = computed(() => {
       // Totals: Left=40, Top=15, Right=15, Bottom=27
       // Bottom-right=44, Bottom-left=36, Top-left=28, Top-right=10
       const extraX =
-        -100 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift left
+        -70 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift left
         -80 * Math.max(0, -Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-left: shift left
       imgX =
         CX +
@@ -156,7 +161,7 @@ const chartSlices = computed(() => {
         extraX +
         (SIZE * (1 - IMG_SCALE)) / 2
       const extraY =
-        -50 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift up
+        -30 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift up
         25 * Math.max(0, -Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-left: shift down
       imgY =
         CY +
@@ -164,7 +169,7 @@ const chartSlices = computed(() => {
         SIZE / 2 +
         extraY +
         (SIZE * (1 - IMG_SCALE)) / 2
-      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=600&fit=crop&ar=3:2&crop=faces&fp-x=0.5&fp-y=0.05`
+      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=600&fit=crop&ar=3:2&crop=faces,focalpoint&fp-x=0.5&fp-y=0.1`
     }
     const slice = {
       path,
@@ -179,10 +184,12 @@ const chartSlices = computed(() => {
       endAngle,
       showImage: !!imgUrl && sweep > MIN_SWEEP,
       imgScale: IMG_SCALE,
+      sigCardId,
     }
     currentAngle = endAngle
     return slice
   })
+  return slices
 })
 
 const colorDots = computed(() => {
