@@ -68,6 +68,7 @@ import { COLOR_HEX } from '../utils/colors.js'
 
 const props = defineProps({
   rows: { type: Array, required: true },
+  seriesDecks: { type: Number, default: null },
 })
 
 const CX = 120
@@ -112,14 +113,18 @@ const grouped = computed(() => {
   const sorted = Object.values(groups).sort((a, b) => b.decks - a.decks)
   const top = sorted.slice(0, 5)
   const restDecks = sorted.slice(5).reduce((s, g) => s + g.decks, 0)
-  if (restDecks > 0) {
-    top.push({ colors: 'Other', decks: restDecks, topRow: null })
+
+  // Include unassigned decks (no signature card / filtered out) in "Other"
+  const unassigned = Math.max(0, (props.seriesDecks ?? totalDecks.value) - totalDecks.value)
+  const otherDecks = restDecks + unassigned
+  if (otherDecks > 0) {
+    top.push({ colors: 'Other', decks: otherDecks, topRow: null })
   }
   return top
 })
 
 const chartSlices = computed(() => {
-  const total = totalDecks.value
+  const total = props.seriesDecks ?? totalDecks.value
   if (!total) {
     return []
   }

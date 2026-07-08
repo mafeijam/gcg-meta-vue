@@ -60,9 +60,9 @@
             />
           </div>
           <span
-            class="w-6 shrink-0 text-center text-xs font-medium text-aisumicha dark:text-nalika-text"
+            class="w-7 shrink-0 text-center text-xs font-medium text-aisumicha dark:text-nalika-text"
           >
-            {{ item.colorDots.map(d => d.name[0]).join('') }}
+            {{ item.isOther ? item.abbr : item.colorDots.map(d => d.name[0]).join('') }}
           </span>
           <div class="h-5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-700/70">
             <div
@@ -74,6 +74,13 @@
             class="w-12 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
           >
             {{ item.rate.toFixed(1) }}%
+          </span>
+          <span
+            v-if="item.rateDiff !== undefined && item.rateDiff !== 0"
+            class="w-3 shrink-0 text-xs font-bold"
+            :class="item.rateDiff > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500/90'"
+          >
+            {{ item.rateDiff > 0 ? '▲' : '▼' }}
           </span>
         </div>
       </div>
@@ -122,6 +129,13 @@
             class="w-12 text-right font-mono text-xs font-bold text-gray-600 dark:text-nalika-text-muted"
           >
             {{ item.winRate.toFixed(1) }}%
+          </span>
+          <span
+            v-if="item.winRateDiff !== undefined && item.winRateDiff !== 0"
+            class="w-3 shrink-0 text-xs font-bold"
+            :class="item.winRateDiff > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500/90'"
+          >
+            {{ item.winRateDiff > 0 ? '▲' : '▼' }}
           </span>
         </div>
       </div>

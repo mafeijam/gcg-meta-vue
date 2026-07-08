@@ -741,6 +741,7 @@ function processSeries(series) {
   const manifestEntry = {
     value: series.value,
     label: series.label,
+    winDecks: winners.length,
     archetypes: mainDetails.map(a => ({
       combo: a.combo,
       sigCards: a.sigCards,

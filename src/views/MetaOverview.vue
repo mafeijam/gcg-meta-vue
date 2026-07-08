@@ -73,9 +73,9 @@
     </div>
 
     <!-- Color filter tabs -->
-    <div class="mb-6">
+    <div class="mb-3">
       <div class="overflow-x-auto">
-        <MetaTabGroup v-model="colorFilter" :options="colorTabOptions" />
+        <MetaTabGroup v-model="colorFilter" :options="colorTabOptions" class="xl:w-fit" />
       </div>
     </div>
 
@@ -335,17 +335,41 @@ const allColorDist = computed(() => {
     map[key].decks += row.decks
   }
   const items = Object.values(map).sort((a, b) => b.decks - a.decks)
+
+  // Add "Other" for unassigned decks (no signature LR card, or filtered out)
+  const otherDecks = totalSeriesDecks.value - items.reduce((s, i) => s + i.decks, 0)
+  if (otherDecks > 0) {
+    items.push({
+      colors: 'Other',
+      abbr: 'OTH',
+      colorDots: [
+        { name: 'Other', hex: '#6b7280' },
+        { name: 'Other', hex: '#6b7280' },
+      ],
+      decks: otherDecks,
+      isOther: true,
+    })
+  }
+
   const maxDecks = items[0]?.decks || 1
   const totalDecks = items.reduce((sum, item) => sum + item.decks, 0)
-  return items.map(item => ({
-    ...item,
-    percent: (item.decks / maxDecks) * 100,
-    rate: totalDecks > 0 ? (item.decks / totalDecks) * 100 : 0,
-    barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
-  }))
+  const hasPrevious = !!previousSeries.value
+  return items.map(item => {
+    const prevDecks = previousColorMap.value.map[item.colors] ?? 0
+    const prevRate =
+      previousColorMap.value.total > 0 ? (prevDecks / previousColorMap.value.total) * 100 : 0
+    const rate = totalDecks > 0 ? (item.decks / totalDecks) * 100 : 0
+    return {
+      ...item,
+      percent: (item.decks / maxDecks) * 100,
+      rate,
+      barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
+      rateDiff: hasPrevious ? rate - prevRate : undefined,
+    }
+  })
 })
 
-const colorDist = computed(() => allColorDist.value.slice(0, 6))
+const colorDist = computed(() => allColorDist.value.filter(i => !i.isOther).slice(0, 6))
 
 // ── Series comparison ──
 const previousSeriesRows = computed(() => previousSeries.value?.rows ?? [])
@@ -356,6 +380,38 @@ const previousTopColor = computed(() => {
   }
   const items = Object.entries(map).sort((a, b) => b[1] - a[1])
   return items[0]?.[0] || null
+})
+
+// Color rates in the previous series, used for diff arrows in color distribution
+const previousColorMap = computed(() => {
+  const rows = previousSeriesRows.value
+  const total = previousSeries.value?.totalDecks ?? 0
+  const assigned = rows.reduce((s, r) => s + r.decks, 0)
+  const map = {}
+  for (const row of rows) {
+    map[row.colors] = (map[row.colors] ?? 0) + row.decks
+  }
+  const unassigned = total - assigned
+  if (unassigned > 0) {
+    map['Other'] = (map['Other'] ?? 0) + unassigned
+  }
+  return { map, total }
+})
+
+// Win rates in the previous series, used for diff arrows in events won distribution
+const previousWinColorMap = computed(() => {
+  const rows = previousSeriesRows.value
+  const events = previousSeries.value?.events ?? 0
+  const assigned = rows.reduce((s, r) => s + r.wins, 0)
+  const map = {}
+  for (const row of rows) {
+    map[row.colors] = (map[row.colors] ?? 0) + row.wins
+  }
+  const unassigned = (previousSeries.value?.winDecks ?? 0) - assigned
+  if (unassigned > 0) {
+    map['Other'] = (map['Other'] ?? 0) + unassigned
+  }
+  return { map, events }
 })
 
 // ── Level & Cost distribution ──
@@ -478,12 +534,38 @@ const allWinRateDist = computed(() => {
       winRate: (item.wins / (currentSeries.value?.events || 1)) * 100,
     }))
     .sort((a, b) => b.winRate - a.winRate)
+
+  // Add "Other" for unassigned winners
+  const sumWins = items.reduce((s, i) => s + i.wins, 0)
+  const otherWins = totalSeriesWinnerDecks.value - sumWins
+  if (otherWins > 0) {
+    items.push({
+      colors: 'Other',
+      abbr: 'OTH',
+      colorDots: [
+        { name: 'Other', hex: '#6b7280' },
+        { name: 'Other', hex: '#6b7280' },
+      ],
+      decks: 0,
+      wins: otherWins,
+      winRate: (otherWins / (currentSeries.value?.events || 1)) * 100,
+      isOther: true,
+    })
+  }
+
   const maxWinRate = Math.max(...items.map(i => i.winRate), 1)
-  return items.map(item => ({
-    ...item,
-    barPercent: (item.winRate / maxWinRate) * 100,
-    barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
-  }))
+  const hasPrevious = !!previousSeries.value
+  return items.map(item => {
+    const prevWins = previousWinColorMap.value.map[item.colors] ?? 0
+    const prevWinRate =
+      previousWinColorMap.value.events > 0 ? (prevWins / previousWinColorMap.value.events) * 100 : 0
+    return {
+      ...item,
+      barPercent: (item.winRate / maxWinRate) * 100,
+      barGradient: `linear-gradient(to right, ${item.colorDots.map(d => d.hex).join(', ')})`,
+      winRateDiff: hasPrevious ? item.winRate - prevWinRate : undefined,
+    }
+  })
 })
 
 const winRateDist = computed(() => allWinRateDist.value.slice(0, 6))
