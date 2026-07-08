@@ -60,6 +60,76 @@
         @detail="openDetail"
         @toggle-zero-wins="toggleZeroWins"
       />
+
+      <!-- Unassigned Decks (collapsible) -->
+      <div v-if="unassignedDecks?.deckUrls?.length" class="mt-4 scroll-mt-14">
+        <button
+          class="font-medium text-ruri underline-offset-5 hover:underline focus:outline-none"
+          @click="toggleUnassigned"
+        >
+          Unassigned Decks（{{ unassignedDecks.count }}）{{ showUnassigned ? '−' : '+' }}
+        </button>
+        <div v-if="showUnassigned" class="mt-2 space-y-1">
+          <div
+            class="mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
+          >
+            Winner Decks
+          </div>
+          <div class="flex flex-wrap gap-x-5 gap-y-2.5">
+            <DeckPopover
+              v-for="(d, i) in unassignedDeckPreviews.filter(d => d.isWinner)"
+              :key="d.url"
+              :cards="d.cards"
+              :url="d.url"
+              :label="'Deck ' + (i + 1)"
+              class="flex items-center gap-2"
+            >
+              <a
+                :href="d.url"
+                target="_blank"
+                rel="noopener"
+                class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
+              >
+                Deck {{ i + 1 }}
+              </a>
+              <span
+                class="rounded bg-yellow-100 px-1 text-xxs font-medium text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300/70"
+              >
+                W
+              </span>
+            </DeckPopover>
+          </div>
+          <div
+            v-if="!unassignedDeckPreviews.filter(d => d.isWinner).length"
+            class="text-xs text-gray-400 dark:text-gray-500"
+          >
+            No winner decks
+          </div>
+          <div
+            class="mt-3 mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
+          >
+            Other Decks
+          </div>
+          <div class="flex flex-wrap gap-x-5 gap-y-2.5">
+            <DeckPopover
+              v-for="(d, i) in unassignedDeckPreviews.filter(d => !d.isWinner)"
+              :key="d.url"
+              :cards="d.cards"
+              :url="d.url"
+              :label="'Deck ' + (i + 1)"
+            >
+              <a
+                :href="d.url"
+                target="_blank"
+                rel="noopener"
+                class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
+              >
+                Deck {{ i + 1 }}
+              </a>
+            </DeckPopover>
+          </div>
+        </div>
+      </div>
     </template>
 
     <ArchetypeModal
@@ -73,7 +143,11 @@
 
 <script setup>
 import SigPieChart from '../components/SigPieChart.vue'
+import DeckPopover from '../components/DeckPopover.vue'
 import manifest from '$data/archetypes/index.json'
+import cardMeta from '$data/card-meta.json'
+
+const cardMetaMap = new Map(cardMeta.map(c => [c.id, c]))
 
 function normalizeName(name) {
   return name.replace(/[（）]/g, c => (c === '（' ? '(' : ')')).replace(/\s*\(/g, '(')
@@ -128,6 +202,40 @@ const showZeroWins = ref(false)
 function toggleZeroWins() {
   showZeroWins.value = !showZeroWins.value
 }
+
+const showUnassigned = ref(false)
+
+function toggleUnassigned() {
+  showUnassigned.value = !showUnassigned.value
+}
+
+const unassignedDecks = computed(() => currentSeries.value?.unassignedDecks ?? null)
+
+const unassignedDeckPreviews = computed(() => {
+  const ud = unassignedDecks.value
+  if (!ud?.deckUrls?.length) {
+    return []
+  }
+  return ud.deckUrls.map((url, i) => {
+    const cards = (ud.deckCardIds?.[i] ?? '')
+      .split('|')
+      .filter(Boolean)
+      .map(part => {
+        const [cardId, qty] = part.split(':')
+        const info = cardMetaMap.get(cardId)
+        return {
+          cardId,
+          qty: Number(qty),
+          name: info?.name ?? cardId,
+          type: info?.type ?? 'UNIT',
+          color: info?.color ?? '',
+          level: 0,
+          inclusionRate: 0,
+        }
+      })
+    return { url, idx: i, isWinner: ud.deckWinnerFlags?.[i] ?? false, cards }
+  })
+})
 
 const detailArch = ref(null)
 const detailTier = ref(null)

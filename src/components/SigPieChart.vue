@@ -151,11 +151,12 @@ const chartSlices = computed(() => {
       const midAngle = (currentAngle + endAngle) / 2
       const imageCenterDistance = OUTER_R * 0.35
       const cropShift =
-        10 + // baseline — all slices shift at least 15px outward
-        20 * (0.5 - 0.5 * Math.cos(midAngle)) + // horizontal: left=+25, center=+12.5, right=0
-        15 * Math.sin(midAngle) * Math.max(0, Math.cos(midAngle)) // bottom-right only: up to +15
-      // Totals: Left=40, Top=15, Right=15, Bottom=27
-      // Bottom-right=44, Bottom-left=36, Top-left=28, Top-right=10
+        10 + // baseline — all slices shift at least 10px outward
+        20 * (0.5 - 0.5 * Math.cos(midAngle)) + // more shift on left side (cos < 0)
+        15 * Math.sin(midAngle) * Math.max(0, Math.cos(midAngle)) // extra for bottom-right
+      // Final cropShift values at cardinal directions:
+      //   Left=30  Top=20  Right=10  Bottom=20
+      //   Bottom-right=44  Bottom-left=36  Top-left=28  Top-right=10
       const extraX =
         -70 * Math.max(0, Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) + // bottom-right: shift left
         -80 * Math.max(0, -Math.cos(midAngle)) * Math.max(0, Math.sin(midAngle)) // bottom-left: shift left
@@ -174,7 +175,7 @@ const chartSlices = computed(() => {
         SIZE / 2 +
         extraY +
         (SIZE * (1 - IMG_SCALE)) / 2
-      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=600&fit=crop&ar=3:2&crop=faces,focalpoint&fp-x=0.5&fp-y=0.1`
+      imgUrl = `https://jw-assets.imgix.net/gcg-img/${sigCardId}.webp?w=600&fit=crop&ar=3:2&crop=faces,focalpoint&fp-x=0.5&fp-y=0.1&auto=format,compress`
     }
     const slice = {
       path,

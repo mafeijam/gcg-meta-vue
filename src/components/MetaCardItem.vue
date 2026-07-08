@@ -28,7 +28,7 @@
     </div>
     <div class="group relative mt-1.5 aspect-[20/11] overflow-hidden rounded">
       <img
-        :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?fit=crop&ar=3:2&w=300&crop=focalpoint&fp-x=0.5&fp-y=0.05`"
+        :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?fit=crop&ar=3:2&w=300&crop=focalpoint&fp-x=0.5&fp-y=0.05&auto=format,compress`"
         :alt="card.name"
         class="h-full w-full scale-150 object-cover brightness-85 transition-all duration-200 group-hover:brightness-95"
         loading="lazy"

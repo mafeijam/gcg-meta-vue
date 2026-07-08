@@ -188,7 +188,7 @@
       >
         <div class="relative max-h-[85vh] overflow-hidden rounded-lg shadow-2xl">
           <img
-            :src="`https://jw-assets.imgix.net/gcg-img/${enlargedCard}.webp`"
+            :src="`https://jw-assets.imgix.net/gcg-img/${enlargedCard}.webp?auto=format,compress`"
             alt="Enlarged card"
             class="h-auto max-h-[85vh] w-auto rounded-lg"
           />

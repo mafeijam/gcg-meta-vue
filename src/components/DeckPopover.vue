@@ -32,7 +32,7 @@
             :class="{ 'outline-2 outline-akabeni': isCoreUnit(card) }"
           >
             <img
-              :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?w=100`"
+              :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?w=100&auto=format,compress`"
               :alt="card.name"
               class="w-full object-cover"
               loading="lazy"
@@ -98,7 +98,7 @@
                 :class="{ 'outline-2 outline-akabeni': isCoreUnit(card) }"
               >
                 <img
-                  :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?w=200`"
+                  :src="`https://jw-assets.imgix.net/gcg-img/${card.cardId}.webp?w=200&auto=format,compress`"
                   :alt="card.name"
                   class="w-full object-cover"
                   loading="lazy"

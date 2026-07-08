@@ -640,6 +640,21 @@ function processSeries(series) {
     .filter(a => a.deckCount >= minSize)
     .sort((a, b) => b.deckCount - a.deckCount)
 
+  // Collect unassigned decks: no sig card OR filtered-out archetype (< minSize decks)
+  const smallArchKeys = new Set(
+    archetypeDetails.filter(a => a.deckCount < minSize).map(a => a.combo),
+  )
+  const unassignedDeckData = allPlayers
+    .filter(p => {
+      const { key, sigCardIds } = buildComboKey(p.deck)
+      return (sigCardIds.length === 0 || smallArchKeys.has(key)) && !!p.deckUrl
+    })
+    .map(p => ({
+      deckUrl: p.deckUrl,
+      isWinner: p.rank === WINNER,
+      deckCardIds: serializeDeckCards(p.deck),
+    }))
+
   // Write per-archetype detail files (lazy-loaded by UI)
   const seriesDir = `data-processed/archetypes/${series.value}`
   mkdirSync(seriesDir, { recursive: true })
@@ -767,6 +782,12 @@ function processSeries(series) {
     totalDecks: allPlayers.length,
     rows: formatTierRows(seriesProcessed),
     cardState,
+    unassignedDecks: {
+      count: unassignedDeckData.length,
+      deckUrls: unassignedDeckData.map(d => d.deckUrl),
+      deckCardIds: unassignedDeckData.map(d => d.deckCardIds),
+      deckWinnerFlags: unassignedDeckData.map(d => d.isWinner),
+    },
   }
 
   return { tierEntry, manifestEntry }
