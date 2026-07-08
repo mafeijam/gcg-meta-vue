@@ -74,6 +74,8 @@ function writeCardMeta() {
       rarity: c.rarity,
       releaseDate: c.releaseDate,
       acquisitionInfo: c.acquisitionInfo,
+      level: c.level,
+      cost: c.cost,
     }))
   writeFileSync('data-processed/card-meta.json', JSON.stringify(meta, null, 2))
   console.log(`Saved data-processed/card-meta.json (${meta.length} cards)`)
@@ -655,6 +657,37 @@ function processSeries(series) {
       deckCardIds: serializeDeckCards(p.deck),
     }))
 
+  // Aggregate all decks by color combo for the pie chart
+  const colorComboMap = {}
+  for (const p of allPlayers) {
+    const colors = getDeckColors(p.deck).join('+')
+    if (!colorComboMap[colors]) {
+      colorComboMap[colors] = { colors, decks: 0, wins: 0, sigCardIds: {} }
+    }
+    const c = colorComboMap[colors]
+    c.decks++
+    if (p.rank === WINNER) {
+      c.wins++
+    }
+    const sigData = getSignatureCard(p.deck)
+    if (sigData) {
+      for (const sig of sigData) {
+        c.sigCardIds[sig.cardId] = (c.sigCardIds[sig.cardId] || 0) + 1
+      }
+    }
+  }
+  const colorComboData = Object.values(colorComboMap)
+    .map(c => {
+      const sorted = Object.entries(c.sigCardIds).sort((a, b) => b[1] - a[1])
+      return {
+        colors: c.colors,
+        decks: c.decks,
+        wins: c.wins,
+        sigCardIds: sorted.map(([id]) => id),
+      }
+    })
+    .sort((a, b) => b.decks - a.decks)
+
   // Write per-archetype detail files (lazy-loaded by UI)
   const seriesDir = `data-processed/archetypes/${series.value}`
   mkdirSync(seriesDir, { recursive: true })
@@ -788,6 +821,7 @@ function processSeries(series) {
       deckCardIds: unassignedDeckData.map(d => d.deckCardIds),
       deckWinnerFlags: unassignedDeckData.map(d => d.isWinner),
     },
+    colorComboData,
   }
 
   return { tierEntry, manifestEntry }

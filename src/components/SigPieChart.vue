@@ -69,6 +69,7 @@ import { COLOR_HEX } from '../utils/colors.js'
 const props = defineProps({
   rows: { type: Array, required: true },
   seriesDecks: { type: Number, default: null },
+  colorComboData: { type: Array, default: null },
 })
 
 const CX = 120
@@ -98,6 +99,15 @@ function slicePath(startAngle, endAngle) {
 const totalDecks = computed(() => props.rows.reduce((s, r) => s + r.decks, 0))
 
 const grouped = computed(() => {
+  if (props.colorComboData) {
+    const top = props.colorComboData.slice(0, 5)
+    const restDecks = props.colorComboData.slice(5).reduce((s, g) => s + g.decks, 0)
+    if (restDecks > 0) {
+      top.push({ colors: 'Other', decks: restDecks, sigCardIds: null })
+    }
+    return top
+  }
+
   const groups = {}
   for (const row of props.rows) {
     const key = row.colors
@@ -114,7 +124,6 @@ const grouped = computed(() => {
   const top = sorted.slice(0, 5)
   const restDecks = sorted.slice(5).reduce((s, g) => s + g.decks, 0)
 
-  // Include unassigned decks (no signature card / filtered out) in "Other"
   const unassigned = Math.max(0, (props.seriesDecks ?? totalDecks.value) - totalDecks.value)
   const otherDecks = restDecks + unassigned
   if (otherDecks > 0) {
@@ -142,8 +151,15 @@ const chartSlices = computed(() => {
     let imgUrl = null
     let imgX = null
     let imgY = null
-    const sigIds = isOther ? ['EXRP-002'] : (g.topRow?.sigCardIds ?? [])
-    const sigCardId = sigIds.find(id => !usedSigIds.has(id)) ?? sigIds[0] ?? null
+    let sigCardId
+    if (isOther) {
+      sigCardId = 'EXRP-002'
+    } else if (g.sigCardIds?.length) {
+      sigCardId = g.sigCardIds.find(id => !usedSigIds.has(id)) ?? g.sigCardIds[0] ?? null
+    } else {
+      const sigIds = g.topRow?.sigCardIds ?? []
+      sigCardId = sigIds.find(id => !usedSigIds.has(id)) ?? sigIds[0] ?? null
+    }
     if (sigCardId) {
       usedSigIds.add(sigCardId)
     }

@@ -130,118 +130,115 @@
     </div>
 
     <!-- Other Cards (collapsible) -->
-    <div v-if="filteredByType.length" ref="otherCardsSection" class="mt-6 scroll-mt-14">
-      <button
-        class="font-medium text-ruri underline-offset-5 hover:underline focus:outline-none"
-        @click="toggleOther"
-      >
-        Other Cards ({{ archetype.filteredCards.length }}) {{ showOther ? '−' : '+' }}
-      </button>
-      <div v-if="showOther" class="mt-2 space-y-4">
-        <div v-for="[type, cards] in filteredByType" :key="type">
-          <h5 class="mb-2 text-lg font-semibold tracking-wider text-gray-600 dark:text-nalika-text">
-            {{ typeLabel[type] || type }}
-          </h5>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
-            <ArchetypeCardItem
-              v-for="card in cards"
-              :key="card.cardId"
-              :card="card"
-              :is-sig="sigCardIds.has(card.cardId)"
-              :is-new="isNewCard(card.cardId)"
-            />
-          </div>
+    <CollapsibleSection
+      v-if="filteredByType.length"
+      :show="showOther"
+      :count="archetype.filteredCards.length"
+      title="Other Cards"
+      content-class="space-y-4"
+      root-class="mt-6"
+      @toggle="showOther = !showOther"
+    >
+      <div v-for="[type, cards] in filteredByType" :key="type">
+        <h5 class="mb-2 text-lg font-semibold tracking-wider text-gray-600 dark:text-nalika-text">
+          {{ typeLabel[type] || type }}
+        </h5>
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
+          <ArchetypeCardItem
+            v-for="card in cards"
+            :key="card.cardId"
+            :card="card"
+            :is-sig="sigCardIds.has(card.cardId)"
+            :is-new="isNewCard(card.cardId)"
+          />
         </div>
       </div>
-    </div>
+    </CollapsibleSection>
 
     <!-- Removed Cards (collapsible) -->
-    <div v-if="removedCards.length" ref="removedSection" class="mt-4 scroll-mt-14">
-      <button
-        class="font-medium text-ruri underline-offset-5 hover:underline focus:outline-none"
-        @click="toggleRemoved"
-      >
-        Removed Cards ({{ removedCards.length }}) {{ showRemoved ? '−' : '+' }}
-      </button>
-      <div v-if="showRemoved" class="mt-2 space-y-4">
-        <div v-for="[type, cards] in removedGrouped" :key="type">
-          <h5 class="mb-2 text-lg font-semibold tracking-wider text-gray-600 dark:text-nalika-text">
-            {{ typeLabel[type] || type }}
-          </h5>
-          <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
-            <ArchetypeCardItem v-for="card in cards" :key="card.cardId" :card="card" is-removed />
-          </div>
+    <CollapsibleSection
+      v-if="removedCards.length"
+      :show="showRemoved"
+      :count="removedCards.length"
+      title="Removed Cards"
+      content-class="space-y-4"
+      @toggle="showRemoved = !showRemoved"
+    >
+      <div v-for="[type, cards] in removedGrouped" :key="type">
+        <h5 class="mb-2 text-lg font-semibold tracking-wider text-gray-600 dark:text-nalika-text">
+          {{ typeLabel[type] || type }}
+        </h5>
+        <div class="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-8">
+          <ArchetypeCardItem v-for="card in cards" :key="card.cardId" :card="card" is-removed />
         </div>
       </div>
-    </div>
+    </CollapsibleSection>
 
     <!-- Deck URLs (hidden, toggle) -->
-    <div v-if="archetype.deckUrls?.length" ref="deckUrlsSection" class="mt-4 scroll-mt-14">
-      <button
-        class="font-medium text-ruri underline-offset-5 hover:underline focus:outline-none"
-        @click="toggleDeckUrls"
+    <CollapsibleSection
+      v-if="archetype.deckUrls?.length"
+      :show="showDeckUrls"
+      :count="archetype.deckUrls.length"
+      title="Deck URLs"
+      @toggle="showDeckUrls = !showDeckUrls"
+    >
+      <div
+        class="mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
       >
-        Deck URLs ({{ archetype.deckUrls.length }}) {{ showDeckUrls ? '−' : '+' }}
-      </button>
-      <div v-if="showDeckUrls" class="mt-2 space-y-1">
-        <div
-          class="mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
-        >
-          Winner Decks
-        </div>
-        <div class="flex flex-wrap gap-x-5 gap-y-2.5">
-          <DeckPopover
-            v-for="(d, i) in winnerDeckPreviews"
-            :key="d.url"
-            :cards="d.cards"
-            :url="d.url"
-            :label="'Deck ' + (i + 1)"
-            class="flex items-center gap-2"
-          >
-            <a
-              :href="d.url"
-              target="_blank"
-              rel="noopener"
-              class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
-            >
-              Deck {{ i + 1 }}
-            </a>
-            <span
-              class="rounded bg-yellow-100 px-1 text-xxs font-medium text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300/70"
-            >
-              W
-            </span>
-          </DeckPopover>
-        </div>
-        <div v-if="!winnerDeckPreviews.length" class="text-xs text-gray-400 dark:text-gray-500">
-          No winner decks
-        </div>
-        <div
-          class="mt-3 mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
-        >
-          Other Decks
-        </div>
-
-        <div class="flex flex-wrap gap-x-5 gap-y-2.5">
-          <DeckPopover
-            v-for="(d, i) in otherDeckPreviews"
-            :key="d.url"
-            :cards="d.cards"
-            :url="d.url"
-            :label="'Deck ' + (i + 1)"
-          >
-            <a
-              :href="d.url"
-              target="_blank"
-              rel="noopener"
-              class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
-            >
-              Deck {{ i + 1 }}
-            </a>
-          </DeckPopover>
-        </div>
+        Winner Decks
       </div>
-    </div>
+      <div class="flex flex-wrap gap-x-5 gap-y-2.5">
+        <DeckPopover
+          v-for="(d, i) in winnerDeckPreviews"
+          :key="d.url"
+          :cards="d.cards"
+          :url="d.url"
+          :label="'Deck ' + (i + 1)"
+          class="flex items-center gap-2"
+        >
+          <a
+            :href="d.url"
+            target="_blank"
+            rel="noopener"
+            class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
+          >
+            Deck {{ i + 1 }}
+          </a>
+          <span
+            class="rounded bg-yellow-100 px-1 text-xxs font-medium text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300/70"
+          >
+            W
+          </span>
+        </DeckPopover>
+      </div>
+      <div v-if="!winnerDeckPreviews.length" class="text-xs text-gray-400 dark:text-gray-500">
+        No winner decks
+      </div>
+      <div
+        class="mt-3 mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
+      >
+        Other Decks
+      </div>
+
+      <div class="flex flex-wrap gap-x-5 gap-y-2.5">
+        <DeckPopover
+          v-for="(d, i) in otherDeckPreviews"
+          :key="d.url"
+          :cards="d.cards"
+          :url="d.url"
+          :label="'Deck ' + (i + 1)"
+        >
+          <a
+            :href="d.url"
+            target="_blank"
+            rel="noopener"
+            class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
+          >
+            Deck {{ i + 1 }}
+          </a>
+        </DeckPopover>
+      </div>
+    </CollapsibleSection>
   </div>
 </template>
 
@@ -255,30 +252,6 @@ const props = defineProps({
 const isNewCard = cardId => props.prevCardIds?.size > 0 && !props.prevCardIds.has(cardId)
 
 const { showOther, showDeckUrls, showRemoved } = useCollapseState()
-const otherCardsSection = ref(null)
-const deckUrlsSection = ref(null)
-const removedSection = ref(null)
-
-function toggleOther() {
-  showOther.value = !showOther.value
-  if (showOther.value) {
-    nextTick(() => otherCardsSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  }
-}
-
-function toggleDeckUrls() {
-  showDeckUrls.value = !showDeckUrls.value
-  if (showDeckUrls.value) {
-    nextTick(() => deckUrlsSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  }
-}
-
-function toggleRemoved() {
-  showRemoved.value = !showRemoved.value
-  if (showRemoved.value) {
-    nextTick(() => removedSection.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  }
-}
 
 const sigCardIds = computed(() => new Set(props.archetype.sigCardIds ?? []))
 
@@ -300,6 +273,7 @@ const cardIdToInfo = computed(() => {
       type: c.type,
       color: c.color,
       level: Number(c.level),
+      cost: Number(c.cost),
       inclusionRate: c.inclusionRate ?? 0,
     })
   }
@@ -308,6 +282,7 @@ const cardIdToInfo = computed(() => {
       type: c.type,
       color: c.color,
       level: Number(c.level),
+      cost: Number(c.cost),
       inclusionRate: c.inclusionRate ?? 0,
     })
   }
@@ -330,6 +305,7 @@ const deckPreviews = computed(() =>
           type: info?.type ?? 'UNIT',
           color: info?.color ?? '',
           level: info?.level ?? 0,
+          cost: info?.cost ?? 0,
           inclusionRate: info?.inclusionRate ?? 0,
         }
       })

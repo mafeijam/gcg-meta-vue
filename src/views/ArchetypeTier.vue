@@ -25,7 +25,12 @@
     </div>
 
     <template v-if="tierDataLoaded">
-      <SigPieChart :rows="allRows" :series-decks="currentSeries?.totalDecks ?? 0" class="mb-6 md:mb-2" />
+      <SigPieChart
+        :rows="allRows"
+        :series-decks="currentSeries?.totalDecks ?? 0"
+        :color-combo-data="currentSeries?.colorComboData ?? []"
+        class="mb-6 md:mb-2"
+      />
       <div class="space-y-3 md:hidden">
         <MobileTierCard
           v-for="row in tierRows"
@@ -62,74 +67,72 @@
       />
 
       <!-- Unassigned Decks (collapsible) -->
-      <div v-if="unassignedDecks?.deckUrls?.length" class="mt-4 scroll-mt-14">
-        <button
-          class="font-medium text-ruri underline-offset-5 hover:underline focus:outline-none"
-          @click="toggleUnassigned"
+      <CollapsibleSection
+        v-if="unassignedDecks?.deckUrls?.length"
+        :show="showUnassigned"
+        :count="unassignedDecks.count"
+        title="Unassigned Decks"
+        @toggle="showUnassigned = !showUnassigned"
+      >
+        <div
+          class="mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
         >
-          Unassigned Decks（{{ unassignedDecks.count }}）{{ showUnassigned ? '−' : '+' }}
-        </button>
-        <div v-if="showUnassigned" class="mt-2 space-y-1">
-          <div
-            class="mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
-          >
-            Winner Decks
-          </div>
-          <div class="flex flex-wrap gap-x-5 gap-y-2.5">
-            <DeckPopover
-              v-for="(d, i) in unassignedDeckPreviews.filter(d => d.isWinner)"
-              :key="d.url"
-              :cards="d.cards"
-              :url="d.url"
-              :label="'Deck ' + (i + 1)"
-              class="flex items-center gap-2"
-            >
-              <a
-                :href="d.url"
-                target="_blank"
-                rel="noopener"
-                class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
-              >
-                Deck {{ i + 1 }}
-              </a>
-              <span
-                class="rounded bg-yellow-100 px-1 text-xxs font-medium text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300/70"
-              >
-                W
-              </span>
-            </DeckPopover>
-          </div>
-          <div
-            v-if="!unassignedDeckPreviews.filter(d => d.isWinner).length"
-            class="text-xs text-gray-400 dark:text-gray-500"
-          >
-            No winner decks
-          </div>
-          <div
-            class="mt-3 mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
-          >
-            Other Decks
-          </div>
-          <div class="flex flex-wrap gap-x-5 gap-y-2.5">
-            <DeckPopover
-              v-for="(d, i) in unassignedDeckPreviews.filter(d => !d.isWinner)"
-              :key="d.url"
-              :cards="d.cards"
-              :url="d.url"
-              :label="'Deck ' + (i + 1)"
-            >
-              <a
-                :href="d.url"
-                target="_blank"
-                rel="noopener"
-                class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
-              >
-                Deck {{ i + 1 }}
-              </a>
-            </DeckPopover>
-          </div>
+          Winner Decks
         </div>
-      </div>
+        <div class="flex flex-wrap gap-x-5 gap-y-2.5">
+          <DeckPopover
+            v-for="(d, i) in unassignedDeckPreviews.filter(d => d.isWinner)"
+            :key="d.url"
+            :cards="d.cards"
+            :url="d.url"
+            :label="'Deck ' + (i + 1)"
+            class="flex items-center gap-2"
+          >
+            <a
+              :href="d.url"
+              target="_blank"
+              rel="noopener"
+              class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
+            >
+              Deck {{ i + 1 }}
+            </a>
+            <span
+              class="rounded bg-yellow-100 px-1 text-xxs font-medium text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-300/70"
+            >
+              W
+            </span>
+          </DeckPopover>
+        </div>
+        <div
+          v-if="!unassignedDeckPreviews.filter(d => d.isWinner).length"
+          class="text-xs text-gray-400 dark:text-gray-500"
+        >
+          No winner decks
+        </div>
+        <div
+          class="mt-3 mb-1 text-sm font-semibold tracking-wider text-gray-400 uppercase dark:text-gray-500"
+        >
+          Other Decks
+        </div>
+        <div class="flex flex-wrap gap-x-5 gap-y-2.5">
+          <DeckPopover
+            v-for="(d, i) in unassignedDeckPreviews.filter(d => !d.isWinner)"
+            :key="d.url"
+            :cards="d.cards"
+            :url="d.url"
+            :label="'Deck ' + (i + 1)"
+          >
+            <a
+              :href="d.url"
+              target="_blank"
+              rel="noopener"
+              class="text-xs break-all text-ruri hover:underline dark:text-sora/65"
+            >
+              Deck {{ i + 1 }}
+            </a>
+          </DeckPopover>
+        </div>
+      </CollapsibleSection>
     </template>
 
     <ArchetypeModal
@@ -203,11 +206,7 @@ function toggleZeroWins() {
   showZeroWins.value = !showZeroWins.value
 }
 
-const showUnassigned = ref(false)
-
-function toggleUnassigned() {
-  showUnassigned.value = !showUnassigned.value
-}
+const { showUnassigned } = useCollapseState()
 
 const unassignedDecks = computed(() => currentSeries.value?.unassignedDecks ?? null)
 
@@ -229,7 +228,8 @@ const unassignedDeckPreviews = computed(() => {
           name: info?.name ?? cardId,
           type: info?.type ?? 'UNIT',
           color: info?.color ?? '',
-          level: 0,
+          level: info?.level ?? 0,
+          cost: info?.cost ?? 0,
           inclusionRate: 0,
         }
       })

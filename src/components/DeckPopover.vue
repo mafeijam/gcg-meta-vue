@@ -144,7 +144,11 @@ const sortedCards = computed(() =>
     if (a.color !== b.color) {
       return (a.color ?? '').localeCompare(b.color ?? '')
     }
-    return (a.level ?? 0) - (b.level ?? 0)
+    const levelDiff = (b.level ?? 0) - (a.level ?? 0)
+    if (levelDiff !== 0) {
+      return levelDiff
+    }
+    return (b.cost ?? 0) - (a.cost ?? 0)
   }),
 )
 
