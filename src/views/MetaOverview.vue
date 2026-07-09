@@ -373,7 +373,10 @@ const allColorDist = computed(() => {
       ...item,
       percent: (item.decks / maxDecks) * 100,
       rate,
-      barGradient: `linear-gradient(to right, ${item.colorDots.filter(d => d.hex !== 'transparent').map(d => d.hex).join(', ')})`,
+      barGradient: `linear-gradient(to right, ${item.colorDots
+        .filter(d => d.hex !== 'transparent')
+        .map(d => d.hex)
+        .join(', ')})`,
       rateDiff: hasPrevious ? rate - prevRate : undefined,
     }
   })
@@ -554,10 +557,12 @@ const allWinRateDist = computed(() => {
         return items
       })()
 
-  const itemsWithRate = items.map(item => ({
-    ...item,
-    winRate: (item.wins / (currentSeries.value?.events || 1)) * 100,
-  })).sort((a, b) => b.winRate - a.winRate)
+  const itemsWithRate = items
+    .map(item => ({
+      ...item,
+      winRate: (item.wins / (currentSeries.value?.events || 1)) * 100,
+    }))
+    .sort((a, b) => b.winRate - a.winRate)
 
   const maxWinRate = Math.max(...itemsWithRate.map(i => i.winRate), 1)
   const hasPrevious = !!previousSeries.value
@@ -568,7 +573,10 @@ const allWinRateDist = computed(() => {
     return {
       ...item,
       barPercent: (item.winRate / maxWinRate) * 100,
-      barGradient: `linear-gradient(to right, ${item.colorDots.filter(d => d.hex !== 'transparent').map(d => d.hex).join(', ')})`,
+      barGradient: `linear-gradient(to right, ${item.colorDots
+        .filter(d => d.hex !== 'transparent')
+        .map(d => d.hex)
+        .join(', ')})`,
       winRateDiff: hasPrevious ? item.winRate - prevWinRate : undefined,
     }
   })

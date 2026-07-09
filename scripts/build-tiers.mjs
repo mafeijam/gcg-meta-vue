@@ -20,13 +20,15 @@ function addDays(dateStr, days) {
 // Builds cardId→info map, name→color lookup, and vanilla grouping key.
 // Vanilla cards (no effect) are grouped by stats alone (level|cost|ap|hp)
 // so functionally identical cards across different colors/names are detected.
-function createCardLookups() {
-  const cardsRaw = loadJSON('data/cards.json')
+function createCardLookups(cardsRaw) {
   const cardMap = {}
   const vanillaGroup = {}
 
   for (const card of cardsRaw) {
-    const key = card.cardNo
+    if (card.id.includes('_p')) {
+      continue
+    }
+    const key = card.id
     cardMap[key] ??= {
       name: card.name,
       color: card.color,
@@ -59,8 +61,8 @@ function createCardLookups() {
   return { lookup, vanillaGroup }
 }
 
-const { lookup, vanillaGroup } = createCardLookups()
 const cardsRaw = loadJSON('data/cards.json')
+const { lookup, vanillaGroup } = createCardLookups(cardsRaw)
 
 // Write lean card metadata for the meta page
 function writeCardMeta() {
@@ -238,7 +240,7 @@ function buildArchetypeMaps(allPlayers, winners, top4Players) {
   })
 
   const winnersByCombo = groupByCombo(winners, {
-    init: sigCardIds => ({ sigCardIds, count: 0, cardCounts: {} }),
+    init: () => ({ count: 0, cardCounts: {} }),
     accumulate: (entry, winner) => {
       entry.count++
       for (const card of winner.deck) {
@@ -776,7 +778,7 @@ function processSeries(series) {
       wins: a.winnerDeckCount,
       archDecks: a.deckCount,
       totalDecks: allPlayers.length,
-      totalEvents: winners.length,
+      totalEvents: series.events.length,
       top4: a.top4 ?? 0,
       ceiling,
       top4Prior: top4AvgRate,

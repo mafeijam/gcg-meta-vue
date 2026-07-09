@@ -23,9 +23,12 @@ const props = defineProps({
 const emit = defineEmits(['toggle'])
 const rootRef = ref(null)
 
-watch(() => props.show, (val) => {
-  if (val) {
-    nextTick(() => rootRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
-  }
-})
+watch(
+  () => props.show,
+  val => {
+    if (val) {
+      nextTick(() => rootRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
+    }
+  },
+)
 </script>

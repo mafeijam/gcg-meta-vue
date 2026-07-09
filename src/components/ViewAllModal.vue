@@ -51,14 +51,26 @@
             <span
               v-if="mode === 'colors' && item.rateDiff !== undefined"
               class="w-3 shrink-0 text-center text-xs font-bold"
-              :class="item.rateDiff === 0 ? 'invisible' : item.rateDiff > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500/90'"
+              :class="
+                item.rateDiff === 0
+                  ? 'invisible'
+                  : item.rateDiff > 0
+                    ? 'text-green-600 dark:text-green-500'
+                    : 'text-red-600 dark:text-red-500/90'
+              "
             >
               {{ item.rateDiff === 0 ? '–' : item.rateDiff > 0 ? '▲' : '▼' }}
             </span>
             <span
               v-if="mode === 'winrate' && item.winRateDiff !== undefined"
               class="w-3 shrink-0 text-center text-xs font-bold"
-              :class="item.winRateDiff === 0 ? 'invisible' : item.winRateDiff > 0 ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-500/90'"
+              :class="
+                item.winRateDiff === 0
+                  ? 'invisible'
+                  : item.winRateDiff > 0
+                    ? 'text-green-600 dark:text-green-500'
+                    : 'text-red-600 dark:text-red-500/90'
+              "
             >
               {{ item.winRateDiff === 0 ? '–' : item.winRateDiff > 0 ? '▲' : '▼' }}
             </span>

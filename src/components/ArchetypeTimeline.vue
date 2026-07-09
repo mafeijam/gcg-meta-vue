@@ -282,9 +282,7 @@ const timeline = computed(() => {
         percent: arch.percent,
         cardCount: arch.cardCount,
         winRate:
-          series.winDecks > 0
-            ? +((arch.winnerDeckCount / series.winDecks) * 100).toFixed(1)
-            : 0,
+          series.winDecks > 0 ? +((arch.winnerDeckCount / series.winDecks) * 100).toFixed(1) : 0,
         tier: arch.tier,
         isCurrent: series.value === props.currentSeriesKey,
       }
