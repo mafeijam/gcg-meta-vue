@@ -63,7 +63,7 @@
               <div class="flex items-center gap-1">
                 <div class="text-sumi dark:text-nalika-text">
                   <template
-                    v-for="(seg, si) in buildLabelSegments(row.archetype.replace(/^[^（]+/, ''), row.sigCards ?? [])"
+                    v-for="(seg, si) in buildLabelSegments(row.archetype, row.sigCards ?? [], { skipBaseCombo: true })"
                     :key="si"
                   >
                     <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>

@@ -21,10 +21,14 @@ function buildSegmentsFor(part, sigCards) {
   return segs
 }
 
-export function buildLabelSegments(combo, sigCards) {
+export function buildLabelSegments(combo, sigCards, { skipBaseCombo } = {}) {
   const parenMatch = combo.match(/^(.+?)\s*[（(](.+)[）)]$/)
   const baseCombo = parenMatch ? parenMatch[1].trimEnd() : combo
   const qualifier = parenMatch ? parenMatch[2] : ''
+
+  if (skipBaseCombo) {
+    return buildSegmentsFor(qualifier, sigCards)
+  }
 
   const segs = buildSegmentsFor(baseCombo, sigCards)
   if (qualifier) {
