@@ -10,9 +10,22 @@
     />
 
     <div
-      class="sticky top-12 z-40 -mx-3 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:px-8 dark:bg-nalika-bg"
+      class="sticky top-12 z-40 -mx-3 flex items-center gap-3 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:px-8 dark:bg-nalika-bg"
       :class="hideFilter ? '-translate-y-full' : 'translate-y-0'"
     >
+      <button
+        class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+        :class="groupByColor
+          ? 'bg-ruri text-white'
+          : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'"
+        @click="groupByColor = !groupByColor"
+      >
+        <span
+          class="inline-block h-3 w-3 rounded-full border"
+          :class="groupByColor ? 'border-white/50 bg-white/30' : 'border-gray-400 bg-transparent'"
+        />
+        Group by color
+      </button>
       <GeneralDropdown
         v-model="selectedKey"
         class="ml-auto w-fit md:max-w-md"
@@ -61,6 +74,7 @@
         :rows="tierRows"
         :zero-win-rows="zeroWinRows"
         :show-zero-wins="showZeroWins"
+        :group-by-color="groupByColor"
         :detail-loading="detailLoading"
         @detail="openDetail"
         @toggle-zero-wins="toggleZeroWins"
@@ -203,6 +217,7 @@ const tierRows = computed(() => allRows.value.filter(r => r.wins > 0))
 
 const zeroWinRows = computed(() => allRows.value.filter(r => r.wins === 0))
 
+const groupByColor = ref(false)
 const showZeroWins = ref(false)
 
 function toggleZeroWins() {
