@@ -36,14 +36,20 @@
             :style="{ background: dot.hex }"
           />
         </div>
-        <div class="text-sm text-gray-800 dark:text-nalika-text">
-          <template
-            v-for="(seg, si) in buildLabelSegments(row.archetype, row.sigCards ?? [])"
-            :key="si"
-          >
-            <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
-            <span v-else>{{ seg.text }}</span>
-          </template>
+        <div class="flex items-center gap-1">
+          <div class="text-sm text-gray-800 dark:text-nalika-text">
+            <template
+              v-for="(seg, si) in buildLabelSegments(row.archetype, row.sigCards ?? [])"
+              :key="si"
+            >
+              <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
+              <span v-else>{{ seg.text }}</span>
+            </template>
+          </div>
+          <span
+            v-if="row.darkHorse"
+            class="inline-flex items-center gap-0.5 rounded bg-amber-100 px-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+          >🐴</span>
         </div>
       </div>
     </div>

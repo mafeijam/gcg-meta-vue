@@ -436,6 +436,7 @@ function formatTierRows(series) {
         t4PerDk: `${(top4PerDeck * 100).toFixed(1)}%`,
         score: a.tierScore,
         tier: a.tierLabel,
+        darkHorse: a.darkHorse ?? false,
       }
     })
     .sort((a, b) => {
@@ -788,6 +789,25 @@ function processSeries(series) {
     })
     a.tierLabel =
       a.winnerDeckCount > 0 ? getDeckTier(a.tierScore, seriesProcessed.tierThresholds).label : '--'
+  }
+
+  // Mark dark horses: low-usage archetypes that punch above their weight into competitive tiers
+  const tierRank = { T1: 1, 'T1.5': 1.5, T2: 2 }
+  const winningArchs = seriesProcessed.archetypes.filter(a => a.winnerDeckCount > 0)
+  const medDecks = winningArchs.map(a => a.deckCount).sort((a, b) => a - b)[Math.floor(winningArchs.length / 2)]
+  const medScore = winningArchs.map(a => a.tierScore).sort((a, b) => a - b)[Math.floor(winningArchs.length / 2)]
+  const darkHorses = winningArchs
+    .filter(a =>
+      a.deckCount >= 5 &&
+      a.deckCount < medDecks &&
+      a.tierScore > medScore &&
+      tierRank[a.tierLabel] !== undefined
+    )
+    .sort((a, b) => (b.tierScore / b.deckCount) - (a.tierScore / a.deckCount))
+    .slice(0, 3)
+  const darkHorseSet = new Set(darkHorses.map(a => a.combo))
+  for (const a of seriesProcessed.archetypes) {
+    a.darkHorse = darkHorseSet.has(a.combo)
   }
 
   // Lightweight manifest for dropdown navigation — no card/feature details, no top4
