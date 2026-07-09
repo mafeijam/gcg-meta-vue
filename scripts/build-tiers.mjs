@@ -326,9 +326,11 @@ function computeConfidence(archDecks, smoothedRate, avgRate) {
 
 // Weighted composite score: event win share (0.5), usage rate (0.3),
 // Bayesian-smoothed win rate (0.1), Bayesian-smoothed top-4 bonus (0.1).
-// K=10 smoothing with prior = cap/2 for win rate, series avg top-4 rate for top-4.
-// Penalty: archetypes with high usage but low win rate relative to cap get dinged.
-function archetypeScoreV2({
+// K=15 smoothing with prior = series avg deck win rate / top-4 rate.
+// Penalty: usageRate × gap × 0.15 — penalizes archetypes with low win rate
+// relative to the cap (2× series average). No hard threshold; self-regulates
+// via gap (strong archetypes get gap≈0 → penalty≈0).
+function archetypeScore({
   wins,
   archDecks,
   totalDecks,
@@ -364,7 +366,7 @@ function computeTierThresholds(series) {
   const allScores = series.archetypes
     .filter(a => a.winnerDeckCount > 0)
     .map(a =>
-      archetypeScoreV2({
+      archetypeScore({
         wins: a.winnerDeckCount,
         archDecks: a.deckCount,
         totalDecks: series.totalDecks,
@@ -791,7 +793,7 @@ function processSeries(series) {
 
   // Score each archetype and assign a tier label
   for (const a of seriesProcessed.archetypes) {
-    a.tierScore = archetypeScoreV2({
+    a.tierScore = archetypeScore({
       wins: a.winnerDeckCount,
       archDecks: a.deckCount,
       totalDecks: allPlayers.length,
