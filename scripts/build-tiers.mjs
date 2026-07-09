@@ -276,16 +276,15 @@ function getSeriesEventDateRange(series) {
 
 // ── Scoring / tiers ──────────────────────────────────────────────────────────
 
-// Scoring cap = 2× average winner win rate among winning archetypes.
-// Prevents runaway scores in low-competition series.
-function getDeckWinRateCap(series) {
+// Average win rate across winning archetypes, used as Bayesian prior.
+function getSeriesAvgWinRate(series) {
   const rates = series.archetypes
     .filter(a => a.winnerDeckCount > 0)
     .map(a => (a.winnerDeckCount / a.deckCount) * 100)
   if (rates.length === 0) {
-    return 50
+    return 25
   }
-  return (rates.reduce((a, b) => a + b, 0) / rates.length) * 2
+  return rates.reduce((a, b) => a + b, 0) / rates.length
 }
 
 // Average top-4 rate across winning archetypes, used as Bayesian prior
@@ -299,21 +298,22 @@ function getSeriesAvgTop4Rate(series) {
   return totalDecks > 0 ? (totalTop4 / totalDecks) * 100 : 40
 }
 
-// Bayesian smoothing: (observed + K × prior%) / (total + K)
-function bayesianRate(observed, total, prior, K = 10) {
-  return total > 0 ? ((observed + (K * prior) / 100) / (total + K)) * 100 : 0
+// Bayesian smoothing: (observed + K × avg%) / (total + K)
+function bayesianRate(observed, total, avgRate, K = 10) {
+  return total > 0 ? ((observed + (K * avgRate) / 100) / (total + K)) * 100 : 0
 }
 
-// Confidence multiplier: dynamic K based on how far raw win rate deviates from prior.
-// Archetypes whose performance is surprisingly different need more decks for full confidence.
-function computeConfidence(archDecks, rawWinRate, priorWinRate) {
+// Confidence multiplier: dynamic K based on how far Bayesian-smoothed win rate
+// deviates from the series average. Archetypes whose performance is surprisingly
+// different need more decks for full confidence.
+function computeConfidence(archDecks, smoothedRate, avgRate) {
   const deviation =
-    priorWinRate > 0 ? Math.abs(rawWinRate - priorWinRate / 100) / (priorWinRate / 100) : 0
-  return Math.min(1, archDecks / (10 * (1 + deviation)))
+    avgRate > 0 ? Math.abs(smoothedRate - avgRate) / avgRate : 0
+  return Math.min(1, archDecks / (10 * (1 + deviation / 2)))
 }
 
-// Weighted composite score: event win share (0.5), usage rate (0.2),
-// Bayesian-smoothed win rate (0.2), Bayesian-smoothed top-4 bonus (0.1).
+// Weighted composite score: event win share (0.5), usage rate (0.3),
+// Bayesian-smoothed win rate (0.1), Bayesian-smoothed top-4 bonus (0.1).
 // K=10 smoothing with prior = cap/2 for win rate, series avg top-4 rate for top-4.
 // Penalty: archetypes with high usage but low win rate relative to cap get dinged.
 function archetypeScoreV2({
@@ -322,25 +322,23 @@ function archetypeScoreV2({
   totalDecks,
   totalEvents,
   top4,
-  deckWinRateCap,
-  top4Prior,
+  seriesAvgWinRate,
+  seriesAvgTop4Rate,
 }) {
   if (wins === 0) {
     return 0
   }
 
-  const cap = deckWinRateCap ?? 50
-  const priorWinRate = cap / 2
-  const top4PriorRate = top4Prior ?? 40
+  const deckWinRateCap = seriesAvgWinRate * 2
 
   const eventWinShare = (wins / totalEvents) * 100
   const usageRate = (archDecks / totalDecks) * 100
-  const archWinRate = bayesianRate(wins, archDecks, priorWinRate)
-  const top4Bonus = bayesianRate(top4, archDecks, top4PriorRate)
+  const archWinRate = bayesianRate(wins, archDecks, seriesAvgWinRate)
+  const top4Bonus = bayesianRate(top4, archDecks, seriesAvgTop4Rate)
 
-  const raw = eventWinShare * 0.5 + usageRate * 0.2 + archWinRate * 0.2 + top4Bonus * 0.1
-  const penalty = Math.max(0, usageRate * (1 - archWinRate / cap)) * 0.15
-  const confidence = computeConfidence(archDecks, wins / archDecks, priorWinRate)
+  const raw = eventWinShare * 0.5 + usageRate * 0.3 + archWinRate * 0.1 + top4Bonus * 0.1
+  const penalty = Math.max(0, usageRate * (1 - archWinRate / deckWinRateCap)) * 0.15
+  const confidence = computeConfidence(archDecks, archWinRate, seriesAvgWinRate)
 
   return Math.round((raw - penalty) * 10 * confidence)
 }
@@ -348,8 +346,8 @@ function archetypeScoreV2({
 // ckmeans clustering on archetype scores → tier cutoffs (T1 → T3).
 // Falls back to equal-sized buckets if ckmeans fails (e.g. all scores identical).
 function computeTierThresholds(series) {
-  const deckWinRateCap = getDeckWinRateCap(series)
-  const top4AvgRate = getSeriesAvgTop4Rate(series)
+  const seriesAvgWinRate = getSeriesAvgWinRate(series)
+  const seriesAvgTop4Rate = getSeriesAvgTop4Rate(series)
   const allScores = series.archetypes
     .filter(a => a.winnerDeckCount > 0)
     .map(a =>
@@ -359,8 +357,8 @@ function computeTierThresholds(series) {
         totalDecks: series.totalDecks,
         totalEvents: series.totalEvents,
         top4: a.top4 ?? 0,
-        deckWinRateCap,
-        top4Prior: top4AvgRate,
+        seriesAvgWinRate,
+        seriesAvgTop4Rate,
       }),
     )
     .sort((a, b) => b - a)
@@ -774,8 +772,8 @@ function processSeries(series) {
   }
 
   seriesProcessed.tierThresholds = computeTierThresholds(seriesProcessed)
-  const deckWinRateCap = getDeckWinRateCap(seriesProcessed)
-  const top4AvgRate = getSeriesAvgTop4Rate(seriesProcessed)
+  const seriesAvgWinRate = getSeriesAvgWinRate(seriesProcessed)
+  const seriesAvgTop4Rate = getSeriesAvgTop4Rate(seriesProcessed)
 
   // Score each archetype and assign a tier label
   for (const a of seriesProcessed.archetypes) {
@@ -785,8 +783,8 @@ function processSeries(series) {
       totalDecks: allPlayers.length,
       totalEvents: series.events.length,
       top4: a.top4 ?? 0,
-      deckWinRateCap,
-      top4Prior: top4AvgRate,
+      seriesAvgWinRate,
+      seriesAvgTop4Rate,
     })
     a.tierLabel =
       a.winnerDeckCount > 0 ? getDeckTier(a.tierScore, seriesProcessed.tierThresholds).label : '--'

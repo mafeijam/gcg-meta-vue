@@ -27,7 +27,10 @@ export function useSeriesState() {
 
   watch(tierDataLoaded, val => {
     if (val && !selectedKey.value && tierData.value.length) {
-      selectedKey.value = tierData.value[0].value
+      const valid = tierData.value.map(s => s.value)
+      selectedKey.value = valid.includes(route.query.series)
+        ? route.query.series
+        : tierData.value[0].value
     }
   })
 
