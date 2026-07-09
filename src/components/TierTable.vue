@@ -59,19 +59,11 @@
             class="group cursor-pointer text-aisumicha odd:bg-gray-100/15 even:bg-gray-100/45 hover:bg-gray-200/50 dark:text-nalika-text-muted dark:odd:bg-gray-100/10 dark:even:bg-white/3 dark:hover:bg-white/15"
             @click="$emit('detail', row)"
           >
-            <td class="flex items-baseline gap-1.5 px-4 py-2 pl-10">
-              <div class="flex shrink-0 items-center gap-0.5">
-                <div
-                  v-for="dot in row.colorDots"
-                  :key="dot.name"
-                  class="mr-px inline-block h-2 w-2 rounded-full"
-                  :style="{ background: dot.hex }"
-                />
-              </div>
+            <td class="flex items-baseline gap-1 px-4 py-2">
               <div class="flex items-center gap-1">
                 <div class="text-sumi dark:text-nalika-text">
                   <template
-                    v-for="(seg, si) in buildLabelSegments(row.archetype, row.sigCards ?? [])"
+                    v-for="(seg, si) in buildLabelSegments(row.archetype.replace(/^[^（]+/, ''), row.sigCards ?? [])"
                     :key="si"
                   >
                     <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
