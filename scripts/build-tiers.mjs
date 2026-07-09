@@ -298,9 +298,22 @@ function getSeriesAvgTop4Rate(series) {
   return totalDecks > 0 ? (totalTop4 / totalDecks) * 100 : 40
 }
 
-// Bayesian smoothing: (observed + K × avg%) / (total + K)
-function bayesianRate(observed, total, avgRate, K = 10) {
-  return total > 0 ? ((observed + (K * avgRate) / 100) / (total + K)) * 100 : 0
+// Bayesian smoothing with dynamic K:
+//   K = baseK × (1 + deviation × 0.6) ÷ (1 + √total / 5), clamped to [4, 22]
+//   more data → less shrinkage; larger deviation → more shrinkage
+function bayesianRate(observed, total, avgRate, baseK = 15) {
+  if (total <= 0) {
+    return 0
+  }
+
+  const observedRate = (observed / total) * 100
+  const deviation = avgRate > 0 ? Math.abs(observedRate - avgRate) / avgRate : 0
+
+  let dynamicK = baseK * (1 + deviation * 0.6)
+  dynamicK = dynamicK / (1 + Math.sqrt(total) / 5)
+  dynamicK = Math.max(4, Math.min(22, dynamicK))
+
+  return ((observed + (dynamicK * avgRate) / 100) / (total + dynamicK)) * 100
 }
 
 // Confidence multiplier: dynamic K based on how far Bayesian-smoothed win rate
