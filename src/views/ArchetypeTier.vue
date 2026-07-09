@@ -15,9 +15,11 @@
     >
       <button
         class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
-        :class="groupByColor
-          ? 'bg-ruri text-white'
-          : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'"
+        :class="
+          groupByColor
+            ? 'bg-ruri text-white'
+            : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700'
+        "
         @click="groupByColor = !groupByColor"
       >
         <span
@@ -162,6 +164,7 @@
 import SigPieChart from '../components/SigPieChart.vue'
 import DeckPopover from '../components/DeckPopover.vue'
 import manifest from '$data/archetypes/index.json'
+import { useStorage } from '@vueuse/core'
 import cardMeta from '$data/card-meta.json'
 
 const cardMetaMap = new Map(cardMeta.map(c => [c.id, c]))
@@ -217,7 +220,7 @@ const tierRows = computed(() => allRows.value.filter(r => r.wins > 0))
 
 const zeroWinRows = computed(() => allRows.value.filter(r => r.wins === 0))
 
-const groupByColor = ref(false)
+const groupByColor = useStorage('gcg-group-color', false)
 const showZeroWins = ref(false)
 
 function toggleZeroWins() {

@@ -49,7 +49,9 @@
           <span
             v-if="row.darkHorse"
             class="inline-flex items-center gap-0.5 rounded bg-amber-100 px-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
-          >🐴</span>
+          >
+            🐴
+          </span>
         </div>
       </div>
     </div>
