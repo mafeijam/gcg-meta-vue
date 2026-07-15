@@ -92,7 +92,7 @@ const features = [
     to: '/archetype-analysis',
     color: '#2b6cb0',
     description:
-      'Deep dives into individual archetypes — timelines, color distributions, and card quadrants.',
+      'Track how an archetype evolves across series, browse its card pool by type, compare stats with previous formats, and explore deck lists.',
   },
   {
     title: 'Meta Overview',
