@@ -6,7 +6,7 @@
       <div class="md:flex-1" />
       <div class="flex gap-6 md:gap-16">
         <RouterLink
-          :to="{ path: '/', query: { series: $route.query.series } }"
+          :to="{ path: '/' }"
           class="max-sm:text-sm"
           :exact-active-class="tw`font-bold text-ruri dark:text-sora`"
         >
