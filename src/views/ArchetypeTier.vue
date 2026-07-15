@@ -10,11 +10,12 @@
     />
 
     <div
-      class="sticky top-12 z-40 -mx-3 flex items-center gap-3 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:px-8 dark:bg-nalika-bg"
+      ref="filterBarRef"
+      class="sticky top-12 z-40 -mx-3 flex flex-col items-start gap-2 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:flex-row md:items-center md:gap-3 md:px-8 dark:bg-nalika-bg"
       :class="hideFilter ? '-translate-y-full' : 'translate-y-0'"
     >
       <button
-        class="flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors"
+        class="order-2 flex cursor-pointer items-center gap-2 rounded-full px-3 py-1.5 text-xs font-medium transition-colors md:order-1"
         :class="
           groupByColor
             ? 'bg-ruri text-white'
@@ -30,7 +31,7 @@
       </button>
       <GeneralDropdown
         v-model="selectedKey"
-        class="ml-auto w-fit md:max-w-md"
+        class="order-1 w-full md:order-2 md:ml-auto md:max-w-md"
         :options="seriesOptions"
       />
     </div>
@@ -47,13 +48,45 @@
         class="mb-6 md:mb-2"
       />
       <div class="space-y-3 md:hidden">
-        <MobileTierCard
-          v-for="row in tierRows"
-          :key="row.archetype"
-          :row="row"
-          :detail-loading="detailLoading"
-          @detail="openDetail"
-        />
+        <template v-if="!groupByColor">
+          <MobileTierCard
+            v-for="row in tierRows"
+            :key="row.archetype"
+            :row="row"
+            :detail-loading="detailLoading"
+            @detail="openDetail"
+          />
+        </template>
+        <template v-else>
+          <div v-for="group in mobileGroups" :key="group.colors" class="space-y-3">
+            <div
+              :ref="el => registerStuck(el, group.colors)"
+              :class="['mobile-group-header sticky z-30 flex items-center gap-2 rounded px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400', stuckIds.has(group.colors) ? 'bg-gray-300 dark:bg-nalika-surface' : 'bg-gray-300/40 dark:bg-white/15']"
+              :style="{ top: groupTop }"
+            >
+              <div class="flex items-center gap-0.5">
+                <div
+                  v-for="dot in group.colorDots"
+                  :key="dot.name"
+                  class="inline-block h-2 w-2 rounded-full"
+                  :style="{ background: dot.hex }"
+                />
+              </div>
+              <span>{{ group.colors }}</span>
+              <span class="text-gray-400">({{ group.rows.length }})</span>
+              <span class="ml-auto font-mono tabular-nums">{{ group.totalDecks }} decks / {{ group.totalWins }} wins</span>
+            </div>
+            <MobileTierCard
+              v-for="row in group.rows"
+              :key="row.archetype"
+              :row="row"
+              :detail-loading="detailLoading"
+              :hide-color-dots="groupByColor"
+              :hide-color-name="groupByColor"
+              @detail="openDetail"
+            />
+          </div>
+        </template>
         <button
           v-if="zeroWinRows.length"
           class="w-full cursor-pointer py-2 text-center text-xs font-medium text-ruri"
@@ -163,6 +196,7 @@
 <script setup>
 import SigPieChart from '../components/SigPieChart.vue'
 import DeckPopover from '../components/DeckPopover.vue'
+import { useStuck } from '../composables/useStuck.js'
 import manifest from '$data/archetypes/index.json'
 import { useStorage } from '@vueuse/core'
 import cardMeta from '$data/card-meta.json'
@@ -212,6 +246,12 @@ const currentSeries = computed(() => tierData.value.find(s => s.value === select
 
 const { hideFilter } = useScrollHide()
 
+const filterBarRef = ref(null)
+const filterBarH = computed(() => filterBarRef.value?.offsetHeight ?? 0)
+const groupTop = computed(() => (hideFilter.value ? '53px' : `calc(53px + ${filterBarH.value}px)`))
+
+const { stuckIds, register: registerStuck } = useStuck()
+
 const totalWins = computed(() => currentSeries.value?.winDecks ?? 0)
 
 const allRows = computed(() => currentSeries.value?.rows ?? [])
@@ -222,6 +262,28 @@ const zeroWinRows = computed(() => allRows.value.filter(r => r.wins === 0))
 
 const groupByColor = useStorage('gcg-group-color', false)
 const showZeroWins = ref(false)
+
+const mobileGroups = computed(() => {
+  if (!groupByColor.value) {
+    return []
+  }
+  const map = {}
+  for (const row of tierRows.value) {
+    if (!map[row.colors]) {
+      map[row.colors] = {
+        colors: row.colors,
+        colorDots: row.colorDots,
+        rows: [],
+        totalDecks: 0,
+        totalWins: 0,
+      }
+    }
+    map[row.colors].rows.push(row)
+    map[row.colors].totalDecks += row.decks
+    map[row.colors].totalWins += row.wins
+  }
+  return Object.values(map).sort((a, b) => b.rows.length - a.rows.length)
+})
 
 function toggleZeroWins() {
   showZeroWins.value = !showZeroWins.value
