@@ -4,6 +4,11 @@ const routes = [
   {
     path: '/',
     name: 'home',
+    component: () => import('@/views/HomePage.vue'),
+  },
+  {
+    path: '/tier',
+    name: 'tier',
     component: () => import('@/views/ArchetypeTier.vue'),
   },
   {

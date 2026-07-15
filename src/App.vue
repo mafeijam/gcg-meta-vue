@@ -10,6 +10,13 @@
           class="max-sm:text-sm"
           :exact-active-class="tw`font-bold text-ruri dark:text-sora`"
         >
+          Home
+        </RouterLink>
+        <RouterLink
+          :to="{ path: '/tier', query: { series: $route.query.series } }"
+          class="max-sm:text-sm"
+          :active-class="tw`font-bold text-ruri dark:text-sora`"
+        >
           Tier
         </RouterLink>
         <RouterLink
