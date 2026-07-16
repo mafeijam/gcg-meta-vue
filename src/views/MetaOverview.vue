@@ -62,7 +62,6 @@
       v-model:type-tab="typeTab"
       :filtered-sig-cards="filteredSigCards"
       :filtered-top-cards="filteredTopCards"
-      :loading-cards="loadingCards"
       :color-tab-options="colorTabOptions"
       :card-metric-options="cardMetricOptions"
       :card-type-options="cardTypeOptions"
@@ -110,7 +109,8 @@ const {
   quadrantData,
 } = useSeriesState()
 
-const { aggregationResult, loadingCards, cardMeta, cardInfoById, loadCardData } =
+const { loadTierData } = useTierData()
+const { aggregationResult, cardMeta, cardInfoById, loadCardData } =
   useCardData(selectedKey)
 const {
   cardTab,
@@ -155,12 +155,13 @@ const { archetypeProductGroups, colorCounts } = useProductGroups({
 
 const enlargedCard = ref(null)
 const viewAllModal = ref(null)
+const { finish } = useLoadingBar()
 
 function toggleEnlarge(cardId) {
   enlargedCard.value = enlargedCard.value === cardId ? null : cardId
 }
 
-onMounted(async () => {
-  await loadCardData(selectedKey.value)
-})
+await loadTierData()
+await loadCardData(selectedKey.value)
+finish()
 </script>

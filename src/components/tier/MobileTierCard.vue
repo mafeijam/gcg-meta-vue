@@ -5,7 +5,6 @@
         v-for="row in rows"
         :key="row.archetype"
         :row="row"
-        :detail-loading="detailLoading"
         @detail="$emit('detail', $event)"
       />
     </template>
@@ -32,7 +31,6 @@
           v-for="row in group.rows"
           :key="row.archetype"
           :row="row"
-          :detail-loading="detailLoading"
           hide-color-dots
           hide-color-name
           @detail="$emit('detail', $event)"
@@ -51,7 +49,6 @@
         v-for="row in zeroWinRows"
         :key="row.archetype"
         :row="row"
-        :detail-loading="detailLoading"
         @detail="$emit('detail', $event)"
       />
     </template>
@@ -64,7 +61,6 @@ const props = defineProps({
   zeroWinRows: { type: Array, default: () => [] },
   showZeroWins: { type: Boolean, default: false },
   groupByColor: { type: Boolean, default: false },
-  detailLoading: { type: Boolean, default: false },
   groupTop: { type: String, default: '53px' },
 })
 defineEmits(['detail', 'toggleZeroWins'])

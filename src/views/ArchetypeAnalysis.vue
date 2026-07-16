@@ -28,25 +28,20 @@
       </div>
     </div>
 
-    <div v-if="isLoading" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
-      Loading…
-    </div>
-    <template v-else>
-      <template v-if="selectedArchetype">
-        <ArchetypeTimeline
-          :combo="selectedArchetype.combo"
-          :current-series-key="seriesKey"
-          @navigate="onTimelineNavigate"
-        />
-        <ArchetypeDetail
-          :key="`${seriesKey}-${archKey}`"
-          :archetype="selectedArchetype"
-          :prev-card-ids="prevCardIds"
-          :removed-cards="removedCards"
-        />
-      </template>
-      <p v-else class="text-sm text-gray-400 dark:text-gray-500">Select a series and archetype</p>
+    <template v-if="selectedArchetype">
+      <ArchetypeTimeline
+        :combo="selectedArchetype.combo"
+        :current-series-key="seriesKey"
+        @navigate="onTimelineNavigate"
+      />
+      <ArchetypeDetail
+        :key="`${seriesKey}-${archKey}`"
+        :archetype="selectedArchetype"
+        :prev-card-ids="prevCardIds"
+        :removed-cards="removedCards"
+      />
     </template>
+    <p v-else class="text-sm text-gray-400 dark:text-gray-500">Select a series and archetype</p>
   </div>
 </template>
 
@@ -78,7 +73,7 @@ const seriesKey = ref(seriesInitial)
 
 const seriesManifest = computed(() => manifest.find(s => s.value === seriesKey.value))
 
-const { tierData } = useTierData()
+const { tierData, loadTierData } = useTierData()
 const { start, finish } = useLoadingBar()
 
 const currentSeriesData = computed(() => tierData.value.find(s => s.value === seriesKey.value))
@@ -103,7 +98,6 @@ const archKey = ref(archInitial)
 
 let suppressArchReset = false
 const selectedArchetype = ref(null)
-const isLoading = ref(false)
 const prevCardIds = ref(null)
 const prevCards = ref(null)
 
@@ -159,26 +153,19 @@ function onTimelineNavigate({ seriesKey: s, archIndex }) {
 async function loadArchetype(seriesVal, archIdx) {
   if (!seriesVal || archIdx === '' || archIdx === undefined) {
     selectedArchetype.value = null
-    isLoading.value = false
     return
   }
   start()
-  const loadingTimeout = setTimeout(() => {
-    isLoading.value = true
-  }, 200)
   try {
     const path = `/data-processed/archetypes/${seriesVal}/${archIdx}.json`
     const mod = await archModules[path]?.()
-    clearTimeout(loadingTimeout)
     selectedArchetype.value = mod?.default ?? null
     if (selectedArchetype.value) {
       await loadPrevArchetype(seriesVal, selectedArchetype.value.combo)
     }
   } catch {
-    clearTimeout(loadingTimeout)
     selectedArchetype.value = null
   } finally {
-    isLoading.value = false
     finish()
   }
 }
@@ -201,7 +188,7 @@ watch([seriesKey, archKey], async ([s, a]) => {
   await loadArchetype(s, a)
 })
 
-onMounted(async () => {
-  await loadArchetype(seriesKey.value, archKey.value)
-})
+await loadTierData()
+await loadArchetype(seriesKey.value, archKey.value)
+finish()
 </script>

@@ -39,7 +39,14 @@
       </div>
     </nav>
 
-    <RouterView />
+    <Suspense>
+      <template #default>
+        <RouterView />
+      </template>
+      <template #fallback>
+        <div class="py-12 text-center text-sm text-gray-400 dark:text-gray-500">Loading…</div>
+      </template>
+    </Suspense>
   </div>
 </template>
 

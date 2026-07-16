@@ -11,11 +11,8 @@
       <slot name="tabs" />
     </div>
 
-    <div v-if="loading" class="py-8 text-center text-sm text-gray-400 dark:text-gray-500">
-      Loading…
-    </div>
     <div
-      v-else-if="cards.length"
+      v-if="cards.length"
       class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-10"
     >
       <CardMetaCardItem
@@ -39,7 +36,6 @@
 defineProps({
   title: { type: String, required: true },
   cards: { type: Array, default: () => [] },
-  loading: { type: Boolean, default: false },
   emptyText: { type: String, default: 'No data' },
 })
 

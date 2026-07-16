@@ -36,12 +36,7 @@
       />
     </div>
 
-    <div v-if="!tierDataLoaded" class="py-12 text-center text-sm text-gray-400 dark:text-gray-500">
-      Loading…
-    </div>
-
-    <template v-if="tierDataLoaded">
-      <ChartSigPieChart
+    <ChartSigPieChart
         :rows="allRows"
         :series-decks="currentSeries?.totalDecks ?? 0"
         :color-combo-data="currentSeries?.colorComboData ?? []"
@@ -52,7 +47,6 @@
         :group-by-color="groupByColor"
         :zero-win-rows="zeroWinRows"
         :show-zero-wins="showZeroWins"
-        :detail-loading="detailLoading"
         :group-top="groupTop"
         @detail="openDetail"
         @toggle-zero-wins="toggleZeroWins"
@@ -63,7 +57,6 @@
         :zero-win-rows="zeroWinRows"
         :show-zero-wins="showZeroWins"
         :group-by-color="groupByColor"
-        :detail-loading="detailLoading"
         @detail="openDetail"
         @toggle-zero-wins="toggleZeroWins"
       />
@@ -135,7 +128,6 @@
           </UiDeckPopover>
         </div>
       </UiCollapsibleSection>
-    </template>
 
     <ArchetypeModal
       v-if="detailArch"
@@ -159,8 +151,11 @@ function normalizeName(name) {
 
 const router = useRouter()
 const route = useRoute()
-const { tierData, tierDataLoaded } = useTierData()
+const { tierData, tierDataLoaded, loadTierData } = useTierData()
 const { start, finish } = useLoadingBar()
+
+await loadTierData()
+finish()
 
 const seriesOptions = computed(() =>
   tierData.value.map(s => ({
@@ -255,9 +250,6 @@ function closeDetail() {
   detailTier.value = null
 }
 
-const detailLoading = ref(false)
-let loadingTimeout = null
-
 async function openDetail(row) {
   const entry = manifest.find(s => s.value === selectedKey.value)
   if (!entry) {
@@ -271,10 +263,6 @@ async function openDetail(row) {
   }
   start()
   const path = `/data-processed/archetypes/${selectedKey.value}/${idx}.json`
-  clearTimeout(loadingTimeout)
-  loadingTimeout = setTimeout(() => {
-    detailLoading.value = true
-  }, 200)
   try {
     const mod = await archModules[path]?.()
     detailArch.value = mod?.default ?? null
@@ -282,11 +270,7 @@ async function openDetail(row) {
   } catch {
     // import failed — reset silently
   } finally {
-    clearTimeout(loadingTimeout)
-    detailLoading.value = false
     finish()
   }
 }
-
-onUnmounted(() => clearTimeout(loadingTimeout))
 </script>

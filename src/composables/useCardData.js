@@ -1,6 +1,5 @@
 export function useCardData(selectedKey) {
   const aggregationResult = ref(null)
-  const loadingCards = ref(false)
   const cardMeta = ref([])
   const { start, finish } = useLoadingBar()
 
@@ -33,19 +32,12 @@ export function useCardData(selectedKey) {
     }
     await loadCardMeta()
     start()
-    const loadingTimeout = setTimeout(() => {
-      loadingCards.value = true
-      aggregationResult.value = null
-    }, 200)
     try {
       const result = await aggregateCards(seriesKey)
-      clearTimeout(loadingTimeout)
       aggregationResult.value = result
     } catch {
-      clearTimeout(loadingTimeout)
       aggregationResult.value = null
     } finally {
-      loadingCards.value = false
       finish()
     }
   }
@@ -56,7 +48,6 @@ export function useCardData(selectedKey) {
 
   return {
     aggregationResult,
-    loadingCards,
     cardMeta,
     cardInfoById,
     loadCardData,

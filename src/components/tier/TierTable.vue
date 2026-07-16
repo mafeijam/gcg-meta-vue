@@ -118,8 +118,7 @@
                 class="rounded text-xxs font-medium text-gray-400 group-hover:text-sora focus:outline-none dark:text-gray-500"
                 @click.stop="$emit('detail', row)"
               >
-                <span v-if="detailLoading" class="animate-pulse">⋯</span>
-                <span v-else>▶</span>
+                <span>▶</span>
               </button>
             </td>
           </tr>
@@ -198,8 +197,7 @@
                 class="rounded text-xxs font-medium text-gray-400 group-hover:text-sora focus:outline-none dark:text-gray-500"
                 @click.stop="$emit('detail', row)"
               >
-                <span v-if="detailLoading" class="animate-pulse">⋯</span>
-                <span v-else>▶</span>
+                <span>▶</span>
               </button>
             </td>
           </tr>
@@ -279,8 +277,7 @@
                 class="rounded text-xxs font-medium text-gray-400 group-hover:text-sora focus:outline-none dark:text-gray-500"
                 @click.stop="$emit('detail', row)"
               >
-                <span v-if="detailLoading" class="animate-pulse">⋯</span>
-                <span v-else>▶</span>
+                <span>▶</span>
               </button>
             </td>
           </tr>
@@ -296,7 +293,6 @@ const props = defineProps({
   zeroWinRows: { type: Array, default: () => [] },
   showZeroWins: { type: Boolean, default: false },
   groupByColor: { type: Boolean, default: false },
-  detailLoading: { type: Boolean, default: false },
 })
 defineEmits(['detail', 'toggleZeroWins'])
 

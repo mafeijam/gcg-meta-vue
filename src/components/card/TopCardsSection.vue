@@ -21,7 +21,6 @@
     <CardMetaCardSection
       title="Top 10 Cards"
       :cards="filteredTopCards"
-      :loading="loadingCards"
       empty-text="Select a series to view card data"
       @toggle-enlarge="$emit('toggle-enlarge', $event)"
     >
@@ -75,7 +74,6 @@ const typeTab = defineModel('typeTab', { type: String, default: null })
 defineProps({
   filteredSigCards: { type: Array, default: () => [] },
   filteredTopCards: { type: Array, default: () => [] },
-  loadingCards: { type: Boolean, default: false },
   colorTabOptions: { type: Array, default: () => [] },
   cardMetricOptions: { type: Array, default: () => [] },
   cardTypeOptions: { type: Array, default: () => [] },

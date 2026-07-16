@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useLoadingBar } from '@/composables/useLoadingBar'
 
 const routes = [
   {
@@ -31,13 +32,12 @@ const router = createRouter({
   },
 })
 
-const { start, finish } = useLoadingBar()
-const { loadTierData } = useTierData()
+const { start } = useLoadingBar()
 
-router.beforeEach(async () => {
-  start()
-  await loadTierData()
+router.beforeEach((to, from) => {
+  if (to.path !== from.path) {
+    start()
+  }
 })
-router.afterEach(() => finish())
 
 export default router
