@@ -78,7 +78,8 @@ const seriesKey = ref(seriesInitial)
 
 const seriesManifest = computed(() => manifest.find(s => s.value === seriesKey.value))
 
-const { tierData, loadTierData } = useTierData()
+const { tierData } = useTierData()
+const { start, finish } = useLoadingBar()
 
 const currentSeriesData = computed(() => tierData.value.find(s => s.value === seriesKey.value))
 
@@ -161,6 +162,7 @@ async function loadArchetype(seriesVal, archIdx) {
     isLoading.value = false
     return
   }
+  start()
   const loadingTimeout = setTimeout(() => {
     isLoading.value = true
   }, 200)
@@ -177,6 +179,7 @@ async function loadArchetype(seriesVal, archIdx) {
     selectedArchetype.value = null
   } finally {
     isLoading.value = false
+    finish()
   }
 }
 
@@ -199,7 +202,6 @@ watch([seriesKey, archKey], async ([s, a]) => {
 })
 
 onMounted(async () => {
-  await loadTierData()
   await loadArchetype(seriesKey.value, archKey.value)
 })
 </script>

@@ -31,4 +31,13 @@ const router = createRouter({
   },
 })
 
+const { start, finish } = useLoadingBar()
+const { loadTierData } = useTierData()
+
+router.beforeEach(async () => {
+  start()
+  await loadTierData()
+})
+router.afterEach(() => finish())
+
 export default router

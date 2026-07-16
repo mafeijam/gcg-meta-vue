@@ -159,7 +159,8 @@ function normalizeName(name) {
 
 const router = useRouter()
 const route = useRoute()
-const { tierData, tierDataLoaded, loadTierData } = useTierData()
+const { tierData, tierDataLoaded } = useTierData()
+const { start, finish } = useLoadingBar()
 
 const seriesOptions = computed(() =>
   tierData.value.map(s => ({
@@ -268,6 +269,7 @@ async function openDetail(row) {
   if (idx === -1) {
     return
   }
+  start()
   const path = `/data-processed/archetypes/${selectedKey.value}/${idx}.json`
   clearTimeout(loadingTimeout)
   loadingTimeout = setTimeout(() => {
@@ -282,10 +284,9 @@ async function openDetail(row) {
   } finally {
     clearTimeout(loadingTimeout)
     detailLoading.value = false
+    finish()
   }
 }
 
 onUnmounted(() => clearTimeout(loadingTimeout))
-
-onMounted(() => loadTierData())
 </script>

@@ -110,7 +110,6 @@ const {
   quadrantData,
 } = useSeriesState()
 
-const { loadTierData } = useTierData()
 const { aggregationResult, loadingCards, cardMeta, cardInfoById, loadCardData } =
   useCardData(selectedKey)
 const {
@@ -162,7 +161,6 @@ function toggleEnlarge(cardId) {
 }
 
 onMounted(async () => {
-  await loadTierData()
   await loadCardData(selectedKey.value)
 })
 </script>
