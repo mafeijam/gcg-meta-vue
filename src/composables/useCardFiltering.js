@@ -1,5 +1,4 @@
 import { useStorage } from '@vueuse/core'
-import { COLOR_HEX } from '@/utils/colors.js'
 
 const CARD_TYPE_OPTIONS = ['UNIT', 'PILOT', 'COMMAND', 'BASE']
 

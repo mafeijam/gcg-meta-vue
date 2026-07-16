@@ -30,7 +30,12 @@ source ~/.nvm/nvm.sh && nvm use
 - `src/main.js` — mount point
 - `src/style.css` — Tailwind v4 entry + `@custom-variant dark`
 - `src/composables/useDarkMode.js` — VueUse `useDark()` wrapper
-- `src/components/` — currently empty
+- `src/components/` — auto-imported components grouped by feature:
+  - `archetype/` — archetype detail, dropdown, modal, timeline, quadrant charts
+  - `card/` — card display, meta card sections, top cards, newcomers
+  - `chart/` — distribution charts, quadrant charts, pie chart
+  - `tier/` — tier table, mobile tier card
+  - `ui/` — shared UI: dropdowns, modals, tabs, headers, collapsible, popover, dark toggle
 - `scripts/` — data pipeline scripts (scrapers, tier builder)
 - `data/` — generated raw scraped data (gitignored)
 - `data-processed/` — generated tier & archetype data (gitignored)
@@ -66,6 +71,7 @@ You must run `npm run data` (or at minimum `npm run build:tiers`) after cloning 
 ## User preferences
 
 - `@vueuse/core` APIs (e.g. `onKeyStroke`, `useDark`) are NOT auto-imported — always add explicit `import { ... } from '@vueuse/core'`
+- Components are auto-imported from `src/components/` with `directoryAsNamespace: true` and `collapseSamePrefixes: true` — use the namespaced name in templates (e.g. `UiDarkToggle`, `CardMetaCardItem`, `ChartDistributionBars`)
 - When modifying a modal component, keep changes in the modal file itself rather than in child components like ArchetypeDetail
 
 ## Browser Automation

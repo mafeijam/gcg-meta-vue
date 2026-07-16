@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto max-w-340 p-3 max-sm:pb-6 md:p-8">
-    <SeriesHeader
+    <UiSeriesHeader
       title="Archetype Tier"
       :visible="!!currentSeries"
       :events="currentSeries?.events ?? 0"
@@ -29,7 +29,7 @@
         />
         Group by color
       </button>
-      <GeneralDropdown
+      <UiGeneralDropdown
         v-model="selectedKey"
         class="order-1 w-full md:order-2 md:ml-auto md:max-w-md"
         :options="seriesOptions"
@@ -49,7 +49,7 @@
       />
       <div class="space-y-3 md:hidden">
         <template v-if="!groupByColor">
-          <MobileTierCard
+          <TierMobileTierCard
             v-for="row in tierRows"
             :key="row.archetype"
             :row="row"
@@ -76,7 +76,7 @@
               <span class="text-gray-400">({{ group.rows.length }})</span>
               <span class="ml-auto font-mono tabular-nums">{{ group.totalDecks }} decks / {{ group.totalWins }} wins</span>
             </div>
-            <MobileTierCard
+            <TierMobileTierCard
               v-for="row in group.rows"
               :key="row.archetype"
               :row="row"
@@ -95,7 +95,7 @@
           0 Wins（{{ zeroWinRows.length }}）{{ showZeroWins ? '−' : '+' }}
         </button>
         <template v-if="showZeroWins">
-          <MobileTierCard
+          <TierMobileTierCard
             v-for="row in zeroWinRows"
             :key="row.archetype"
             :row="row"
@@ -116,7 +116,7 @@
       />
 
       <!-- Unassigned Decks (collapsible) -->
-      <CollapsibleSection
+      <UiCollapsibleSection
         v-if="unassignedDecks?.deckUrls?.length"
         :show="showUnassigned"
         :count="unassignedDecks.count"
@@ -129,7 +129,7 @@
           Winner Decks
         </div>
         <div class="flex flex-wrap gap-x-5 gap-y-2.5">
-          <DeckPopover
+          <UiDeckPopover
             v-for="(d, i) in unassignedDeckPreviews.filter(d => d.isWinner)"
             :key="d.url"
             :cards="d.cards"
@@ -150,7 +150,7 @@
             >
               W
             </span>
-          </DeckPopover>
+          </UiDeckPopover>
         </div>
         <div
           v-if="!unassignedDeckPreviews.filter(d => d.isWinner).length"
@@ -164,7 +164,7 @@
           Other Decks
         </div>
         <div class="flex flex-wrap gap-x-5 gap-y-2.5">
-          <DeckPopover
+          <UiDeckPopover
             v-for="(d, i) in unassignedDeckPreviews.filter(d => !d.isWinner)"
             :key="d.url"
             :cards="d.cards"
@@ -179,9 +179,9 @@
             >
               Deck {{ i + 1 }}
             </a>
-          </DeckPopover>
+          </UiDeckPopover>
         </div>
-      </CollapsibleSection>
+      </UiCollapsibleSection>
     </template>
 
     <ArchetypeModal

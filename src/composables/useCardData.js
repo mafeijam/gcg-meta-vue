@@ -1,5 +1,3 @@
-import { aggregateCards } from '@/utils/metaAgg.js'
-
 export function useCardData(selectedKey) {
   const aggregationResult = ref(null)
   const loadingCards = ref(false)

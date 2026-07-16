@@ -1,5 +1,3 @@
-import { COLOR_HEX } from '@/utils/colors.js'
-
 const TIER_ORDER = ['T1', 'T1.5', 'T2', 'T2.5', 'T3', '--']
 
 export function useDistributionData({

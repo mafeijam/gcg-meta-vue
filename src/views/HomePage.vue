@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto max-w-340 px-4 py-16 md:px-8">
-    <div class="flex justify-center overflow-hidden">
+    <div class="flex justify-center">
       <div class="flex items-end gap-[-0.5rem]">
         <img
           v-for="(card, i) in heroCards"
@@ -72,11 +72,11 @@
 const heroCards = ['ST01-001', 'GD02-054', 'ST04-001', 'GD01-066', 'GD01-024']
 
 const heroCardClasses = [
-  'rotate-[-6deg] -mr-4 opacity-60',
-  'rotate-[-3deg] -mr-4 opacity-75',
-  'rotate-0 z-10 opacity-90',
-  'rotate-[3deg] -ml-4 opacity-75',
-  'rotate-[6deg] -ml-4 opacity-60',
+  tw`rotate-[-6deg] -mr-4 opacity-60`,
+  tw`rotate-[-3deg] -mr-4 opacity-75`,
+  tw`rotate-0 z-10 opacity-90`,
+  tw`rotate-[3deg] -ml-4 opacity-75`,
+  tw`rotate-[6deg] -ml-4 opacity-60`,
 ]
 
 const features = [

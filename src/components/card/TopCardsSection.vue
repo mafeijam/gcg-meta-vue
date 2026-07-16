@@ -2,7 +2,7 @@
   <div>
     <div class="mb-3">
       <div class="overflow-x-auto">
-        <MetaTabGroup v-model="colorFilter" :options="colorTabOptions" class="xl:w-fit" />
+        <UiMetaTabGroup v-model="colorFilter" :options="colorTabOptions" class="xl:w-fit" />
       </div>
     </div>
 
@@ -28,10 +28,10 @@
       <template #tabs>
         <div class="ml-auto flex flex-col gap-2 sm:flex-row">
           <div class="flex justify-end overflow-x-auto">
-            <MetaTabGroup v-model="cardTab" :options="cardMetricOptions" />
+            <UiMetaTabGroup v-model="cardTab" :options="cardMetricOptions" />
           </div>
           <div class="flex justify-end overflow-x-auto">
-            <MetaTabGroup v-model="typeTab" :options="cardTypeOptions" />
+            <UiMetaTabGroup v-model="typeTab" :options="cardTypeOptions" />
           </div>
         </div>
       </template>

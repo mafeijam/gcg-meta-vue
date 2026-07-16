@@ -35,7 +35,7 @@
         </RouterLink>
       </div>
       <div class="flex flex-1 justify-end">
-        <DarkToggle />
+        <UiDarkToggle />
       </div>
     </nav>
 

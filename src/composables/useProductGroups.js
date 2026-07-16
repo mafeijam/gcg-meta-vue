@@ -1,5 +1,3 @@
-import { COLOR_HEX } from '@/utils/colors.js'
-
 function addDays(dateStr, days) {
   if (!dateStr) {
     return dateStr

@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto max-w-340 p-3 max-sm:pb-6 md:p-8">
-    <SeriesHeader
+    <UiSeriesHeader
       title="Archetype Analysis"
       :visible="!!currentSeriesData"
       :events="currentSeriesData?.events ?? 0"
@@ -15,7 +15,7 @@
       <div
         class="flex flex-col items-end gap-2 md:flex-row md:items-start md:justify-between md:gap-8"
       >
-        <GeneralDropdown
+        <UiGeneralDropdown
           v-model="seriesKey"
           class="w-fit md:order-2 md:max-w-md md:shrink-0"
           :options="seriesOptions"

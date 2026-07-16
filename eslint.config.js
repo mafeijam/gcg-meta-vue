@@ -39,7 +39,7 @@ export default [
     },
   },
   {
-    files: ['**/*.vue'],
+    files: ['**/*.vue', 'src/composables/**', 'src/utils/**'],
     rules: {
       'no-restricted-imports': [
         'error',

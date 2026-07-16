@@ -8,7 +8,7 @@
       Card Quadrants
     </h2>
     <div class="mb-3 overflow-x-auto">
-      <MetaTabGroup v-model="cardTypeChart" :options="cardTypeOptions" />
+      <UiMetaTabGroup v-model="cardTypeChart" :options="cardTypeOptions" />
     </div>
     <ChartCardQuadrantChart
       :card-items="filteredCardItems"

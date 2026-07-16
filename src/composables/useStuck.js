@@ -1,5 +1,3 @@
-import { ref, onMounted, onUnmounted } from 'vue'
-
 export function useStuck() {
   const stuckIds = ref(new Set())
   let observer = null

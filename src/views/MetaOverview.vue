@@ -1,6 +1,6 @@
 <template>
   <div class="mx-auto max-w-340 p-3 max-sm:pb-6 md:p-8">
-    <SeriesHeader
+    <UiSeriesHeader
       title="Meta Overview"
       :visible="!!currentSeries"
       :events="currentSeries?.events ?? 0"
@@ -13,7 +13,7 @@
       class="sticky top-12 z-40 -mx-3 mb-3 bg-white px-3 py-3 transition-transform duration-300 md:-mx-8 md:px-8 dark:bg-nalika-bg"
       :class="hideFilter ? '-translate-y-full' : 'translate-y-0'"
     >
-      <GeneralDropdown
+      <UiGeneralDropdown
         v-model="selectedKey"
         class="ml-auto w-fit md:max-w-md"
         :options="seriesOptions"
@@ -39,7 +39,7 @@
 
     <ArchetypeQuadrantsSection :quadrant-data="quadrantData" />
 
-    <ViewAllModal
+    <UiViewAllModal
       :visible="!!viewAllModal"
       :items="viewAllModal === 'colors' ? allColorDist : allWinRateDist"
       :mode="viewAllModal || 'colors'"
