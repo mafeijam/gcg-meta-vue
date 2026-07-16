@@ -1,135 +1,95 @@
 <template>
-  <div
-    class="overflow-hidden rounded-r-lg border-l-5 bg-shironezumi/7 not-dark:shadow-md not-dark:shadow-gray-400/10 dark:bg-nalika-surface"
-    :class="tierBorderClass(row.tier)"
-  >
-    <div class="flex items-center justify-between gap-2 px-3 pt-3">
-      <div class="flex items-center gap-2">
-        <span
-          class="w-11 rounded px-1.5 py-0.5 text-center text-xs font-bold"
-          :class="tierPillClass(row.tier)"
+  <div class="space-y-3 md:hidden">
+    <template v-if="!groupByColor">
+      <TierCardItem
+        v-for="row in rows"
+        :key="row.archetype"
+        :row="row"
+        :detail-loading="detailLoading"
+        @detail="$emit('detail', $event)"
+      />
+    </template>
+    <template v-else>
+      <div v-for="group in groups" :key="group.colors" class="space-y-3">
+        <div
+          :ref="el => registerStuck(el, group.colors)"
+          :class="['mobile-group-header sticky z-30 flex items-center gap-2 rounded px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400', stuckIds.has(group.colors) ? 'bg-gray-300 dark:bg-nalika-surface' : 'bg-gray-300/40 dark:bg-white/15']"
+          :style="{ top: groupTop }"
         >
-          {{ row.tier }}
-        </span>
-        <span
-          class="font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
-        >
-          {{ row.score }}
-        </span>
-      </div>
-      <button
-        class="shrink-0 rounded px-2 py-1 text-xs font-medium text-sora hover:bg-sora/10 focus:outline-none dark:hover:bg-sora/20"
-        :class="{ 'animate-pulse': detailLoading }"
-        @click="$emit('detail', row)"
-      >
-        {{ detailLoading ? 'Loading…' : 'Detail ▶' }}
-      </button>
-    </div>
-
-    <div class="px-3 py-2.5">
-      <div class="flex items-baseline gap-1.5">
-        <div v-if="!hideColorDots" class="flex shrink-0 items-center gap-1">
-          <div
-            v-for="dot in row.colorDots"
-            :key="dot.name"
-            class="inline-block h-2 w-2 rounded-full"
-            :style="{ background: dot.hex }"
-          />
-        </div>
-        <div class="flex items-center gap-1">
-          <div class="text-sm text-gray-800 dark:text-nalika-text">
-            <template
-              v-for="(seg, si) in buildLabelSegments(row.archetype, row.sigCards ?? [], { skipBaseCombo: hideColorName })"
-              :key="si"
-            >
-              <span v-if="seg.color" :style="{ color: seg.color }">{{ seg.text }}</span>
-              <span v-else>{{ seg.text }}</span>
-            </template>
+          <div class="flex items-center gap-0.5">
+            <div
+              v-for="dot in group.colorDots"
+              :key="dot.name"
+              class="inline-block h-2 w-2 rounded-full"
+              :style="{ background: dot.hex }"
+            />
           </div>
-          <span
-            v-if="row.darkHorse"
-            class="inline-flex items-center gap-0.5 rounded bg-amber-100 px-1 text-xs font-semibold text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
-          >
-            🐴
-          </span>
+          <span>{{ group.colors }}</span>
+          <span class="text-gray-400">({{ group.rows.length }})</span>
+          <span class="ml-auto font-mono tabular-nums">{{ group.totalDecks }} decks / {{ group.totalWins }} wins</span>
         </div>
+        <TierCardItem
+          v-for="row in group.rows"
+          :key="row.archetype"
+          :row="row"
+          :detail-loading="detailLoading"
+          hide-color-dots
+          hide-color-name
+          @detail="$emit('detail', $event)"
+        />
       </div>
-    </div>
-
-    <div class="grid grid-cols-4 gap-2 px-3 pb-2">
-      <div class="flex flex-col">
-        <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">Decks</div>
-        <div
-          class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
-        >
-          {{ row.decks }}
-        </div>
-      </div>
-      <div class="flex flex-col">
-        <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">Wins</div>
-        <div
-          class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
-        >
-          {{ row.wins }}
-        </div>
-      </div>
-      <div class="col-start-4 flex flex-col">
-        <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">Top4</div>
-        <div
-          class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
-        >
-          {{ row.top4 }}
-        </div>
-      </div>
-    </div>
-
-    <div class="grid grid-cols-4 gap-2 px-3 pb-4">
-      <div class="flex flex-col">
-        <span class="block text-xxs font-semibold tracking-widest text-gray-400 uppercase">
-          Use%
-        </span>
-        <span
-          class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
-        >
-          {{ row.usePct }}
-        </span>
-      </div>
-      <div class="flex flex-col">
-        <span class="block text-xxs font-semibold tracking-widest text-gray-400 uppercase">
-          Win/Ev
-        </span>
-        <span
-          class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
-        >
-          {{ row.winPerEv }}
-        </span>
-      </div>
-      <div class="flex flex-col">
-        <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">Win/Dk</div>
-        <div
-          class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
-        >
-          {{ row.winPerDk }}
-        </div>
-      </div>
-      <div class="flex flex-col">
-        <div class="text-xxs font-semibold tracking-widest text-gray-400 uppercase">T4/Dk</div>
-        <div
-          class="mt-px font-mono text-sm font-bold text-aisumicha tabular-nums dark:text-nalika-text-muted"
-        >
-          {{ row.t4PerDk }}
-        </div>
-      </div>
-    </div>
+    </template>
+    <button
+      v-if="zeroWinRows.length"
+      class="w-full cursor-pointer py-2 text-center text-xs font-medium text-ruri"
+      @click="$emit('toggleZeroWins')"
+    >
+      0 Wins（{{ zeroWinRows.length }}）{{ showZeroWins ? '−' : '+' }}
+    </button>
+    <template v-if="showZeroWins">
+      <TierCardItem
+        v-for="row in zeroWinRows"
+        :key="row.archetype"
+        :row="row"
+        :detail-loading="detailLoading"
+        @detail="$emit('detail', $event)"
+      />
+    </template>
   </div>
 </template>
 
 <script setup>
-defineProps({
-  row: { type: Object, required: true },
+const props = defineProps({
+  rows: { type: Array, required: true },
+  zeroWinRows: { type: Array, default: () => [] },
+  showZeroWins: { type: Boolean, default: false },
+  groupByColor: { type: Boolean, default: false },
   detailLoading: { type: Boolean, default: false },
-  hideColorDots: { type: Boolean, default: false },
-  hideColorName: { type: Boolean, default: false },
+  groupTop: { type: String, default: '53px' },
 })
-defineEmits(['detail'])
+defineEmits(['detail', 'toggleZeroWins'])
+
+const { stuckIds, register: registerStuck } = useStuck()
+
+const groups = computed(() => {
+  if (!props.groupByColor) {
+    return []
+  }
+  const map = {}
+  for (const row of props.rows) {
+    if (!map[row.colors]) {
+      map[row.colors] = {
+        colors: row.colors,
+        colorDots: row.colorDots,
+        rows: [],
+        totalDecks: 0,
+        totalWins: 0,
+      }
+    }
+    map[row.colors].rows.push(row)
+    map[row.colors].totalDecks += row.decks
+    map[row.colors].totalWins += row.wins
+  }
+  return Object.values(map).sort((a, b) => b.totalDecks - a.totalDecks)
+})
 </script>

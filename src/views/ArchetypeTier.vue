@@ -47,63 +47,16 @@
         :color-combo-data="currentSeries?.colorComboData ?? []"
         class="mb-6 md:mb-2"
       />
-      <div class="space-y-3 md:hidden">
-        <template v-if="!groupByColor">
-          <TierMobileTierCard
-            v-for="row in tierRows"
-            :key="row.archetype"
-            :row="row"
-            :detail-loading="detailLoading"
-            @detail="openDetail"
-          />
-        </template>
-        <template v-else>
-          <div v-for="group in mobileGroups" :key="group.colors" class="space-y-3">
-            <div
-              :ref="el => registerStuck(el, group.colors)"
-              :class="['mobile-group-header sticky z-30 flex items-center gap-2 rounded px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400', stuckIds.has(group.colors) ? 'bg-gray-300 dark:bg-nalika-surface' : 'bg-gray-300/40 dark:bg-white/15']"
-              :style="{ top: groupTop }"
-            >
-              <div class="flex items-center gap-0.5">
-                <div
-                  v-for="dot in group.colorDots"
-                  :key="dot.name"
-                  class="inline-block h-2 w-2 rounded-full"
-                  :style="{ background: dot.hex }"
-                />
-              </div>
-              <span>{{ group.colors }}</span>
-              <span class="text-gray-400">({{ group.rows.length }})</span>
-              <span class="ml-auto font-mono tabular-nums">{{ group.totalDecks }} decks / {{ group.totalWins }} wins</span>
-            </div>
-            <TierMobileTierCard
-              v-for="row in group.rows"
-              :key="row.archetype"
-              :row="row"
-              :detail-loading="detailLoading"
-              :hide-color-dots="groupByColor"
-              :hide-color-name="groupByColor"
-              @detail="openDetail"
-            />
-          </div>
-        </template>
-        <button
-          v-if="zeroWinRows.length"
-          class="w-full cursor-pointer py-2 text-center text-xs font-medium text-ruri"
-          @click="toggleZeroWins"
-        >
-          0 Wins（{{ zeroWinRows.length }}）{{ showZeroWins ? '−' : '+' }}
-        </button>
-        <template v-if="showZeroWins">
-          <TierMobileTierCard
-            v-for="row in zeroWinRows"
-            :key="row.archetype"
-            :row="row"
-            :detail-loading="detailLoading"
-            @detail="openDetail"
-          />
-        </template>
-      </div>
+      <TierMobileTierCard
+        :rows="tierRows"
+        :group-by-color="groupByColor"
+        :zero-win-rows="zeroWinRows"
+        :show-zero-wins="showZeroWins"
+        :detail-loading="detailLoading"
+        :group-top="groupTop"
+        @detail="openDetail"
+        @toggle-zero-wins="toggleZeroWins"
+      />
 
       <TierTable
         :rows="tierRows"
@@ -247,8 +200,6 @@ const filterBarRef = ref(null)
 const filterBarH = computed(() => filterBarRef.value?.offsetHeight ?? 0)
 const groupTop = computed(() => (hideFilter.value ? '53px' : `calc(53px + ${filterBarH.value}px)`))
 
-const { stuckIds, register: registerStuck } = useStuck()
-
 const totalWins = computed(() => currentSeries.value?.winDecks ?? 0)
 
 const allRows = computed(() => currentSeries.value?.rows ?? [])
@@ -259,28 +210,6 @@ const zeroWinRows = computed(() => allRows.value.filter(r => r.wins === 0))
 
 const groupByColor = useStorage('gcg-group-color', false)
 const showZeroWins = ref(false)
-
-const mobileGroups = computed(() => {
-  if (!groupByColor.value) {
-    return []
-  }
-  const map = {}
-  for (const row of tierRows.value) {
-    if (!map[row.colors]) {
-      map[row.colors] = {
-        colors: row.colors,
-        colorDots: row.colorDots,
-        rows: [],
-        totalDecks: 0,
-        totalWins: 0,
-      }
-    }
-    map[row.colors].rows.push(row)
-    map[row.colors].totalDecks += row.decks
-    map[row.colors].totalWins += row.wins
-  }
-  return Object.values(map).sort((a, b) => b.rows.length - a.rows.length)
-})
 
 function toggleZeroWins() {
   showZeroWins.value = !showZeroWins.value

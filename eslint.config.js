@@ -38,24 +38,4 @@ export default [
       ],
     },
   },
-  {
-    files: ['**/*.vue', 'src/composables/**', 'src/utils/**'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          paths: [
-            { name: 'vue', message: 'Auto-imported. Remove this import.' },
-            { name: 'vue-router', message: 'Auto-imported. Remove this import.' },
-          ],
-          patterns: [
-            { group: ['../composables/*', '../../composables/*', '../../../composables/*'], message: 'Auto-imported. Remove this import.' },
-            { group: ['../utils/*', '../../utils/*', '../../../utils/*'], message: 'Auto-imported. Remove this import.' },
-            { group: ['@/composables/*'], message: 'Auto-imported. Remove this import.' },
-            { group: ['@/utils/*'], message: 'Auto-imported. Remove this import.' },
-          ],
-        },
-      ],
-    },
-  },
 ]
