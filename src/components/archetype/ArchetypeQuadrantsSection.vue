@@ -14,7 +14,7 @@
 
 <script setup>
 const ArchetypeQuadrantChart = defineAsyncComponent(
-  () => import('@/components/ArchetypeQuadrantChart.vue'),
+  () => import('@/components/archetype/ArchetypeQuadrantChart.vue'),
 )
 
 defineProps({

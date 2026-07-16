@@ -41,7 +41,7 @@
     </div>
 
     <template v-if="tierDataLoaded">
-      <SigPieChart
+      <ChartSigPieChart
         :rows="allRows"
         :series-decks="currentSeries?.totalDecks ?? 0"
         :color-combo-data="currentSeries?.colorComboData ?? []"
@@ -194,9 +194,6 @@
 </template>
 
 <script setup>
-import SigPieChart from '../components/SigPieChart.vue'
-import DeckPopover from '../components/DeckPopover.vue'
-import { useStuck } from '../composables/useStuck.js'
 import manifest from '$data/archetypes/index.json'
 import { useStorage } from '@vueuse/core'
 import cardMeta from '$data/card-meta.json'

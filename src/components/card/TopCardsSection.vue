@@ -6,7 +6,7 @@
       </div>
     </div>
 
-    <MetaCardSection
+    <CardMetaCardSection
       title="Top Signature Cards"
       :cards="filteredSigCards"
       @toggle-enlarge="$emit('toggle-enlarge', $event)"
@@ -16,9 +16,9 @@
           {{ card.archetypeCount }} archetypes
         </div>
       </template>
-    </MetaCardSection>
+    </CardMetaCardSection>
 
-    <MetaCardSection
+    <CardMetaCardSection
       title="Top 10 Cards"
       :cards="filteredTopCards"
       :loading="loadingCards"
@@ -63,7 +63,7 @@
           </span>
         </div>
       </template>
-    </MetaCardSection>
+    </CardMetaCardSection>
   </div>
 </template>
 

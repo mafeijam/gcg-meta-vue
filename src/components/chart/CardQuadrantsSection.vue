@@ -10,7 +10,7 @@
     <div class="mb-3 overflow-x-auto">
       <MetaTabGroup v-model="cardTypeChart" :options="cardTypeOptions" />
     </div>
-    <CardQuadrantChart
+    <ChartCardQuadrantChart
       :card-items="filteredCardItems"
       :card-type-chart="cardTypeChart"
       :series-key="selectedKey"
@@ -19,7 +19,9 @@
 </template>
 
 <script setup>
-const CardQuadrantChart = defineAsyncComponent(() => import('@/components/CardQuadrantChart.vue'))
+const ChartCardQuadrantChart = defineAsyncComponent(
+  () => import('@/components/chart/CardQuadrantChart.vue'),
+)
 
 const cardTypeChart = defineModel('cardTypeChart', { type: String, default: null })
 

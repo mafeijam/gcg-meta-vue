@@ -125,8 +125,8 @@
 
     <!-- Level & Cost Distribution -->
     <div class="mt-4 grid gap-4 md:grid-cols-2">
-      <DistributionBars title="Level Distribution" :items="levelDist" color="#005caf" />
-      <DistributionBars title="Cost Distribution" :items="costDist" color="#0b346e" />
+      <ChartDistributionBars title="Level Distribution" :items="levelDist" color="#005caf" />
+      <ChartDistributionBars title="Cost Distribution" :items="costDist" color="#0b346e" />
     </div>
 
     <!-- Other Cards (collapsible) -->

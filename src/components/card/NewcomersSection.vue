@@ -1,5 +1,5 @@
 <template>
-  <MetaCardSection
+  <CardMetaCardSection
     title="Newcomers"
     :cards="recentlyUsedCards"
     empty-text="No new cards used"
@@ -19,7 +19,7 @@
         </span>
       </div>
     </template>
-  </MetaCardSection>
+  </CardMetaCardSection>
 </template>
 
 <script setup>

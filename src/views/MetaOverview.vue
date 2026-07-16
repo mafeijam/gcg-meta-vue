@@ -28,7 +28,7 @@
       :archetype-product-groups="archetypeProductGroups"
     />
 
-    <DistributionsGrid
+    <ChartDistributionsGrid
       :tier-dist="tierDist"
       :color-dist="colorDist"
       :all-color-dist="allColorDist"
@@ -47,16 +47,16 @@
       @close="viewAllModal = null"
     />
 
-    <SeriesComparisonCards
+    <UiSeriesComparisonCards
       :series-comparison="seriesComparison"
       :previous-series="previousSeries"
     />
 
     <CardStateCards :card-state-comparison="cardStateComparison" />
 
-    <LevelCostDistribution :level-dist="levelDist" :cost-dist="costDist" />
+    <ChartLevelCostDistribution :level-dist="levelDist" :cost-dist="costDist" />
 
-    <TopCardsSection
+    <CardTopCardsSection
       v-model:color-filter="colorFilter"
       v-model:card-tab="cardTab"
       v-model:type-tab="typeTab"
@@ -73,7 +73,7 @@
       @toggle-enlarge="toggleEnlarge"
     />
 
-    <NewcomersSection
+    <CardNewcomersSection
       :recently-used-cards="recentlyUsedCards"
       :percent-of1="percentOf1"
       :total-series-decks="totalSeriesDecks"
@@ -81,7 +81,7 @@
       @toggle-enlarge="toggleEnlarge"
     />
 
-    <CardQuadrantsSection
+    <ChartCardQuadrantsSection
       v-model:card-type-chart="cardTypeChart"
       :card-type-options="cardTypeOptions"
       :filtered-card-items="filteredCardItems"

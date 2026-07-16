@@ -18,7 +18,7 @@
       v-else-if="cards.length"
       class="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-10"
     >
-      <MetaCardItem
+      <CardMetaCardItem
         v-for="card in cards"
         :key="card.cardId"
         v-memo="[card]"
@@ -26,7 +26,7 @@
         @toggle-enlarge="$emit('toggle-enlarge', $event)"
       >
         <slot name="footer" :card="card" />
-      </MetaCardItem>
+      </CardMetaCardItem>
     </div>
     <p v-else class="py-4 text-center text-sm text-gray-400 dark:text-gray-500">
       {{ emptyText }}
