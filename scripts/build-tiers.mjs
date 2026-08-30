@@ -456,7 +456,7 @@ function calculateTechScore(wins, decks, totalArchetypeDecks, isVanilla = false)
 
 // Two-pass featured-card selection:
 //   1) Guarantee type coverage (4 each of UNIT/PILOT/COMMAND/BASE)
-//   2) Fill remaining slots with cards above 15% inclusion, capped at 4 per non-UNIT type
+//   2) Fill remaining slots with cards above 10% inclusion, capped at 8 per COMMAND, 4 per other non-UNIT type
 function selectTopCards(allCards) {
   const perType = {}
   for (const card of allCards) {
@@ -477,13 +477,14 @@ function selectTopCards(allCards) {
   }
 
   // Second pass: fill with high-inclusion cards up to 4 per non-UNIT type
+  // up to 8 for COMMAND
   for (const card of allCards) {
     if (!TYPE_PICK_ORDER.includes(card.type) || selectedIds.has(card.cardId)) {
       continue
     }
     if (card.type !== 'UNIT') {
       const typeCount = selected.filter(tc => tc.type === card.type).length
-      if (typeCount >= 4) {
+      if (typeCount >= (card.type === 'COMMAND' ? 8 : 4)) {
         continue
       }
     }
