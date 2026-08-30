@@ -19,6 +19,7 @@ const CONCURRENCY =
   Number.isInteger(fromEnv) && fromEnv > 0
     ? fromEnv
     : Math.min(4, Math.max(1, cpus().length - 1))
+const FORCE = process.env.BANDAI_FORCE === '1'
 
 // ── Chrome binary detection ──────────────────────────────────────────────────
 function findChromeBinary() {
@@ -143,7 +144,10 @@ function extractPlayersAndDecksJS() {
 
   const players = []
   let rank = ''
-  const rankMap = { 優勝: 1, 準優勝: 1, '3位': 1, '4位': 1, '5位': 1, '6位': 1, '7位': 1, '8位': 1 }
+  const rankMap = { 優勝: 1, 準優勝: 1, '3位': 1 }
+  for (let i = 4; i <= 64; i++) {
+    rankMap[`${i}位`] = 1
+  }
   for (const l of lines) {
     if (rankMap[l]) {
       rank = l
@@ -276,12 +280,14 @@ async function scrape() {
   // ── Cache setup ───────────────────────────────────────────────────────────
   const cached = loadCached()
   const cachedByUrl = new Map()
-  for (const t of cached) {
-    for (const ev of t.events ?? []) {
-      cachedByUrl.set(ev.url, ev)
+  if (!FORCE) {
+    for (const t of cached) {
+      for (const ev of t.events ?? []) {
+        cachedByUrl.set(ev.url, ev)
+      }
     }
   }
-  console.log(`  Loaded ${cachedByUrl.size} cached events`)
+  console.log(`  Loaded ${cachedByUrl.size} cached events${FORCE ? ' (force re-scrape)' : ''}`)
 
   // ── Level 2: For each series, find event links ────────────────────────────
   let fetchedCount = 0

@@ -2,6 +2,13 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import * as ss from 'simple-statistics'
 import { WINNER, TOP4, COLOR_HEX, TYPE_ORDER, TYPE_PICK_ORDER } from './constants.mjs'
 
+// Winner rule: 優勝 always counts as a win. For events with ≥16 players,
+// 準優勝 (2nd place) also counts as a winner.
+const TOP2 = '準優勝'
+function isWinner(player) {
+  return player.rank === WINNER || (player.eventPlayerCount >= 16 && player.rank === TOP2)
+}
+
 function loadJSON(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
 }
@@ -195,7 +202,7 @@ function buildArchetypeMaps(allPlayers, winners, top4Players) {
       entry.count++
       entry.deckCardIds.push(serializeDeckCards(player.deck))
       accumulateCardAgg(entry.cardAgg, player.deck)
-      entry.deckWinnerFlags.push(player.rank === WINNER)
+      entry.deckWinnerFlags.push(isWinner(player))
       if (player.deckUrl) {
         entry.deckUrls.push(player.deckUrl)
       }
@@ -226,8 +233,12 @@ function buildArchetypeMaps(allPlayers, winners, top4Players) {
 
 // Filters out empty decks, splits players into all/winners/top4 buckets
 function getSeriesMetadata(series) {
-  const allPlayers = series.events.flatMap(e => e.players).filter(p => p.deck.length > 0)
-  const winners = allPlayers.filter(p => p.rank === WINNER)
+  const allPlayers = series.events.flatMap(e =>
+    e.players
+      .filter(p => p.deck.length > 0)
+      .map(p => ({ ...p, eventPlayerCount: e.players.length })),
+  )
+  const winners = allPlayers.filter(isWinner)
   const top4Players = allPlayers.filter(p => TOP4.includes(p.rank))
   return { allPlayers, winners, top4Players }
 }
@@ -683,7 +694,7 @@ function processSeries(series) {
     })
     .map(p => ({
       deckUrl: p.deckUrl,
-      isWinner: p.rank === WINNER,
+      isWinner: isWinner(p),
       deckCardIds: serializeDeckCards(p.deck),
     }))
 
@@ -696,7 +707,7 @@ function processSeries(series) {
     }
     const c = colorComboMap[colors]
     c.decks++
-    if (p.rank === WINNER) {
+    if (isWinner(p)) {
       c.wins++
     }
     const sigData = getSignatureCard(p.deck)
