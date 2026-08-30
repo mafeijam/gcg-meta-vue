@@ -203,9 +203,7 @@ function buildArchetypeMaps(allPlayers, winners, top4Players) {
       entry.deckCardIds.push(serializeDeckCards(player.deck))
       accumulateCardAgg(entry.cardAgg, player.deck)
       entry.deckWinnerFlags.push(isWinner(player))
-      if (player.deckUrl) {
-        entry.deckUrls.push(player.deckUrl)
-      }
+      entry.deckUrls.push(player.deckUrl || player.eventUrl || '')
       return entry
     },
   })
@@ -236,7 +234,7 @@ function getSeriesMetadata(series) {
   const allPlayers = series.events.flatMap(e =>
     e.players
       .filter(p => p.deck.length > 0)
-      .map(p => ({ ...p, eventPlayerCount: e.players.length })),
+      .map(p => ({ ...p, eventPlayerCount: e.players.length, eventUrl: e.url })),
   )
   const winners = allPlayers.filter(isWinner)
   const top4Players = allPlayers.filter(p => TOP4.includes(p.rank))
@@ -690,10 +688,10 @@ function processSeries(series) {
   const unassignedDeckData = allPlayers
     .filter(p => {
       const { key, sigCardIds } = buildComboKey(p.deck)
-      return (sigCardIds.length === 0 || smallArchKeys.has(key)) && !!p.deckUrl
+      return (sigCardIds.length === 0 || smallArchKeys.has(key)) && !!(p.deckUrl || p.eventUrl)
     })
     .map(p => ({
-      deckUrl: p.deckUrl,
+      deckUrl: p.deckUrl || p.eventUrl,
       isWinner: isWinner(p),
       deckCardIds: serializeDeckCards(p.deck),
     }))
@@ -854,6 +852,8 @@ function processSeries(series) {
   const manifestEntry = {
     value: series.value,
     label: series.label,
+    eventMinDate,
+    eventMaxDate,
     winDecks: winners.length,
     archetypes: mainDetails.map(a => ({
       combo: a.combo,
@@ -916,6 +916,7 @@ for (const series of tournaments) {
 }
 
 tierData.sort((a, b) => (b.eventMaxDate || '').localeCompare(a.eventMaxDate || ''))
+manifest.sort((a, b) => (b.eventMaxDate || '').localeCompare(a.eventMaxDate || ''))
 
 writeFileSync('data-processed/tiers.json', JSON.stringify(tierData, null, 2))
 console.log(

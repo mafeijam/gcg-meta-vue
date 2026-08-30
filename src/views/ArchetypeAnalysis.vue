@@ -126,11 +126,13 @@ const prevCards = ref(null)
 async function loadPrevArchetype(seriesVal, combo) {
   prevCardIds.value = null
   prevCards.value = null
-  const idx = manifest.findIndex(s => s.value === seriesVal)
-  if (idx >= manifest.length - 1) {
+  const currentEntry = manifest.find(s => s.value === seriesVal)
+  if (!currentEntry?.eventMinDate) {
     return
   }
-  const prevEntry = manifest[idx + 1]
+  const prevEntry = manifest
+    .filter(s => s.value !== seriesVal && s.eventMaxDate && s.eventMaxDate < currentEntry.eventMinDate)
+    .sort((a, b) => b.eventMaxDate.localeCompare(a.eventMaxDate))[0]
   if (!prevEntry) {
     return
   }
