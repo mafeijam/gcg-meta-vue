@@ -9,12 +9,16 @@ import {
   statSync,
 } from 'node:fs'
 import { join } from 'node:path'
-import { homedir } from 'node:os'
+import { homedir, cpus } from 'node:os'
 
 const dataFile = 'data/tournaments-bandai-all.json'
 const IMAGE_BASE = 'https://www.gundam-gcg.com/jp/images/cards/card'
 const BASE_URL = 'https://d.bandai-tcg-plus.com/gcgja/tournament'
-const CONCURRENCY = 4
+const fromEnv = Number(process.env.BANDAI_CONCURRENCY)
+const CONCURRENCY =
+  Number.isInteger(fromEnv) && fromEnv > 0
+    ? fromEnv
+    : Math.min(4, Math.max(1, cpus().length - 1))
 
 // ── Chrome binary detection ──────────────────────────────────────────────────
 function findChromeBinary() {
