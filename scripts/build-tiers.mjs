@@ -627,9 +627,15 @@ function buildCardState(mainDetails, eventMaxDate) {
   const usedCardIds = new Set()
   for (const arch of mainDetails) {
     for (const card of arch.cards) {
+      if (!card.cardId) {
+        continue
+      }
       usedCardIds.add(card.cardId)
     }
     for (const card of arch.filteredCards) {
+      if (!card.cardId) {
+        continue
+      }
       usedCardIds.add(card.cardId)
     }
   }
@@ -738,30 +744,39 @@ function processSeries(series) {
   // Pre-aggregated card data for MetaOverview (eliminates 73 runtime imports)
   const cardMap = {}
   const sigCardCounts = {}
+  const accumulateCard = card => {
+    if (!card.cardId) {
+      return
+    }
+    const c = cardMap[card.cardId]
+    if (c) {
+      c.totalDecksIncluded += card.decksIncluded
+      c.totalWinnerDecks += card.winnerDeckCount
+      c.totalQty += card.totalQty
+      c.archetypeCount += 1
+    } else {
+      const info = lookup(card.cardId)
+      cardMap[card.cardId] = {
+        cardId: card.cardId,
+        name: card.name,
+        color: card.color,
+        type: card.type,
+        rarity: card.rarity,
+        cost: info.cost,
+        level: info.level,
+        totalDecksIncluded: card.decksIncluded,
+        totalWinnerDecks: card.winnerDeckCount,
+        totalQty: card.totalQty,
+        archetypeCount: 1,
+      }
+    }
+  }
   for (const arch of mainDetails) {
     for (const card of arch.cards) {
-      const c = cardMap[card.cardId]
-      if (c) {
-        c.totalDecksIncluded += card.decksIncluded
-        c.totalWinnerDecks += card.winnerDeckCount
-        c.totalQty += card.totalQty
-        c.archetypeCount += 1
-      } else {
-        const info = lookup(card.cardId)
-        cardMap[card.cardId] = {
-          cardId: card.cardId,
-          name: card.name,
-          color: card.color,
-          type: card.type,
-          rarity: card.rarity,
-          cost: info.cost,
-          level: info.level,
-          totalDecksIncluded: card.decksIncluded,
-          totalWinnerDecks: card.winnerDeckCount,
-          totalQty: card.totalQty,
-          archetypeCount: 1,
-        }
-      }
+      accumulateCard(card)
+    }
+    for (const card of arch.filteredCards) {
+      accumulateCard(card)
     }
     for (const sigId of arch.sigCardIds ?? []) {
       sigCardCounts[sigId] = (sigCardCounts[sigId] || 0) + 1
