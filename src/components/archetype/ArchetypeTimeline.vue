@@ -277,6 +277,7 @@ const timeline = computed(() => {
         seriesKey: series.value,
         archIndex,
         label: series.label,
+        eventMaxDate: series.eventMaxDate,
         deckCount: arch.deckCount,
         winnerDeckCount: arch.winnerDeckCount,
         percent: arch.percent,
@@ -288,6 +289,7 @@ const timeline = computed(() => {
       }
     })
     .filter(Boolean)
+    .sort((a, b) => (b.eventMaxDate || '').localeCompare(a.eventMaxDate || ''))
 
   return entries.map((entry, i) => {
     const prev = entries[i + 1] || null

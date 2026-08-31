@@ -2,6 +2,13 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
 import * as ss from 'simple-statistics'
 import { WINNER, TOP4, COLOR_HEX, TYPE_ORDER, TYPE_PICK_ORDER } from './constants.mjs'
 
+// Winner rule: 優勝 always counts as a win. For events with ≥16 players,
+// 準優勝 (2nd place) also counts as a winner.
+const TOP2 = '準優勝'
+function isWinner(player) {
+  return player.rank === WINNER || (player.eventPlayerCount >= 16 && player.rank === TOP2)
+}
+
 function loadJSON(path) {
   return JSON.parse(readFileSync(path, 'utf8'))
 }
@@ -195,10 +202,8 @@ function buildArchetypeMaps(allPlayers, winners, top4Players) {
       entry.count++
       entry.deckCardIds.push(serializeDeckCards(player.deck))
       accumulateCardAgg(entry.cardAgg, player.deck)
-      entry.deckWinnerFlags.push(player.rank === WINNER)
-      if (player.deckUrl) {
-        entry.deckUrls.push(player.deckUrl)
-      }
+      entry.deckWinnerFlags.push(isWinner(player))
+      entry.deckUrls.push(player.deckUrl || player.eventUrl || '')
       return entry
     },
   })
@@ -226,8 +231,12 @@ function buildArchetypeMaps(allPlayers, winners, top4Players) {
 
 // Filters out empty decks, splits players into all/winners/top4 buckets
 function getSeriesMetadata(series) {
-  const allPlayers = series.events.flatMap(e => e.players).filter(p => p.deck.length > 0)
-  const winners = allPlayers.filter(p => p.rank === WINNER)
+  const allPlayers = series.events.flatMap(e =>
+    e.players
+      .filter(p => p.deck.length > 0)
+      .map(p => ({ ...p, eventPlayerCount: e.players.length, eventUrl: e.url })),
+  )
+  const winners = allPlayers.filter(isWinner)
   const top4Players = allPlayers.filter(p => TOP4.includes(p.rank))
   return { allPlayers, winners, top4Players }
 }
@@ -456,7 +465,7 @@ function calculateTechScore(wins, decks, totalArchetypeDecks, isVanilla = false)
 
 // Two-pass featured-card selection:
 //   1) Guarantee type coverage (4 each of UNIT/PILOT/COMMAND/BASE)
-//   2) Fill remaining slots with cards above 15% inclusion, capped at 4 per non-UNIT type
+//   2) Fill remaining slots with cards above 10% inclusion, capped at 8 per COMMAND, 4 per other non-UNIT type
 function selectTopCards(allCards) {
   const perType = {}
   for (const card of allCards) {
@@ -477,13 +486,14 @@ function selectTopCards(allCards) {
   }
 
   // Second pass: fill with high-inclusion cards up to 4 per non-UNIT type
+  // up to 8 for COMMAND
   for (const card of allCards) {
     if (!TYPE_PICK_ORDER.includes(card.type) || selectedIds.has(card.cardId)) {
       continue
     }
     if (card.type !== 'UNIT') {
       const typeCount = selected.filter(tc => tc.type === card.type).length
-      if (typeCount >= 4) {
+      if (typeCount >= (card.type === 'COMMAND' ? 8 : 4)) {
         continue
       }
     }
@@ -678,11 +688,11 @@ function processSeries(series) {
   const unassignedDeckData = allPlayers
     .filter(p => {
       const { key, sigCardIds } = buildComboKey(p.deck)
-      return (sigCardIds.length === 0 || smallArchKeys.has(key)) && !!p.deckUrl
+      return (sigCardIds.length === 0 || smallArchKeys.has(key)) && !!(p.deckUrl || p.eventUrl)
     })
     .map(p => ({
-      deckUrl: p.deckUrl,
-      isWinner: p.rank === WINNER,
+      deckUrl: p.deckUrl || p.eventUrl,
+      isWinner: isWinner(p),
       deckCardIds: serializeDeckCards(p.deck),
     }))
 
@@ -695,7 +705,7 @@ function processSeries(series) {
     }
     const c = colorComboMap[colors]
     c.decks++
-    if (p.rank === WINNER) {
+    if (isWinner(p)) {
       c.wins++
     }
     const sigData = getSignatureCard(p.deck)
@@ -842,6 +852,8 @@ function processSeries(series) {
   const manifestEntry = {
     value: series.value,
     label: series.label,
+    eventMinDate,
+    eventMaxDate,
     winDecks: winners.length,
     archetypes: mainDetails.map(a => ({
       combo: a.combo,
@@ -904,6 +916,7 @@ for (const series of tournaments) {
 }
 
 tierData.sort((a, b) => (b.eventMaxDate || '').localeCompare(a.eventMaxDate || ''))
+manifest.sort((a, b) => (b.eventMaxDate || '').localeCompare(a.eventMaxDate || ''))
 
 writeFileSync('data-processed/tiers.json', JSON.stringify(tierData, null, 2))
 console.log(

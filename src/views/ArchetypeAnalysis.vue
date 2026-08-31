@@ -60,21 +60,30 @@ function comboColors(combo) {
 const router = useRouter()
 const route = useRoute()
 
-const seriesOptions = manifest.map(s => ({
-  value: s.value,
-  label: s.label,
-}))
-
-const validSeries = manifest.map(s => s.value)
-const seriesInitial = validSeries.includes(route.query.series)
-  ? route.query.series
-  : (manifest[0]?.value ?? '')
-const seriesKey = ref(seriesInitial)
-
-const seriesManifest = computed(() => manifest.find(s => s.value === seriesKey.value))
-
 const { tierData, loadTierData } = useTierData()
 const { start, finish } = useLoadingBar()
+
+await loadTierData()
+
+const seriesOptions = computed(() =>
+  tierData.value.map(s => ({
+    value: s.value,
+    label: s.label,
+  })),
+)
+
+const validSeries = computed(() => tierData.value.map(s => s.value))
+const seriesInitial = computed(() => {
+  if (!tierData.value.length) {
+    return ''
+  }
+  return validSeries.value.includes(route.query.series)
+    ? route.query.series
+    : (tierData.value[0]?.value ?? '')
+})
+const seriesKey = ref(seriesInitial.value)
+
+const seriesManifest = computed(() => manifest.find(s => s.value === seriesKey.value))
 
 const currentSeriesData = computed(() => tierData.value.find(s => s.value === seriesKey.value))
 
@@ -82,15 +91,28 @@ const { hideFilter } = useScrollHide(180)
 
 const totalWins = computed(() => currentSeriesData.value?.winDecks ?? 0)
 
-const archOptions = computed(() =>
-  (seriesManifest.value?.archetypes ?? []).map((a, i) => ({
-    value: String(i),
-    details: `${a.cardCount} cards · ${a.winnerDeckCount} wins · ${a.deckCount} decks (${a.percent}%)`,
-    colors: comboColors(a.combo),
-    labelSegments: buildLabelSegments(a.combo, a.sigCards),
-    tier: a.tier || null,
-  })),
-)
+function normalizeCombo(s) {
+  return s.replace(/[（）]/g, c => (c === '（' ? '(' : ')')).replace(/\s*\(/g, '(')
+}
+
+const archOptions = computed(() => {
+  const rows = currentSeriesData.value?.rows ?? []
+  const rowOrder = (combo) => {
+    const normalized = normalizeCombo(combo)
+    const idx = rows.findIndex(r => normalizeCombo(r.archetype) === normalized)
+    return idx === -1 ? Number.MAX_SAFE_INTEGER : idx
+  }
+  return (seriesManifest.value?.archetypes ?? [])
+    .map((a, i) => ({
+      value: String(i),
+      details: `${a.cardCount} cards · ${a.winnerDeckCount} wins · ${a.deckCount} decks (${a.percent}%)`,
+      colors: comboColors(a.combo),
+      labelSegments: buildLabelSegments(a.combo, a.sigCards),
+      tier: a.tier || null,
+      combo: a.combo,
+    }))
+    .sort((x, y) => rowOrder(x.combo) - rowOrder(y.combo))
+})
 
 const validArchKeys = computed(() => archOptions.value.map(o => o.value))
 const archInitial = validArchKeys.value.includes(route.query.arch) ? route.query.arch : '0'
@@ -104,11 +126,13 @@ const prevCards = ref(null)
 async function loadPrevArchetype(seriesVal, combo) {
   prevCardIds.value = null
   prevCards.value = null
-  const idx = manifest.findIndex(s => s.value === seriesVal)
-  if (idx >= manifest.length - 1) {
+  const currentEntry = manifest.find(s => s.value === seriesVal)
+  if (!currentEntry?.eventMinDate) {
     return
   }
-  const prevEntry = manifest[idx + 1]
+  const prevEntry = manifest
+    .filter(s => s.value !== seriesVal && s.eventMaxDate && s.eventMaxDate < currentEntry.eventMinDate)
+    .sort((a, b) => b.eventMaxDate.localeCompare(a.eventMaxDate))[0]
   if (!prevEntry) {
     return
   }
@@ -188,6 +212,5 @@ watch([seriesKey, archKey], async ([s, a]) => {
   await loadArchetype(s, a)
 })
 
-await loadTierData()
 await loadArchetype(seriesKey.value, archKey.value)
 </script>
