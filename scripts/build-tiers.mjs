@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs'
+import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync, rmSync } from 'node:fs'
 import * as ss from 'simple-statistics'
 import { WINNER, TOP4, COLOR_HEX, TYPE_ORDER, TYPE_PICK_ORDER } from './constants.mjs'
 
@@ -920,10 +920,74 @@ if (existsSync('data/tournaments-bandai-all.json')) {
 
 mkdirSync('data-processed/archetypes', { recursive: true })
 
+// Group series that were scraped in separate formats by their calendar month
+// (YYYY-MM), merging all member series into a single monthly entry.
+function getSeriesMonth(series) {
+  const { eventMinDate } = getSeriesEventDateRange(series)
+  return eventMinDate ? eventMinDate.slice(0, 7) : null
+}
+
+// Short display name for a series used in merged month labels.
+const SERIES_SHORT_NAMES = [
+  [/ニュータイプチャレンジ/, 'NTC'],
+  [/シリアルカードチャレンジ/, 'Serial'],
+]
+function getSeriesShortName(series) {
+  for (const [re, short] of SERIES_SHORT_NAMES) {
+    if (re.test(series.label)) {
+      return short
+    }
+  }
+  const cleaned = series.label
+    .replace(/（\d+月開催）/, '')
+    .replace(/[\s【】（）()]/g, '')
+    .trim()
+  return cleaned ? cleaned.slice(0, 10) : series.value.slice(0, 10)
+}
+
+const byMonth = new Map()
+const monthlessSeries = []
+for (const series of tournaments) {
+  const month = getSeriesMonth(series)
+  if (month === null) {
+    monthlessSeries.push(series)
+    continue
+  }
+  if (!byMonth.has(month)) {
+    byMonth.set(month, [])
+  }
+  byMonth.get(month).push(series)
+}
+
+const mergedSeries = [...monthlessSeries]
+for (const [month, seriesList] of byMonth) {
+  if (seriesList.length === 1) {
+    mergedSeries.push(seriesList[0])
+    continue
+  }
+  const [y, m] = month.split('-')
+  mergedSeries.push({
+    value: month,
+    label: `${y}-${m} (${seriesList.map(getSeriesShortName).join(' + ')})`,
+    url: '',
+    events: seriesList.flatMap(s => s.events),
+  })
+}
+
+// Remove stale archetype folders from previous runs that no longer match any
+// series value in this build (e.g. pre-merge per-format folders).
+const keepValues = new Set(mergedSeries.map(s => s.value))
+for (const dir of readdirSync('data-processed/archetypes', { withFileTypes: true })) {
+  if (dir.isDirectory() && !keepValues.has(dir.name)) {
+    rmSync(`data-processed/archetypes/${dir.name}`, { recursive: true, force: true })
+    console.log(`Removed stale archetype folder: ${dir.name}`)
+  }
+}
+
 const tierData = []
 const manifest = []
 
-for (const series of tournaments) {
+for (const series of mergedSeries) {
   console.log(`Processing: ${series.label}`)
   const result = processSeries(series)
   tierData.push(result.tierEntry)
